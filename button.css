@@ -1,0 +1,11 @@
+.github-sst {
+  position: fixed !important;
+  bottom: 80px;
+  right: 50px;
+  font-family: monospace;
+  font-weight: bolder;
+}
+
+.hidden {
+  display: none;
+}
