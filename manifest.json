@@ -3,7 +3,7 @@
 
   "name": "Scroll to Github Top",
   "description": "This extension make you easy to Scroll to Github page Top.",
-  "version": "1.1",
+  "version": "1.2",
   "browser_action": {
     "default_icon": "icon.png"
   },
