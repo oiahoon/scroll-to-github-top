@@ -23,7 +23,7 @@ window.onscroll = function() {
 
 
 function runScroll() {
-  scrollTo(document.body, 0, 600);
+  scrollTo(document.body, 0, 348);
 }
 
 function scrollTo(element, to, duration) {
