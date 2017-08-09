@@ -1,5 +1,5 @@
 ## Scroll to Github Top (STGT)
-[![Code Climate](https://github.com/oiahoon/scroll-to-github-top/badges/gpa.svg)](https://codeclimate.com/github/oiahoon/scroll-to-github-top)
+[![Code Climate](https://codeclimate.com/github/oiahoon/scroll-to-github-top/badges/gpa.svg)](https://codeclimate.com/github/oiahoon/scroll-to-github-top)
 [![License](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 ----
 ## info
