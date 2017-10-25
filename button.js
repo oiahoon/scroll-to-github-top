@@ -11,7 +11,8 @@ bodyDiv.appendChild(button);
 button.addEventListener('click',runScroll,false);
 
 window.onscroll = function() {
-  if (document.body.scrollTop > 468) {
+  var sTop = document.body.scrollTop + document.documentElement.scrollTop;
+  if (sTop > 468) {
     button.classList.remove('hidden');
     button.classList.add('shown');
   } else {
