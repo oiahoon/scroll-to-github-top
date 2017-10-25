@@ -24,7 +24,11 @@ window.onscroll = function() {
 
 
 function runScroll() {
-  scrollTo(document.body, 0, 348);
+  var holder = document.body;
+  if (document.body.scrollTop == 0) {
+    holder = document.documentElement;
+  }
+  scrollTo(holder, 0, 348);
 }
 
 function scrollTo(element, to, duration) {

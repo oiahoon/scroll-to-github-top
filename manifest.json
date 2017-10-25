@@ -3,7 +3,7 @@
   "name": "Scroll to Github Top",
   "short_name": "STGT",
   "description": "This extension make you easy to Scroll to Github page Top.",
-  "version": "1.4",
+  "version": "1.5",
   "browser_action": {
     "default_icon": "icon.png"
   },
