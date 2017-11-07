@@ -1,5 +1,7 @@
 ## CHANGELOG
 
+### v 1.6
+    1. add `http://guides.rubyonrails.org`
 ### v 1.5
     1. fix scrolling not work
 ### v 1.4
