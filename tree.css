@@ -1,0 +1,7 @@
+.stgt-tree {
+  position: fixed;
+  right: 0;
+  bottom: 150px;
+  background: rgba(0, 0, 0, 0.5);
+  color: #fff;
+}

@@ -19,7 +19,7 @@
         "http://*.miaowu.org/*",
         "http://guides.rubyonrails.org/*"
       ],
-      "css": ["button.css", "jstree.min.css"],
+      "css": ["button.css", "jstree.min.css", "tree.css"],
       "js": ["button.js", "jquery.min.js", "catalog.js", "jstree.min.js"]
     }
   ]

@@ -2,18 +2,23 @@ $(document).ready(function() {
   var headers = $(":header").filter(function(index) {
     return $(this).find("a[href^='#']").length !== 0;
   });
-  
+
   var rootNode = buildHeadTree(headers);
   generateJstreeData(rootNode);
 
-  var element = '<div id="container"></div>';
+  var element = '<div id="container" class="stgt-tree"></div>';
   $("body").append(element);
 
   $(function() {
     $('#container').jstree({
       'core' : {
-        'data' : rootNode.children
+        'data' : rootNode.children,
+        "themes" : { "icons" : false },
+        "expand_selected_onload" : false
       }
+    })
+    .bind("ready.jstree", function (event, data) {
+     $(this).jstree("close_all");
     });
   });
 
@@ -30,11 +35,12 @@ function buildHeadTree(headers) {
   var rootNode = newTreeNode('H0', '', -1, '')
   var currentNode = rootNode;
   headers.each(function(i) {
-    var text = $(this).text();
+    var text = $(this).text().trim();
     var href = $(this).find("a[href^='#']").attr('href');
     var a = currentNode.value;
     var b = $(this).prop("tagName");
     var ans = compare(a, b);
+    if(text.length == 0) { return true; }
     if (ans === -1 || a === -1) {
       var newNode = newTreeNode(b, text, currentNode, href)
       currentNode.children.push(newNode);
