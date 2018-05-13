@@ -12,7 +12,7 @@ $(document).ready(function() {
   $(function() {
     $('#container').jstree({
       'core' : {
-        'data' : rootNode.children,
+        'data' : rootNode,
         "themes" : { "icons" : false },
         "expand_selected_onload" : false
       }
@@ -32,7 +32,7 @@ function jumpAnchor(href) {
 }
 
 function buildHeadTree(headers) {
-  var rootNode = newTreeNode('H0', '', -1, '')
+  var rootNode = newTreeNode('H0', 'Catalog', -1, '')
   var currentNode = rootNode;
   headers.each(function(i) {
     var text = $(this).text().trim();
