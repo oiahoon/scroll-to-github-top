@@ -6,23 +6,22 @@ $(document).ready(function() {
   var rootNode = buildHeadTree(headers);
   generateJstreeData(rootNode);
 
-  var element = '<div id="container" class="stgt-tree"></div>';
+  var element = '<div id="jstree-container" class="stgt-tree"></div>';
   $("body").append(element);
 
   $(function() {
-    $('#container').jstree({
+    $('#jstree-container').jstree({
       'core' : {
         'data' : rootNode,
         "themes" : { "icons" : false },
-        "expand_selected_onload" : false
       }
     })
     .bind("ready.jstree", function (event, data) {
-     $(this).jstree("close_all");
+     $(this).jstree("open_all");
     });
   });
 
-  $('#container').on("changed.jstree", function (e, data) {
+  $('#jstree-container').on("changed.jstree", function (e, data) {
     jumpAnchor(data.instance.get_selected(true)[0].original.href);
   });
 });
@@ -32,7 +31,7 @@ function jumpAnchor(href) {
 }
 
 function buildHeadTree(headers) {
-  var rootNode = newTreeNode('H0', 'Catalog', -1, '')
+  var rootNode = newTreeNode('H0', 'Nav Tree', -1, '')
   var currentNode = rootNode;
   headers.each(function(i) {
     var text = $(this).text().trim();
@@ -78,10 +77,10 @@ function dfs(rootNode) {
 function newTreeNode(value, text, parentNode, href) {
   return {
     value: value,
-    children: [],
     text: text,
-    parent: parentNode,
     state: {opened: true},
+    children: [],
+    parent: parentNode,
     href: href
   }
 }

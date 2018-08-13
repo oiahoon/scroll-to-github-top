@@ -38,3 +38,8 @@
 #github-sst.hidden {
   display: none !important;
 }
+
+#jstree-container {
+  display: none;
+  bottom: 50%;
+}

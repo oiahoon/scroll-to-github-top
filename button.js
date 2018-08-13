@@ -9,6 +9,8 @@ button.innerHTML = svg
 bodyDiv.appendChild(button);
 
 button.addEventListener('click',runScroll,false);
+button.addEventListener('mouseover',displayJstree,false);
+button.addEventListener('mouseout',disappearJstree,false);
 
 window.onscroll = function() {
   var sTop = document.body.scrollTop + document.documentElement.scrollTop;
@@ -41,4 +43,18 @@ function scrollTo(element, to, duration) {
     if (element.scrollTop == to) return;
     scrollTo(element, to, duration - 10);
   }, 10);
+}
+
+function displayJstree() {
+  if(window.disappearEvent) {
+    clearTimeout(window.disappearEvent)
+    window.disappearEvent = null
+  }
+  $('#jstree-container').css('display', 'block')
+}
+
+function disappearJstree() {
+  window.disappearEvent = setTimeout(function() {
+    $('#jstree-container').css('display', 'none')
+  }, 2000)
 }
