@@ -41,5 +41,6 @@
 
 #jstree-container {
   display: none;
-  bottom: 50%;
+  bottom: 132px;
+  right: 50px;
 }

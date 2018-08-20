@@ -24,6 +24,10 @@ $(document).ready(function() {
   $('#jstree-container').on("changed.jstree", function (e, data) {
     jumpAnchor(data.instance.get_selected(true)[0].original.href);
   });
+
+  $('#jstree-container').on('mouseover', displayJstree);
+  $('#jstree-container').on('mouseout', disappearJstree);
+  $('input,textarea').on('focus', disappearJstreeRightNow)
 });
 
 function jumpAnchor(href) {

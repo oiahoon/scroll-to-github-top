@@ -50,11 +50,15 @@ function displayJstree() {
     clearTimeout(window.disappearEvent)
     window.disappearEvent = null
   }
-  $('#jstree-container').css('display', 'block')
+  $('#jstree-container').fadeIn()
 }
 
 function disappearJstree() {
   window.disappearEvent = setTimeout(function() {
-    $('#jstree-container').css('display', 'none')
-  }, 2000)
+    $('#jstree-container').fadeOut()
+  }, 1000)
+}
+
+function disappearJstreeRightNow() {
+  $('#jstree-container').fadeOut()
 }
