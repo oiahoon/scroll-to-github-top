@@ -13,11 +13,16 @@ $(document).ready(function() {
     $('#jstree-container').jstree({
       'core' : {
         'data' : rootNode,
-        "themes" : { "icons" : false },
+        "themes" : {
+          "icons" : false,
+          'ellipsis': false,
+          'dots':false,
+          'stripes':false,
+        },
       }
     })
     .bind("ready.jstree", function (event, data) {
-     $(this).jstree("open_all");
+     
     });
   });
 
@@ -82,7 +87,7 @@ function newTreeNode(value, text, parentNode, href) {
   return {
     value: value,
     text: text,
-    state: {opened: true},
+    state: {opened: parentNode === -1 ? true : false},
     children: [],
     parent: parentNode,
     href: href
