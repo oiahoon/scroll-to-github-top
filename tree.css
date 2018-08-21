@@ -1,0 +1,46 @@
+.stgt-tree {
+  position: fixed;
+  right: 0;
+  bottom: 150px;
+  background: rgba(0, 0, 0, 0.5);
+  color: #fff;
+}
+
+#jstree-container {
+  display: none;
+  bottom: 132px;
+  right: 50px;
+  background-color: #fafbfc;
+  color: #59616a;
+  border: 1px solid #dddddd;
+  box-shadow: 0px 1px 20px 0px rgba(155,155,155,0.1), inset 0px -1px 0px 0px #e0e0e0;
+  border-radius: 5px;
+  text-align: left;
+  max-height: 600px;
+  overflow: scroll;
+  opacity: 0.7;
+  background-color: black;
+}
+
+#jstree-container .jstree-anchor {
+    color: #ececec;
+    font-weight: initial;
+    text-decoration: none;
+}
+
+#jstree-container .jstree-clicked {
+    box-shadow: rgb(153, 153, 153) 0px 0px 1px inset;
+    background: rgb(190, 235, 255);
+    color: black;
+    font-weight: bolder;
+    border-radius: 2px;
+}
+#jstree-container .jstree-anchor:hover {
+    color: black;
+    text-decoration: none;
+}
+
+#jstree-container #j1_1_anchor {
+   pointer-events: none;
+   cursor: default;
+}
