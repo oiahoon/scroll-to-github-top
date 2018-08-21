@@ -1,5 +1,6 @@
 ## Scroll to Github Top (STGT)
 [![Code Climate](https://codeclimate.com/github/oiahoon/scroll-to-github-top/badges/gpa.svg)](https://codeclimate.com/github/oiahoon/scroll-to-github-top)
+[![codebeat badge](https://codebeat.co/badges/c4d5569b-bd7b-4353-ba80-6e6a9d7e2d19)](https://codebeat.co/projects/github-com-oiahoon-scroll-to-github-top-master)
 [![License](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![FOSSA Status](https://app.fossa.io/api/projects/git%2Bhttps%3A%2F%2Fgithub.com%2Foiahoon%2Fscroll-to-github-top.svg?type=shield)](https://app.fossa.io/projects/git%2Bhttps%3A%2F%2Fgithub.com%2Foiahoon%2Fscroll-to-github-top?ref=badge_shield)
 [![Waffle.io - Columns and their card count](https://badge.waffle.io/oiahoon/scroll-to-github-top.svg?columns=all)](https://waffle.io/oiahoon/scroll-to-github-top)
