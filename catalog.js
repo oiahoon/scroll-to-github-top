@@ -29,6 +29,23 @@ $(document).ready(function() {
   $('#jstree-container').on("changed.jstree", function (e, data) {
     jumpAnchor(data.instance.get_selected(true)[0].original.href);
   });
+  $('#jstree-container').on("select_node.jstree", function (e, data) {
+    headers.each(function(i){
+      text = $(this).text().trim()
+      if (text === data.node.text) {
+        $(this).css('border', '2px solid red')
+        var that = this
+        setTimeout(function() {
+          $({alpha:1}).animate({alpha:0}, {
+              duration: 1000,
+              step: function(){
+                $(that).css('border-color','rgba(255,0,0,'+this.alpha+')');
+              }
+          });
+        }, 1000)
+      }
+    })
+  });
 
   $('#jstree-container').on('mouseover', displayJstree);
   $('#jstree-container').on('mouseout', disappearJstree);
