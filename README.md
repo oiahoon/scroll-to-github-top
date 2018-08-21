@@ -2,6 +2,8 @@
 [![Code Climate](https://codeclimate.com/github/oiahoon/scroll-to-github-top/badges/gpa.svg)](https://codeclimate.com/github/oiahoon/scroll-to-github-top)
 [![License](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![FOSSA Status](https://app.fossa.io/api/projects/git%2Bhttps%3A%2F%2Fgithub.com%2Foiahoon%2Fscroll-to-github-top.svg?type=shield)](https://app.fossa.io/projects/git%2Bhttps%3A%2F%2Fgithub.com%2Foiahoon%2Fscroll-to-github-top?ref=badge_shield)
+[![Waffle.io - Columns and their card count](https://badge.waffle.io/oiahoon/scroll-to-github-top.svg?columns=all)](https://waffle.io/oiahoon/scroll-to-github-top)
+
 ----
 ## info
   Scroll to Github Top (short just STGT) is designed to scroll to the page top of GITHUB.
