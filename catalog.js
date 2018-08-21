@@ -57,7 +57,7 @@ function jumpAnchor(href) {
 }
 
 function buildHeadTree(headers) {
-  var rootNode = newTreeNode('H0', 'Nav Tree', -1, '')
+  var rootNode = newTreeNode('H0', '[TOC]', -1, '')
   var currentNode = rootNode;
   headers.each(function(i) {
     var text = $(this).text().trim();

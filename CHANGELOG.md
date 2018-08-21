@@ -1,5 +1,7 @@
 ## CHANGELOG
 
+### v 1.7
+    1. add TOC for some pages(base on the Anchor Tag)
 ### v 1.6
     1. add `http://guides.rubyonrails.org`
 ### v 1.5

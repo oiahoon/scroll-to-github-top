@@ -11,6 +11,7 @@
 #  FEATURES
   - Just effect site GITHUB
   - and miaowu.org
+  - and **https://guides.rubyonrails.org/**
 
 ## Changelog
 
