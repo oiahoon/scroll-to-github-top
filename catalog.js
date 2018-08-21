@@ -22,7 +22,7 @@ $(document).ready(function() {
       }
     })
     .bind("ready.jstree", function (event, data) {
-     
+      $(this).jstree("open_all");
     });
   });
 
