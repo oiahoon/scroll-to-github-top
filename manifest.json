@@ -17,6 +17,7 @@
       "matches": [
         "https://github.com/*",
         "http://*.miaowu.org/*",
+        "https://*.miaowu.org/*",
         "http://guides.rubyonrails.org/*",
         "https://guides.rubyonrails.org/*"
       ],
