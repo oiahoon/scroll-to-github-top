@@ -7,20 +7,63 @@
 }
 
 #jstree-container {
-  display: none;
+  /*visibility: hidden;*/
+  position: fixed;
   bottom: 132px;
   right: 50px;
   background-color: #fafbfc;
   color: #59616a;
   border: 1px solid #dddddd;
   box-shadow: 0px 1px 20px 0px rgba(155,155,155,0.1), inset 0px -1px 0px 0px #e0e0e0;
-  border-radius: 5px;
+  border-radius: 0.25em;
   text-align: left;
-  max-height: 600px;
+  max-height: 70vh;
   overflow: scroll;
   opacity: 0.7;
   background-color: black;
+  z-index: 1;
+  /* Force Hardware Acceleration in WebKit */
+  -webkit-transform-origin: 100% 100%;
+  -moz-transform-origin: 100% 100%;
+  -ms-transform-origin: 100% 100%;
+  -o-transform-origin: 100% 100%;
+  transform-origin: 100% 100%;
+  -webkit-transition: -webkit-transform 0.3s, visibility 0s 0.3s;
+  -moz-transition: -moz-transform 0.3s, visibility 0s 0.3s;
+  transition: transform 0.3s, visibility 0s 0.3s;
 }
+
+#jstree-container.has-transitions {
+  /* this class is used to bring back transitions when the navigation moves at the bottom right */
+  -webkit-transition: -webkit-transform 0.3s, visibility 0s 0.3s;
+  -moz-transition: -moz-transform 0.3s, visibility 0s 0.3s;
+  transition: transform 0.3s, visibility 0s 0.3s;
+}
+
+#jstree-container.is-visable {
+  /* this class is used to bring back the navigation animation - as on touch devices */
+  visibility: visible;
+  -webkit-transform: scale(1);
+  -moz-transform: scale(1);
+  -ms-transform: scale(1);
+  -o-transform: scale(1);
+  transform: scale(1);
+  -webkit-transition: -webkit-transform 0.3s, visibility 0s 0s;
+  -moz-transition: -moz-transform 0.3s, visibility 0s 0s;
+  transition: transform 0.3s, visibility 0s 0s;
+}
+
+#jstree-container.is-hidden {
+  /* this class is used to animate the scale down the navigation when the user scrolls down with the navigation still open */
+  -webkit-transform: scale(0);
+  -moz-transform: scale(0);
+  -ms-transform: scale(0);
+  -o-transform: scale(0);
+  transform: scale(0);
+  -webkit-transition: -webkit-transform 0.3s;
+  -moz-transition: -moz-transform 0.3s;
+  transition: transform 0.3s;
+  }
 
 #jstree-container .jstree-anchor {
     color: #ececec;

@@ -6,7 +6,7 @@ $(document).ready(function() {
   var rootNode = buildHeadTree(headers);
   generateJstreeData(rootNode);
 
-  var element = '<div id="jstree-container" class="stgt-tree"></div>';
+  var element = '<div id="jstree-container" class="stgt-tree is-hidden"></div>';
   $("body").append(element);
 
   $(function() {
@@ -49,6 +49,7 @@ $(document).ready(function() {
 
   $('#jstree-container').on('mouseover', displayJstree);
   $('#jstree-container').on('mouseout', disappearJstree);
+  $('#jstree-container').on('click', displayJstree);
   $('input,textarea').on('focus', disappearJstreeRightNow)
 });
 
