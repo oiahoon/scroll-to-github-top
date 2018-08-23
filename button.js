@@ -24,7 +24,6 @@ window.onscroll = function() {
 
 }
 
-
 function runScroll() {
   var holder = document.body;
   if (document.body.scrollTop == 0) {
@@ -50,15 +49,24 @@ function displayJstree() {
     clearTimeout(window.disappearEvent)
     window.disappearEvent = null
   }
-  $('#jstree-container').slideDown()
+  // $('#jstree-container').slideDown();
+  $('#jstree-container').off('webkitTransitionEnd otransitionend oTransitionEnd msTransitionEnd transitionend')
+    .removeClass('is-visible is-hidden')
+    .addClass('is-visible');
 }
 
 function disappearJstree() {
   window.disappearEvent = setTimeout(function() {
-    $('#jstree-container').slideUp()
+    // $('#jstree-container').slideUp()
+  $('#jstree-container').off('webkitTransitionEnd otransitionend oTransitionEnd msTransitionEnd transitionend')
+    .removeClass('is-visible is-hidden')
+    .addClass('is-hidden');
   }, 1000)
 }
 
 function disappearJstreeRightNow() {
-  $('#jstree-container').slideUp()
+  // $('#jstree-container').slideUp()
+  $('#jstree-container').off('webkitTransitionEnd otransitionend oTransitionEnd msTransitionEnd transitionend')
+    .removeClass('is-visible is-hidden')
+    .addClass('is-hidden');
 }
