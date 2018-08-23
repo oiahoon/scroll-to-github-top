@@ -1,5 +1,7 @@
 ## CHANGELOG
 
+### v 1.8
+    1. add hide and show animation for TOC
 ### v 1.7
     1. add TOC for some pages(base on the Anchor Tag)
 ### v 1.6
