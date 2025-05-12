@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Scroll to GitHub Top",
-  "version": "1.0",
+  "version": "1.9",
   "description": "Add a button to scroll to the top of GitHub pages",
   "permissions": [],
   "host_permissions": [
