@@ -32,7 +32,8 @@ document.addEventListener('DOMContentLoaded', () => {
         'dots': false,
         'stripes': false,
       },
-    }
+    },
+    'plugins': ['wholerow']
   }).on('ready.jstree', function() {
     $(this).jstree('open_all');
   });
@@ -49,9 +50,10 @@ document.addEventListener('DOMContentLoaded', () => {
       headers.forEach(header => {
         const text = header.textContent.trim();
         if (text === data.node.text) {
-          header.style.border = '2px solid red';
+          // 添加高亮动画
+          header.classList.add('highlight-animation');
           setTimeout(() => {
-            header.style.border = 'none';
+            header.classList.remove('highlight-animation');
           }, 2000);
         }
       });
@@ -67,7 +69,10 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 function jumpAnchor(href) {
-  window.location.href = window.location.origin + window.location.pathname + href;
+  const targetElement = document.querySelector(href);
+  if (targetElement) {
+    targetElement.scrollIntoView({ behavior: 'smooth' });
+  }
 }
 
 function buildHeadTree(headers) {
