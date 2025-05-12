@@ -1,0 +1,165 @@
+.github-toc {
+  position: fixed;
+  right: 20px;
+  bottom: 20px;
+  width: 50px;
+  height: 50px;
+  background: rgba(0, 0, 0, 0.8);
+  border-radius: 50%;
+  cursor: pointer;
+  z-index: 9999;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  overflow: hidden;
+  will-change: transform, width, height, border-radius;
+}
+
+.github-toc svg {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 30px;
+  height: 30px;
+  fill: #fff;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.github-toc.expanded {
+  width: 300px;
+  height: 400px;
+  border-radius: 8px;
+  background: rgba(0, 0, 0, 0.75);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.github-toc.expanded svg {
+  opacity: 0;
+  transform: translate(-50%, -50%) scale(0.8);
+}
+
+.toc-tree {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  transform: scale(0.8);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  padding: 16px;
+  box-sizing: border-box;
+  overflow: hidden;
+}
+
+.github-toc.expanded .toc-tree {
+  opacity: 1;
+  transform: scale(1);
+}
+
+.toc-title {
+  color: #fff;
+  font-size: 18px;
+  font-weight: 500;
+  margin-bottom: 16px;
+  opacity: 0;
+  transform: translateY(-10px);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.github-toc.expanded .toc-title {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.toc-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  overflow-y: auto;
+  max-height: calc(100% - 50px);
+}
+
+.toc-list::-webkit-scrollbar {
+  width: 6px;
+}
+
+.toc-list::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 3px;
+}
+
+.toc-list::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.3);
+  border-radius: 3px;
+}
+
+.toc-item {
+  margin: 8px 0;
+  opacity: 0;
+  transform: translateX(-10px);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.github-toc.expanded .toc-item {
+  opacity: 1;
+  transform: translateX(0);
+}
+
+.toc-item a {
+  color: rgba(255, 255, 255, 0.8);
+  text-decoration: none;
+  font-size: 14px;
+  display: block;
+  padding: 4px 8px;
+  border-radius: 4px;
+  transition: all 0.2s ease;
+}
+
+.toc-item a:hover {
+  color: #fff;
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.toc-item.level-1 { margin-left: 0; }
+.toc-item.level-2 { margin-left: 16px; }
+.toc-item.level-3 { margin-left: 32px; }
+.toc-item.level-4 { margin-left: 48px; }
+.toc-item.level-5 { margin-left: 64px; }
+.toc-item.level-6 { margin-left: 80px; }
+
+/* 添加延迟动画效果 */
+.toc-item:nth-child(1) { transition-delay: 0.05s; }
+.toc-item:nth-child(2) { transition-delay: 0.1s; }
+.toc-item:nth-child(3) { transition-delay: 0.15s; }
+.toc-item:nth-child(4) { transition-delay: 0.2s; }
+.toc-item:nth-child(5) { transition-delay: 0.25s; }
+.toc-item:nth-child(6) { transition-delay: 0.3s; }
+.toc-item:nth-child(7) { transition-delay: 0.35s; }
+.toc-item:nth-child(8) { transition-delay: 0.4s; }
+.toc-item:nth-child(9) { transition-delay: 0.45s; }
+.toc-item:nth-child(10) { transition-delay: 0.5s; }
+
+/* 标题高亮动画 */
+@keyframes toc-highlight {
+  0% {
+    background-color: rgba(255, 255, 255, 0.1);
+    box-shadow: 0 0 0 0 rgba(255, 255, 255, 0.1);
+  }
+  50% {
+    background-color: rgba(255, 255, 255, 0.2);
+    box-shadow: 0 0 20px 5px rgba(255, 255, 255, 0.2);
+  }
+  100% {
+    background-color: rgba(255, 255, 255, 0.1);
+    box-shadow: 0 0 0 0 rgba(255, 255, 255, 0.1);
+  }
+}
+
+.toc-highlight {
+  animation: toc-highlight 3s cubic-bezier(0.4, 0, 0.2, 1);
+  border-radius: 4px;
+  padding: 4px 8px;
+  margin: -4px -8px;
+}

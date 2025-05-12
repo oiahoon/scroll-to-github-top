@@ -1,42 +1,30 @@
 {
   "manifest_version": 3,
-  "name": "Scroll to Github Top",
-  "short_name": "STGT",
-  "description": "This extension make you easy to Scroll to Github page Top.",
-  "version": "1.9",
-  "action": {
-    "default_icon": {
-      "16": "icon.svg",
-      "32": "icon.svg",
-      "48": "icon.svg",
-      "128": "icon.svg"
-    }
-  },
-  "icons": {
-    "16": "icon.svg",
-    "32": "icon.svg",
-    "48": "icon.svg",
-    "128": "icon.svg"
-  },
-  "permissions": [
-    "tabs"
-  ],
+  "name": "Scroll to GitHub Top",
+  "version": "1.0",
+  "description": "Add a button to scroll to the top of GitHub pages",
+  "permissions": [],
   "host_permissions": [
-    "http://*/*",
-    "https://*/*"
+    "https://github.com/*",
+    "https://notes.miaowu.org/*",
+    "https://guides.rubyonrails.org/*"
   ],
   "content_scripts": [
     {
       "matches": [
         "https://github.com/*",
-        "http://*.miaowu.org/*",
-        "https://*.miaowu.org/*",
-        "http://guides.rubyonrails.org/*",
+        "https://notes.miaowu.org/*",
         "https://guides.rubyonrails.org/*"
       ],
-      "css": ["material-button.css", "material-tree.css", "jstree.min.css"],
-      "js": ["jquery.min.js", "jstree.min.js", "button.js", "catalog.js"],
+      "js": ["button.js", "catalog.js"],
+      "css": ["toc.css"],
       "run_at": "document_end"
     }
-  ]
+  ],
+  "icons": {
+    "16": "icon.svg",
+    "32": "icon.svg",
+    "48": "icon.svg",
+    "128": "icon.svg"
+  }
 }
