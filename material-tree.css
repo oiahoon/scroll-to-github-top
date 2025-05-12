@@ -1,0 +1,140 @@
+/* Material Design Tree Navigation */
+.stgt-tree {
+  position: fixed;
+  right: 0;
+  bottom: 150px;
+  z-index: 999;
+}
+
+#jstree-container {
+  position: fixed;
+  bottom: 96px;
+  right: 24px;
+  background-color: #ffffff;
+  color: rgba(0, 0, 0, 0.87);
+  border-radius: 4px;
+  box-shadow: 0 2px 4px -1px rgba(0,0,0,0.2),
+              0 4px 5px 0 rgba(0,0,0,0.14),
+              0 1px 10px 0 rgba(0,0,0,0.12);
+  max-height: 70vh;
+  width: 280px;
+  overflow-y: auto;
+  opacity: 0;
+  transform: scale(0.95);
+  transform-origin: bottom right;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  z-index: 1000;
+}
+
+#jstree-container.is-visible {
+  opacity: 1;
+  transform: scale(1);
+  visibility: visible;
+}
+
+#jstree-container.is-hidden {
+  opacity: 0;
+  transform: scale(0.95);
+  visibility: hidden;
+}
+
+/* Tree node styles */
+#jstree-container .jstree-anchor {
+  color: rgba(0, 0, 0, 0.87);
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 1.5;
+  padding: 8px 16px;
+  transition: background-color 0.2s;
+  border-radius: 4px;
+  margin: 2px 0;
+}
+
+#jstree-container .jstree-anchor:hover {
+  background-color: rgba(0, 0, 0, 0.04);
+  color: #1976d2;
+}
+
+#jstree-container .jstree-clicked {
+  background-color: rgba(25, 118, 210, 0.08);
+  color: #1976d2;
+  font-weight: 500;
+}
+
+/* Tree node icons */
+#jstree-container .jstree-icon {
+  color: rgba(0, 0, 0, 0.54);
+  margin-right: 8px;
+}
+
+#jstree-container .jstree-themeicon {
+  color: rgba(0, 0, 0, 0.54);
+}
+
+/* Tree node indentation */
+#jstree-container .jstree-children {
+  margin-left: 16px;
+}
+
+/* Scrollbar styling */
+#jstree-container::-webkit-scrollbar {
+  width: 8px;
+}
+
+#jstree-container::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+#jstree-container::-webkit-scrollbar-thumb {
+  background-color: rgba(0, 0, 0, 0.2);
+  border-radius: 4px;
+}
+
+#jstree-container::-webkit-scrollbar-thumb:hover {
+  background-color: rgba(0, 0, 0, 0.3);
+}
+
+/* Tree node animations */
+#jstree-container .jstree-node {
+  transition: background-color 0.2s;
+}
+
+#jstree-container .jstree-node:hover {
+  background-color: rgba(0, 0, 0, 0.02);
+}
+
+/* Tree node selected state */
+#jstree-container .jstree-selected {
+  background-color: rgba(25, 118, 210, 0.08);
+}
+
+/* Tree node disabled state */
+#jstree-container .jstree-disabled {
+  color: rgba(0, 0, 0, 0.38);
+  cursor: not-allowed;
+}
+
+/* Tree node loading state */
+#jstree-container .jstree-loading {
+  color: rgba(0, 0, 0, 0.38);
+}
+
+/* Tree node error state */
+#jstree-container .jstree-error {
+  color: #d32f2f;
+}
+
+/* Tree node success state */
+#jstree-container .jstree-success {
+  color: #388e3c;
+}
+
+/* Tree node warning state */
+#jstree-container .jstree-warning {
+  color: #f57c00;
+}
+
+/* Tree node info state */
+#jstree-container .jstree-info {
+  color: #0288d1;
+}

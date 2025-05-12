@@ -1,14 +1,27 @@
 {
-  "manifest_version": 2,
+  "manifest_version": 3,
   "name": "Scroll to Github Top",
   "short_name": "STGT",
   "description": "This extension make you easy to Scroll to Github page Top.",
-  "version": "1.8",
-  "browser_action": {
-    "default_icon": "icon.png"
+  "version": "1.9",
+  "action": {
+    "default_icon": {
+      "16": "icon.svg",
+      "32": "icon.svg",
+      "48": "icon.svg",
+      "128": "icon.svg"
+    }
+  },
+  "icons": {
+    "16": "icon.svg",
+    "32": "icon.svg",
+    "48": "icon.svg",
+    "128": "icon.svg"
   },
   "permissions": [
-    "tabs",
+    "tabs"
+  ],
+  "host_permissions": [
     "http://*/*",
     "https://*/*"
   ],
@@ -21,8 +34,8 @@
         "http://guides.rubyonrails.org/*",
         "https://guides.rubyonrails.org/*"
       ],
-      "css": ["button.css", "jstree.min.css", "tree.css"],
-      "js": ["button.js", "jquery.min.js", "catalog.js", "jstree.min.js"]
+      "css": ["material-button.css", "material-tree.css", "jstree.min.css"],
+      "js": ["jquery.min.js", "jstree.min.js", "button.js", "catalog.js"]
     }
   ]
 }

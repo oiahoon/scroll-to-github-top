@@ -1,92 +1,98 @@
-$(document).ready(function() {
-  var headers = $(":header").filter(function(index) {
-    return $(this).find("a[href^='#']").length !== 0;
-  });
+document.addEventListener('DOMContentLoaded', () => {
+  const headers = Array.from(document.querySelectorAll(':header')).filter(header =>
+    header.querySelector("a[href^='#']")
+  );
 
-  var rootNode = buildHeadTree(headers);
+  const rootNode = buildHeadTree(headers);
   generateJstreeData(rootNode);
 
-  var element = '<div id="jstree-container" class="stgt-tree is-hidden"></div>';
-  $("body").append(element);
+  const element = document.createElement('div');
+  element.id = 'jstree-container';
+  element.className = 'stgt-tree is-hidden';
+  document.body.appendChild(element);
 
-  $(function() {
-    $('#jstree-container').jstree({
-      'core' : {
-        'data' : rootNode,
-        "themes" : {
-          "icons" : false,
-          'ellipsis': false,
-          'dots':false,
-          'stripes':false,
-        },
+  // 初始化jsTree
+  $('#jstree-container').jstree({
+    'core': {
+      'data': rootNode,
+      'themes': {
+        'icons': false,
+        'ellipsis': false,
+        'dots': false,
+        'stripes': false,
+      },
+    }
+  }).on('ready.jstree', function() {
+    $(this).jstree('open_all');
+  });
+
+  // 事件处理
+  $('#jstree-container')
+    .on('changed.jstree', (e, data) => {
+      const selectedNode = data.instance.get_selected(true)[0];
+      if (selectedNode && selectedNode.original.href) {
+        jumpAnchor(selectedNode.original.href);
       }
     })
-    .bind("ready.jstree", function (event, data) {
-      $(this).jstree("open_all");
-    });
-  });
-
-  $('#jstree-container').on("changed.jstree", function (e, data) {
-    jumpAnchor(data.instance.get_selected(true)[0].original.href);
-  });
-  $('#jstree-container').on("select_node.jstree", function (e, data) {
-    headers.each(function(i){
-      text = $(this).text().trim()
-      if (text === data.node.text) {
-        $(this).css('border', '2px solid red')
-        var that = this
-        setTimeout(function() {
-          $({alpha:1}).animate({alpha:0}, {
-              duration: 1000,
-              step: function(){
-                $(that).css('border-color','rgba(255,0,0,'+this.alpha+')');
-              }
-          });
-        }, 1000)
-      }
+    .on('select_node.jstree', (e, data) => {
+      headers.forEach(header => {
+        const text = header.textContent.trim();
+        if (text === data.node.text) {
+          header.style.border = '2px solid red';
+          setTimeout(() => {
+            header.style.border = 'none';
+          }, 2000);
+        }
+      });
     })
-  });
+    .on('mouseover', displayJstree)
+    .on('mouseout', disappearJstree)
+    .on('click', displayJstree);
 
-  $('#jstree-container').on('mouseover', displayJstree);
-  $('#jstree-container').on('mouseout', disappearJstree);
-  $('#jstree-container').on('click', displayJstree);
-  $('input,textarea').on('focus', disappearJstreeRightNow)
+  // 输入框获得焦点时隐藏目录
+  document.querySelectorAll('input, textarea').forEach(element => {
+    element.addEventListener('focus', disappearJstreeRightNow);
+  });
 });
 
 function jumpAnchor(href) {
-  window.location = window.location.origin + window.location.pathname + href;
+  window.location.href = window.location.origin + window.location.pathname + href;
 }
 
 function buildHeadTree(headers) {
-  var rootNode = newTreeNode('H0', '[TOC]', -1, '')
-  var currentNode = rootNode;
-  headers.each(function(i) {
-    var text = $(this).text().trim();
-    var href = $(this).find("a[href^='#']").attr('href');
-    var a = currentNode.value;
-    var b = $(this).prop("tagName");
-    var ans = compare(a, b);
-    if(text.length == 0) { return true; }
-    if (ans === -1 || a === -1) {
-      var newNode = newTreeNode(b, text, currentNode, href)
+  const rootNode = newTreeNode('H0', '[TOC]', -1, '');
+  let currentNode = rootNode;
+
+  headers.forEach(header => {
+    const text = header.textContent.trim();
+    const href = header.querySelector("a[href^='#']")?.getAttribute('href');
+    if (!text || !href) return;
+
+    const currentLevel = currentNode.value;
+    const headerLevel = header.tagName;
+    const comparison = compare(currentLevel, headerLevel);
+
+    if (comparison === -1 || currentLevel === -1) {
+      const newNode = newTreeNode(headerLevel, text, currentNode, href);
       currentNode.children.push(newNode);
       currentNode = newNode;
     } else {
-      while(ans === 1 || ans === 0) {
-        currentNode = currentNode.parent
-        a = currentNode.value;
-        ans = compare(a, b);
+      while (comparison === 1 || comparison === 0) {
+        currentNode = currentNode.parent;
+        const newComparison = compare(currentNode.value, headerLevel);
+        if (newComparison === -1) break;
       }
-      var newNode = newTreeNode(b, text, currentNode, href)
+      const newNode = newTreeNode(headerLevel, text, currentNode, href);
       currentNode.children.push(newNode);
       currentNode = newNode;
     }
-  })
+  });
+
   return rootNode;
 }
 
 function generateJstreeData(rootNode) {
-  dfs(rootNode)
+  dfs(rootNode);
 }
 
 function dfs(rootNode) {
@@ -96,30 +102,22 @@ function dfs(rootNode) {
     delete rootNode.children;
     return;
   }
-  rootNode.children.forEach(function(childrenNode) {
-    dfs(childrenNode)
-  })
+  rootNode.children.forEach(childNode => dfs(childNode));
 }
 
 function newTreeNode(value, text, parentNode, href) {
   return {
-    value: value,
-    text: text,
-    state: {opened: parentNode === -1 ? true : false},
+    value,
+    text,
+    state: { opened: parentNode === -1 },
     children: [],
     parent: parentNode,
-    href: href
-  }
+    href
+  };
 }
 
 function compare(a, b) {
-  var aNumStr = a.replace( /^\D+/g, '');
-  var bNumStr = b.replace( /^\D+/g, '');
-  if (aNumStr < bNumStr) {
-    return -1;
-  } else if (aNumStr === bNumStr) {
-    return 0;
-  } else {
-    return 1;
-  }
-};
+  const aNumStr = a.replace(/^\D+/g, '');
+  const bNumStr = b.replace(/^\D+/g, '');
+  return aNumStr < bNumStr ? -1 : aNumStr === bNumStr ? 0 : 1;
+}
