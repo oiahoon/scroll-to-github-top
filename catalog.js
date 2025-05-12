@@ -1,7 +1,18 @@
 document.addEventListener('DOMContentLoaded', () => {
+  // 等待 jQuery 和 jsTree 加载完成
+  if (typeof $ === 'undefined' || typeof $.fn.jstree === 'undefined') {
+    console.error('jQuery or jsTree not loaded');
+    return;
+  }
+
   const headers = Array.from(document.querySelectorAll(':header')).filter(header =>
     header.querySelector("a[href^='#']")
   );
+
+  if (headers.length === 0) {
+    console.log('No headers found with anchor links');
+    return;
+  }
 
   const rootNode = buildHeadTree(headers);
   generateJstreeData(rootNode);

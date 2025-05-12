@@ -35,7 +35,8 @@
         "https://guides.rubyonrails.org/*"
       ],
       "css": ["material-button.css", "material-tree.css", "jstree.min.css"],
-      "js": ["jquery.min.js", "jstree.min.js", "button.js", "catalog.js"]
+      "js": ["jquery.min.js", "jstree.min.js", "button.js", "catalog.js"],
+      "run_at": "document_end"
     }
   ]
 }
