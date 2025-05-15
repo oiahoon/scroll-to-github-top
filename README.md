@@ -44,7 +44,7 @@
 ## 安装方法
 
 1. 从 Chrome 网上应用店安装
-   - 访问 [Chrome 网上应用店](https://chrome.google.com/webstore/detail/scroll-to-github-top/...)
+   - 访问 [Chrome 网上应用店](https://chromewebstore.google.com/detail/scroll-to-github-top/hkpdpioemdlpimimpjghlcdocmjmpkjc)
    - 点击"添加到 Chrome"
 
 2. 手动安装
