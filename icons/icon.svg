@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="128" height="128" viewBox="0 0 128 128" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- 背景圆角矩形 -->
+  <rect x="8" y="8" width="112" height="112" rx="28" fill="#424242"/>
+
+  <!-- 目录树结构（整体右移并竖直居中） -->
+  <g fill="white">
+    <!-- 第一级 -->
+    <rect x="36" y="40" width="40" height="8" rx="4"/>
+
+    <!-- 第二级 -->
+    <rect x="44" y="60" width="32" height="8" rx="4"/>
+
+    <!-- 第三级 -->
+    <rect x="52" y="80" width="24" height="8" rx="4"/>
+  </g>
+
+  <!-- 向上箭头（整体右移并竖直居中） -->
+  <path d="M88 36L108 52" stroke="white" stroke-width="12" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M88 36V92" stroke="white" stroke-width="12" stroke-linecap="round"/>
+</svg>

@@ -1,29 +1,20 @@
 {
   "manifest_version": 3,
-  "name": "Scroll to GitHub Top",
-  "version": "1.9",
-  "description": "Add a button to scroll to the top of GitHub pages",
-  "permissions": [],
-  "host_permissions": [
-    "https://github.com/*",
-    "https://notes.miaowu.org/*",
-    "https://guides.rubyonrails.org/*"
+  "name": "Smart TOC & Scroll",
+  "version": "1.0",
+  "description": "A smart browser extension that adds a scroll-to-top button and table of contents with automatic theme adaptation.",
+  "permissions": [
+    "activeTab"
   ],
   "content_scripts": [
     {
-      "matches": [
-        "https://github.com/*",
-        "https://notes.miaowu.org/*",
-        "https://guides.rubyonrails.org/*"
-      ],
-      "js": ["button.js", "catalog.js"],
-      "css": ["toc.css"],
-      "run_at": "document_end"
+      "matches": ["<all_urls>"],
+      "js": ["catalog.js", "theme.js"],
+      "css": ["toc.css", "themes.css"]
     }
   ],
   "icons": {
     "16": "icons/icon16.png",
-    "32": "icons/icon32.png",
     "48": "icons/icon48.png",
     "128": "icons/icon128.png"
   }

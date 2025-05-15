@@ -2,15 +2,25 @@
   position: fixed;
   right: 20px;
   bottom: 20px;
-  width: 50px;
-  height: 50px;
-  background: rgba(0, 0, 0, 0.8);
+  width: 56px;
+  height: 56px;
+  background: var(--toc-bg) !important;
   border-radius: 50%;
   cursor: pointer;
   z-index: 9999;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: all 0.3s var(--ease-out);
   overflow: hidden;
   will-change: transform, width, height, border-radius;
+  box-shadow: var(--toc-elevation);
+  opacity: 0.6;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.github-toc:hover {
+  box-shadow: var(--toc-elevation-hover);
+  opacity: 1;
 }
 
 .github-toc svg {
@@ -18,20 +28,28 @@
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  width: 30px;
-  height: 30px;
-  fill: #fff;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  width: 24px !important;
+  height: 24px !important;
+  fill: var(--toc-text) !important;
+  color: var(--toc-text) !important;
+  stroke: var(--toc-text) !important;
+  transition: all 0.3s var(--ease-out);
+  pointer-events: none;
+}
+
+.github-toc svg path {
+  fill: var(--toc-text) !important;
+  color: var(--toc-text) !important;
+  stroke: var(--toc-text) !important;
 }
 
 .github-toc.expanded {
-  width: 300px;
-  height: 400px;
+  width: 320px;
+  height: 480px;
   border-radius: 8px;
-  background: rgba(0, 0, 0, 0.75);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  background: var(--toc-bg) !important;
+  box-shadow: var(--toc-elevation-expanded);
+  opacity: 1;
 }
 
 .github-toc.expanded svg {
@@ -47,10 +65,12 @@
   height: 100%;
   opacity: 0;
   transform: scale(0.8);
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: all 0.3s var(--ease-out);
   padding: 16px;
   box-sizing: border-box;
   overflow: hidden;
+  background: var(--toc-bg);
+  border-radius: 8px;
 }
 
 .github-toc.expanded .toc-tree {
@@ -59,13 +79,14 @@
 }
 
 .toc-title {
-  color: #fff;
-  font-size: 18px;
+  color: var(--toc-text);
+  font-size: 20px;
   font-weight: 500;
-  margin-bottom: 16px;
+  margin-bottom: 24px;
   opacity: 0;
   transform: translateY(-10px);
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: all 0.3s var(--ease-out);
+  letter-spacing: 0.15px;
 }
 
 .github-toc.expanded .toc-title {
@@ -78,28 +99,29 @@
   padding: 0;
   margin: 0;
   overflow-y: auto;
-  max-height: calc(100% - 50px);
+  max-height: calc(100% - 60px);
+  background: var(--toc-bg);
 }
 
 .toc-list::-webkit-scrollbar {
-  width: 6px;
+  width: 8px;
 }
 
 .toc-list::-webkit-scrollbar-track {
-  background: rgba(255, 255, 255, 0.1);
-  border-radius: 3px;
+  background: var(--toc-scrollbar-track);
+  border-radius: 4px;
 }
 
 .toc-list::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.3);
-  border-radius: 3px;
+  background: var(--toc-scrollbar-thumb);
+  border-radius: 4px;
 }
 
 .toc-item {
   margin: 8px 0;
   opacity: 0;
   transform: translateX(-10px);
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: all 0.3s var(--ease-out);
 }
 
 .github-toc.expanded .toc-item {
@@ -108,18 +130,19 @@
 }
 
 .toc-item a {
-  color: rgba(255, 255, 255, 0.8);
+  color: var(--toc-text);
   text-decoration: none;
   font-size: 14px;
   display: block;
-  padding: 4px 8px;
+  padding: 8px 16px;
   border-radius: 4px;
-  transition: all 0.2s ease;
+  transition: all 0.2s var(--ease-out);
+  letter-spacing: 0.25px;
 }
 
 .toc-item a:hover {
-  color: #fff;
-  background: rgba(255, 255, 255, 0.1);
+  color: var(--toc-text-hover);
+  background: var(--toc-highlight);
 }
 
 .toc-item.level-1 { margin-left: 0; }
@@ -129,7 +152,7 @@
 .toc-item.level-5 { margin-left: 64px; }
 .toc-item.level-6 { margin-left: 80px; }
 
-/* 添加延迟动画效果 */
+/* Material Design 动画延迟 */
 .toc-item:nth-child(1) { transition-delay: 0.05s; }
 .toc-item:nth-child(2) { transition-delay: 0.1s; }
 .toc-item:nth-child(3) { transition-delay: 0.15s; }
@@ -141,25 +164,54 @@
 .toc-item:nth-child(9) { transition-delay: 0.45s; }
 .toc-item:nth-child(10) { transition-delay: 0.5s; }
 
-/* 标题高亮动画 */
+/* Material Design 高亮动画 */
 @keyframes toc-highlight {
   0% {
-    background-color: rgba(255, 255, 255, 0.1);
-    box-shadow: 0 0 0 0 rgba(255, 255, 255, 0.1);
+    background-color: var(--toc-highlight);
   }
   50% {
-    background-color: rgba(255, 255, 255, 0.2);
-    box-shadow: 0 0 20px 5px rgba(255, 255, 255, 0.2);
+    background-color: var(--toc-highlight);
   }
   100% {
-    background-color: rgba(255, 255, 255, 0.1);
-    box-shadow: 0 0 0 0 rgba(255, 255, 255, 0.1);
+    background-color: var(--toc-highlight);
   }
 }
 
 .toc-highlight {
-  animation: toc-highlight 3s cubic-bezier(0.4, 0, 0.2, 1);
+  animation: toc-highlight 3s var(--ease-out);
   border-radius: 4px;
-  padding: 4px 8px;
-  margin: -4px -8px;
+  padding: 8px 16px;
+  margin: -8px -16px;
+}
+
+.github-toc, .github-toc * {
+  font-family: 'Roboto', 'Segoe UI', 'Arial', 'Helvetica Neue', Arial, sans-serif !important;
+  box-sizing: border-box;
+}
+
+.github-toc, .github-toc .toc-title, .github-toc .toc-list, .github-toc .toc-item, .github-toc .toc-item a {
+  color: var(--toc-text) !important;
+  background: none;
+  font-size: inherit;
+  font-weight: normal;
+  text-shadow: none;
+}
+
+.github-toc .toc-title {
+  font-size: 20px !important;
+  font-weight: 500 !important;
+  color: var(--toc-text) !important;
+}
+
+.github-toc .toc-item a {
+  color: var(--toc-text) !important;
+  background: none !important;
+  font-size: 14px !important;
+  font-weight: 400 !important;
+  text-decoration: none !important;
+}
+
+.github-toc .toc-item a:hover {
+  color: var(--toc-text-hover) !important;
+  background: var(--toc-highlight) !important;
 }

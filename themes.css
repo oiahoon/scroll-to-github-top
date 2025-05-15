@@ -1,0 +1,81 @@
+/* Material Design 主题变量 */
+:root {
+  /* 阴影 */
+  --elevation-1: 0 2px 1px -1px rgba(0,0,0,0.2), 0 1px 1px 0 rgba(0,0,0,0.14), 0 1px 3px 0 rgba(0,0,0,0.12);
+  --elevation-2: 0 3px 3px -2px rgba(0,0,0,0.2), 0 3px 4px 0 rgba(0,0,0,0.14), 0 1px 8px 0 rgba(0,0,0,0.12);
+  --elevation-3: 0 3px 5px -1px rgba(0,0,0,0.2), 0 6px 10px 0 rgba(0,0,0,0.14), 0 1px 18px 0 rgba(0,0,0,0.12);
+
+  /* 动画曲线 */
+  --ease-out: cubic-bezier(0.0, 0.0, 0.2, 1);
+  --ease-in: cubic-bezier(0.4, 0.0, 1, 1);
+}
+
+/* 深色主题 - 适用于浅色背景网站 */
+.theme-dark {
+  --toc-bg: #424242;
+  --toc-text: #ffffff;
+  --toc-text-secondary: rgba(255, 255, 255, 0.7);
+  --toc-text-hover: #ffffff;
+  --toc-highlight: rgba(255, 255, 255, 0.08);
+  --toc-scrollbar-track: rgba(255, 255, 255, 0.05);
+  --toc-scrollbar-thumb: rgba(255, 255, 255, 0.2);
+  --toc-elevation: var(--elevation-1);
+  --toc-elevation-hover: var(--elevation-2);
+  --toc-elevation-expanded: var(--elevation-3);
+}
+
+/* 浅色主题 - 适用于深色背景网站 */
+.theme-light {
+  --toc-bg: #ffffff;
+  --toc-text: #000000;
+  --toc-text-secondary: rgba(0, 0, 0, 0.7);
+  --toc-text-hover: #000000;
+  --toc-highlight: rgba(0, 0, 0, 0.04);
+  --toc-scrollbar-track: rgba(0, 0, 0, 0.05);
+  --toc-scrollbar-thumb: rgba(0, 0, 0, 0.2);
+  --toc-elevation: var(--elevation-1);
+  --toc-elevation-hover: var(--elevation-2);
+  --toc-elevation-expanded: var(--elevation-3);
+}
+
+/* 蓝色主题 - 适用于暖色背景网站 */
+.theme-blue {
+  --toc-bg: #1976d2;
+  --toc-text: #ffffff;
+  --toc-text-secondary: rgba(255, 255, 255, 0.7);
+  --toc-text-hover: #ffffff;
+  --toc-highlight: rgba(255, 255, 255, 0.08);
+  --toc-scrollbar-track: rgba(255, 255, 255, 0.05);
+  --toc-scrollbar-thumb: rgba(255, 255, 255, 0.2);
+  --toc-elevation: var(--elevation-1);
+  --toc-elevation-hover: var(--elevation-2);
+  --toc-elevation-expanded: var(--elevation-3);
+}
+
+/* 绿色主题 - 适用于红色背景网站 */
+.theme-green {
+  --toc-bg: #2e7d32;
+  --toc-text: #ffffff;
+  --toc-text-secondary: rgba(255, 255, 255, 0.7);
+  --toc-text-hover: #ffffff;
+  --toc-highlight: rgba(255, 255, 255, 0.08);
+  --toc-scrollbar-track: rgba(255, 255, 255, 0.05);
+  --toc-scrollbar-thumb: rgba(255, 255, 255, 0.2);
+  --toc-elevation: var(--elevation-1);
+  --toc-elevation-hover: var(--elevation-2);
+  --toc-elevation-expanded: var(--elevation-3);
+}
+
+/* 紫色主题 - 适用于黄色背景网站 */
+.theme-purple {
+  --toc-bg: #512da8;
+  --toc-text: #ffffff;
+  --toc-text-secondary: rgba(255, 255, 255, 0.7);
+  --toc-text-hover: #ffffff;
+  --toc-highlight: rgba(255, 255, 255, 0.08);
+  --toc-scrollbar-track: rgba(255, 255, 255, 0.05);
+  --toc-scrollbar-thumb: rgba(255, 255, 255, 0.2);
+  --toc-elevation: var(--elevation-1);
+  --toc-elevation-hover: var(--elevation-2);
+  --toc-elevation-expanded: var(--elevation-3);
+}

@@ -10,15 +10,16 @@
   // 创建目录树容器
   const tocContainer = document.createElement('div');
   tocContainer.id = 'github-toc';
-  tocContainer.className = 'github-toc';
+  tocContainer.className = 'github-toc theme-light';
   document.body.appendChild(tocContainer);
 
   // 添加按钮图标
-  const buttonSvg = '<svg width="30" height="30" viewBox="0 0 1024 1024"><path d="M792.748 599.403l-257.312-259.001c-5.7-5.73-13.683-8.998-23.437-8.998s-16.541 3.881-21.63 8.971l-261.758 260.585c-11.205 11.174-11.231 29.313-0.031 40.513 13.731 13.731 34.927 5.614 40.544 0.056l214.226-213.168v372.648c0 15.844 12.835 28.653 28.649 28.653 15.817 0 28.653-12.813 28.653-28.653v-374.053l211.469 212.845c5.587 5.617 12.981 8.453 20.311 8.453 7.337 0 14.615-2.784 20.202-8.338 11.257-11.148 11.288-29.313 0.113-40.514v0 0zM827.161 251.635h-630.316c-15.817 0-28.653-12.835-28.653-28.645 0-15.818 12.835-28.653 28.653-28.653h630.316c15.84 0 28.645 12.835 28.645 28.653 0 15.81-12.805 28.645-28.645 28.645v0 0zM827.161 251.635z"></path></svg>';
+  const buttonSvg = '<svg width="30" height="30" viewBox="0 0 24 24"><path d="M3 5h18v2H3V5zm0 6h18v2H3v-2zm0 6h18v2H3v-2z"/></svg>';
   tocContainer.innerHTML = buttonSvg;
 
-  // 查找主要内容容器
+  // 扩展内容容器选择器
   const mainContainers = [
+    // 通用内容容器
     'main-container',
     'body-container',
     'application-main',
@@ -26,14 +27,45 @@
     'content',
     'article',
     'main',
-    '.markdown-body', // GitHub 的 markdown 内容
-    '#readme', // GitHub 的 README 内容
-    '.repository-content', // GitHub 的仓库内容
-    '.js-repo-root' // GitHub 的仓库根目录
+    '.markdown-body',
+    '#readme',
+    '.repository-content',
+    '.js-repo-root',
+    // 文档类网站
+    '.documentation',
+    '.docs-content',
+    '.doc-content',
+    '.doc-body',
+    '.document-body',
+    '.article-content',
+    '.post-content',
+    '.entry-content',
+    // 博客平台
+    '.blog-post',
+    '.post-body',
+    '.article-body',
+    '.entry-body',
+    // 技术文档
+    '.technical-docs',
+    '.api-docs',
+    '.guide-content',
+    '.tutorial-content',
+    // 常见框架
+    '.mdx-content', // MDX
+    '.md-content', // Markdown
+    '.rst-content', // reStructuredText
+    '.asciidoc-content', // AsciiDoc
+    // 通用选择器
+    '[role="main"]',
+    '[role="article"]',
+    '[role="document"]',
+    '[itemprop="articleBody"]',
+    '[itemprop="mainContentOfPage"]'
   ];
 
-  // 需要排除的容器选择器
+  // 扩展排除容器选择器
   const excludeContainers = [
+    // 导航相关
     'nav',
     'header',
     'footer',
@@ -48,156 +80,137 @@
     '.table-of-contents',
     '.breadcrumb',
     '.pagination',
-    '.js-header-wrapper', // GitHub 的顶部导航
-    '.js-repo-nav', // GitHub 的仓库导航
-    '.js-site-header', // GitHub 的站点头部
-    '.js-site-footer', // GitHub 的站点底部
-    '.js-notification-shelf', // GitHub 的通知栏
-    '[role="navigation"]', // 使用 role 属性的导航
-    '[role="banner"]', // 使用 role 属性的头部
-    '[role="contentinfo"]', // 使用 role 属性的底部
-    // 添加更多侧边栏相关选择器
+    // GitHub 特定
+    '.js-header-wrapper',
+    '.js-repo-nav',
+    '.js-site-header',
+    '.js-site-footer',
+    '.js-notification-shelf',
+    // 通用导航
+    '[role="navigation"]',
+    '[role="banner"]',
+    '[role="contentinfo"]',
+    '[role="complementary"]',
+    // 文档结构
+    '[role="note"]',
+    '[role="doc-footnote"]',
+    '[role="doc-endnotes"]',
+    '[role="doc-bibliography"]',
+    '[role="doc-glossary"]',
+    '[role="doc-appendix"]',
+    // 侧边栏相关
     '.sidebar',
     '.side-bar',
     '.sideBar',
-    '.side-bar-container',
     '.sidebar-container',
-    '.js-sidebar',
-    '.js-side-bar',
-    '.js-sidebar-container',
-    '.js-side-bar-container',
+    '.side-bar-container',
     '.sidebar-wrapper',
     '.side-bar-wrapper',
-    '.js-sidebar-wrapper',
-    '.js-side-bar-wrapper',
     '.sidebar-content',
     '.side-bar-content',
-    '.js-sidebar-content',
-    '.js-side-bar-content',
     '.sidebar-menu',
     '.side-bar-menu',
-    '.js-sidebar-menu',
-    '.js-side-bar-menu',
     '.sidebar-nav',
     '.side-bar-nav',
-    '.js-sidebar-nav',
-    '.js-side-bar-nav',
     '.sidebar-list',
     '.side-bar-list',
-    '.js-sidebar-list',
-    '.js-side-bar-list',
     '.sidebar-item',
     '.side-bar-item',
-    '.js-sidebar-item',
-    '.js-side-bar-item',
     '.sidebar-section',
     '.side-bar-section',
-    '.js-sidebar-section',
-    '.js-side-bar-section',
     '.sidebar-panel',
     '.side-bar-panel',
-    '.js-sidebar-panel',
-    '.js-side-bar-panel',
     '.sidebar-widget',
     '.side-bar-widget',
-    '.js-sidebar-widget',
-    '.js-side-bar-widget',
     '.sidebar-block',
     '.side-bar-block',
-    '.js-sidebar-block',
-    '.js-side-bar-block',
     '.sidebar-area',
     '.side-bar-area',
-    '.js-sidebar-area',
-    '.js-side-bar-area',
     '.sidebar-region',
     '.side-bar-region',
-    '.js-sidebar-region',
-    '.js-side-bar-region',
     '.sidebar-zone',
-    '.side-bar-zone',
-    '.js-sidebar-zone',
-    '.js-side-bar-zone',
-    '[role="complementary"]', // ARIA 角色：补充内容（通常用于侧边栏）
-    '[role="note"]', // ARIA 角色：注释
-    '[role="doc-footnote"]', // ARIA 角色：脚注
-    '[role="doc-endnotes"]', // ARIA 角色：尾注
-    '[role="doc-bibliography"]', // ARIA 角色：参考文献
-    '[role="doc-glossary"]', // ARIA 角色：术语表
-    '[role="doc-appendix"]' // ARIA 角色：附录
+    '.side-bar-zone'
   ];
 
-  let contentContainer = null;
-  for (const selector of mainContainers) {
-    const container = document.querySelector(selector);
-    if (container) {
-      contentContainer = container;
-      break;
-    }
-  }
-
-  // 如果没有找到特定的容器，使用 body
-  if (!contentContainer) {
-    contentContainer = document.body;
-  }
-
-  // 获取所有标题元素
-  const headers = Array.from(contentContainer.querySelectorAll('h1, h2, h3, h4, h5, h6'))
-    .filter(header => {
-      // 过滤掉隐藏的标题
-      const style = window.getComputedStyle(header);
-      if (style.display === 'none' || style.visibility === 'hidden') {
-        return false;
+  // 智能查找内容容器
+  function findContentContainer() {
+    // 1. 首先尝试使用预定义的选择器
+    for (const selector of mainContainers) {
+      const container = document.querySelector(selector);
+      if (container) {
+        return container;
       }
+    }
 
-      // 检查标题是否在排除的容器内
-      let parent = header.parentElement;
-      while (parent && parent !== contentContainer) {
-        // 检查标签名
-        if (parent.tagName.toLowerCase() === 'nav') {
+    // 2. 查找最大的内容块
+    const contentBlocks = Array.from(document.querySelectorAll('article, main, [role="main"], [role="article"], [role="document"]'));
+    if (contentBlocks.length > 0) {
+      return contentBlocks.reduce((largest, current) => {
+        return current.textContent.length > largest.textContent.length ? current : largest;
+      });
+    }
+
+    // 3. 查找包含最多标题的元素
+    const allElements = document.querySelectorAll('div, section, article, main');
+    let bestContainer = null;
+    let maxHeaders = 0;
+
+    allElements.forEach(element => {
+      const headers = element.querySelectorAll('h1, h2, h3, h4, h5, h6').length;
+      if (headers > maxHeaders) {
+        maxHeaders = headers;
+        bestContainer = element;
+      }
+    });
+
+    return bestContainer || document.body;
+  }
+
+  let contentContainer = findContentContainer();
+
+  // 获取所有可能的标题元素
+  function getHeaders() {
+    // 标准标题标签
+    const standardHeaders = Array.from(contentContainer.querySelectorAll('h1, h2, h3, h4, h5, h6'));
+
+    // 自定义标题样式
+    const customHeaders = Array.from(contentContainer.querySelectorAll('[class*="title"], [class*="heading"], [class*="header"]'))
+      .filter(el => {
+        const style = window.getComputedStyle(el);
+        const fontSize = parseInt(style.fontSize);
+        const fontWeight = parseInt(style.fontWeight);
+        return fontSize >= 16 && fontWeight >= 500;
+      });
+
+    // 合并并排序
+    const allHeaders = [...standardHeaders, ...customHeaders]
+      .filter(header => {
+        // 过滤隐藏元素
+        const style = window.getComputedStyle(header);
+        if (style.display === 'none' || style.visibility === 'hidden') {
           return false;
         }
 
-        // 检查类名
-        const classList = parent.classList;
-        if (classList.contains('nav') ||
-            classList.contains('navbar') ||
-            classList.contains('navigation') ||
-            classList.contains('header') ||
-            classList.contains('footer') ||
-            classList.contains('sidebar') ||
-            classList.contains('side-bar') ||
-            classList.contains('sideBar')) {
-          return false;
-        }
-
-        // 检查 role 属性
-        const role = parent.getAttribute('role');
-        if (role === 'navigation' ||
-            role === 'banner' ||
-            role === 'contentinfo' ||
-            role === 'complementary' ||
-            role === 'note' ||
-            role === 'doc-footnote' ||
-            role === 'doc-endnotes' ||
-            role === 'doc-bibliography' ||
-            role === 'doc-glossary' ||
-            role === 'doc-appendix') {
-          return false;
-        }
-
-        // 检查其他选择器
-        for (const selector of excludeContainers) {
-          if (parent.matches(selector)) {
+        // 检查是否在排除容器内
+        let parent = header.parentElement;
+        while (parent && parent !== contentContainer) {
+          if (excludeContainers.some(selector => parent.matches(selector))) {
             return false;
           }
+          parent = parent.parentElement;
         }
 
-        parent = parent.parentElement;
-      }
+        return true;
+      })
+      .sort((a, b) => {
+        // 根据元素在文档中的位置排序
+        return a.compareDocumentPosition(b) & Node.DOCUMENT_POSITION_FOLLOWING ? -1 : 1;
+      });
 
-      return true;
-    });
+    return allHeaders;
+  }
+
+  const headers = getHeaders();
 
   if (headers.length === 0) {
     console.log('No visible headers found');
@@ -211,7 +224,7 @@
   // 添加标题
   const tocTitle = document.createElement('div');
   tocTitle.className = 'toc-title';
-  tocTitle.textContent = '目录';
+  tocTitle.textContent = 'Outline';
   tocTree.appendChild(tocTitle);
 
   // 创建目录列表
@@ -220,8 +233,23 @@
 
   // 处理每个标题
   headers.forEach(header => {
-    const level = parseInt(header.tagName[1]);
+    // 确定标题级别
+    let level = 1;
+    if (header.tagName && header.tagName.match(/^H[1-6]$/)) {
+      level = parseInt(header.tagName[1]);
+    } else {
+      // 根据字体大小和样式推断级别
+      const style = window.getComputedStyle(header);
+      const fontSize = parseInt(style.fontSize);
+      if (fontSize >= 24) level = 1;
+      else if (fontSize >= 20) level = 2;
+      else if (fontSize >= 18) level = 3;
+      else if (fontSize >= 16) level = 4;
+      else level = 5;
+    }
+
     const text = header.textContent.trim();
+    if (!text) return;
 
     // 确保标题有 ID
     if (!header.id) {
