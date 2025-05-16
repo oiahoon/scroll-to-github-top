@@ -5,6 +5,25 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.1] - 2024-05-15
+
+### Added
+- 添加性能监控功能
+  - 实时监控目录生成性能
+  - 跟踪目录更新性能
+  - 监控滚动性能
+  - 内存使用情况分析
+- 添加性能统计面板
+  - 使用 Ctrl + Shift + P 快捷键显示/隐藏
+  - 显示详细的性能指标
+  - 每秒自动更新统计数据
+
+### Changed
+- 优化性能监控相关代码
+  - 使用 performance.now() 进行高精度时间测量
+  - 使用 requestAnimationFrame 优化滚动性能监控
+  - 限制性能数据存储大小，避免内存占用过大
+
 ## [2.0] - 2024-05-14
 
 ### Added

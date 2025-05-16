@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
   "name": "Smart TOC & Scroll",
-  "version": "2.0",
-  "description": "Smart table of contents generator with smooth scroll. Automatically creates beautiful, interactive TOC for any webpage.",
+  "version": "2.1",
+  "description": "Smart table of contents generator with smooth scroll. Automatically creates beautiful, interactive TOC for any webpage. Now with performance monitoring!",
   "permissions": [
     "activeTab"
   ],

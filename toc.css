@@ -23,24 +23,66 @@
   opacity: 1;
 }
 
-.github-toc svg {
+.toc-icon {
   position: absolute;
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  width: 24px !important;
-  height: 24px !important;
-  fill: var(--toc-text) !important;
-  color: var(--toc-text) !important;
-  stroke: var(--toc-text) !important;
+  width: 24px;
+  height: 24px;
   transition: all 0.3s var(--ease-out);
-  pointer-events: none;
+  z-index: 2;
 }
 
-.github-toc svg path {
+/* 防止伪元素影响 */
+.toc-icon::before,
+.toc-icon::after {
+  display: none !important;
+  content: none !important;
+}
+
+.toc-icon svg {
+  width: 100% !important;
+  height: 100% !important;
   fill: var(--toc-text) !important;
   color: var(--toc-text) !important;
   stroke: var(--toc-text) !important;
+  /* 防止其他样式影响 */
+  background: none !important;
+  box-shadow: none !important;
+  border: none !important;
+  outline: none !important;
+}
+
+.toc-icon svg path {
+  fill: var(--toc-text) !important;
+  color: var(--toc-text) !important;
+  stroke: var(--toc-text) !important;
+  /* 防止其他样式影响 */
+  background: none !important;
+  box-shadow: none !important;
+  border: none !important;
+  outline: none !important;
+}
+
+/* 确保图标容器不受其他样式影响 */
+.github-toc .toc-icon {
+  all: initial;
+  position: absolute !important;
+  top: 50% !important;
+  left: 50% !important;
+  transform: translate(-50%, -50%) !important;
+  width: 24px !important;
+  height: 24px !important;
+  transition: all 0.3s var(--ease-out) !important;
+  z-index: 2 !important;
+  box-sizing: border-box !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  border: none !important;
+  background: none !important;
+  box-shadow: none !important;
+  outline: none !important;
 }
 
 .github-toc.expanded {
@@ -71,11 +113,13 @@
   overflow: hidden;
   background: var(--toc-bg);
   border-radius: 8px;
+  pointer-events: none;
 }
 
 .github-toc.expanded .toc-tree {
   opacity: 1;
   transform: scale(1);
+  pointer-events: auto;
 }
 
 .toc-title {
@@ -101,6 +145,8 @@
   overflow-y: auto;
   max-height: calc(100% - 60px);
   background: var(--toc-bg);
+  position: relative;
+  z-index: 1;
 }
 
 .toc-list::-webkit-scrollbar {
@@ -122,6 +168,8 @@
   opacity: 0;
   transform: translateX(-10px);
   transition: all 0.3s var(--ease-out);
+  position: relative;
+  z-index: 1;
 }
 
 .github-toc.expanded .toc-item {
@@ -138,11 +186,35 @@
   border-radius: 4px;
   transition: all 0.2s var(--ease-out);
   letter-spacing: 0.25px;
+  position: relative;
+  z-index: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .toc-item a:hover {
   color: var(--toc-text-hover);
   background: var(--toc-highlight);
+}
+
+/* 活动目录项样式 */
+.toc-item.active a {
+  color: var(--toc-text-active, #0366d6);
+  background: var(--toc-highlight-active, rgba(3, 102, 214, 0.1));
+  font-weight: 500;
+}
+
+.toc-item.active::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 3px;
+  height: 16px;
+  background: var(--toc-text-active, #0366d6);
+  border-radius: 0 2px 2px 0;
 }
 
 .toc-item.level-1 { margin-left: 0; }
@@ -178,10 +250,7 @@
 }
 
 .toc-highlight {
-  animation: toc-highlight 3s var(--ease-out);
-  border-radius: 4px;
-  padding: 8px 16px;
-  margin: -8px -16px;
+  display: none;
 }
 
 .github-toc, .github-toc * {
@@ -214,4 +283,46 @@
 .github-toc .toc-item a:hover {
   color: var(--toc-text-hover) !important;
   background: var(--toc-highlight) !important;
+}
+
+/* 无标题时的提示样式 */
+.no-headers-message {
+  padding: 16px;
+  text-align: center;
+  color: var(--toc-text-secondary);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+
+.no-headers-message svg {
+  width: 32px;
+  height: 32px;
+  fill: var(--toc-text-secondary);
+  opacity: 0.7;
+}
+
+.no-headers-message span {
+  font-size: 16px;
+  font-weight: 500;
+  color: var(--toc-text);
+}
+
+.no-headers-message p {
+  font-size: 14px;
+  margin: 0;
+  opacity: 0.8;
+  line-height: 1.4;
+}
+
+.toc-item.no-headers {
+  margin: 0;
+  padding: 8px;
+  opacity: 1;
+  transform: none;
+}
+
+.toc-item.no-headers:hover {
+  background: none;
 }
