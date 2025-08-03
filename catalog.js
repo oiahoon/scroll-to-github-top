@@ -42,10 +42,43 @@
     memoryUsage: []
   };
 
-  // 创建目录树容器
+  // 用户配置管理
+  const CONFIG_KEY = 'smart-toc-config';
+  const defaultConfig = {
+    tocStyle: 'classic', // 'classic' | 'skeleton'
+    tocPosition: 'right', // 'left' | 'right'
+    autoHide: true,
+    showPerformance: false
+  };
+
+  function getConfig() {
+    try {
+      const saved = localStorage.getItem(CONFIG_KEY);
+      return saved ? { ...defaultConfig, ...JSON.parse(saved) } : defaultConfig;
+    } catch (error) {
+      console.warn('Failed to load config:', error);
+      return defaultConfig;
+    }
+  }
+
+  function saveConfig(config) {
+    try {
+      localStorage.setItem(CONFIG_KEY, JSON.stringify(config));
+    } catch (error) {
+      console.warn('Failed to save config:', error);
+    }
+  }
+
+  let currentConfig = getConfig();
+
+  // 创建目录树容器 - 支持多种样式
   const tocContainer = document.createElement('div');
   tocContainer.id = 'github-toc';
-  tocContainer.className = 'github-toc theme-light';
+  
+  // 根据配置应用不同的样式类
+  const baseClass = currentConfig.tocStyle === 'skeleton' ? 'github-toc-skeleton' : 'github-toc';
+  const positionClass = currentConfig.tocStyle === 'skeleton' ? `position-${currentConfig.tocPosition}` : '';
+  tocContainer.className = `${baseClass} theme-light ${positionClass}`.trim();
   
   // 可访问性改进 - ARIA标签和属性
   tocContainer.setAttribute('role', 'navigation');
@@ -55,22 +88,41 @@
   
   document.body.appendChild(tocContainer);
 
-  // 添加按钮图标 - 安全的DOM操作
-  const iconContainer = document.createElement('div');
-  iconContainer.className = 'toc-icon';
+  // 根据样式类型创建不同的UI结构
+  let iconContainer = null;
   
-  // 创建SVG元素而不是使用innerHTML
-  const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
-  svg.setAttribute('width', '30');
-  svg.setAttribute('height', '30');
-  svg.setAttribute('viewBox', '0 0 24 24');
-  
-  const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
-  path.setAttribute('d', 'M3 5h18v2H3V5zm0 6h18v2H3v-2zm0 6h18v2H3v-2z');
-  
-  svg.appendChild(path);
-  iconContainer.appendChild(svg);
-  tocContainer.appendChild(iconContainer);
+  if (currentConfig.tocStyle === 'classic') {
+    // 经典模式：圆形图标按钮
+    iconContainer = document.createElement('div');
+    iconContainer.className = 'toc-icon';
+    
+    // 创建SVG元素而不是使用innerHTML
+    const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+    svg.setAttribute('width', '30');
+    svg.setAttribute('height', '30');
+    svg.setAttribute('viewBox', '0 0 24 24');
+    
+    const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+    path.setAttribute('d', 'M3 5h18v2H3V5zm0 6h18v2H3v-2zm0 6h18v2H3v-2z');
+    
+    svg.appendChild(path);
+    iconContainer.appendChild(svg);
+    tocContainer.appendChild(iconContainer);
+    
+    // 在经典模式也添加设置按钮
+    const settingsBtn = document.createElement('div');
+    settingsBtn.className = 'toc-settings-btn-classic';
+    settingsBtn.setAttribute('title', 'TOC Settings');
+    settingsBtn.innerHTML = '⚙️';
+    tocContainer.appendChild(settingsBtn);
+  } else {
+    // 骨架模式：创建设置按钮
+    const settingsBtn = document.createElement('div');
+    settingsBtn.className = 'toc-settings-btn';
+    settingsBtn.setAttribute('title', 'TOC Settings');
+    settingsBtn.innerHTML = '⚙️';
+    tocContainer.appendChild(settingsBtn);
+  }
 
   // 创建目录树结构
   const tocTree = document.createElement('div');
@@ -91,6 +143,47 @@
 
   // 将目录树添加到容器中
   tocContainer.appendChild(tocTree);
+
+  // 创建设置面板
+  const settingsPanel = document.createElement('div');
+  settingsPanel.className = 'toc-settings-panel';
+  settingsPanel.style.display = 'none';
+  settingsPanel.innerHTML = `
+    <div class="settings-header">
+      <h3>TOC Settings</h3>
+      <button class="close-btn">&times;</button>
+    </div>
+    <div class="settings-content">
+      <div class="setting-group">
+        <label>Style:</label>
+        <select id="toc-style-select">
+          <option value="classic">Classic</option>
+          <option value="skeleton">Skeleton</option>
+        </select>
+      </div>
+      <div class="setting-group" id="position-group" style="display: none;">
+        <label>Position:</label>
+        <select id="toc-position-select">
+          <option value="left">Left</option>
+          <option value="right">Right</option>
+        </select>
+      </div>
+      <div class="setting-group">
+        <label>
+          <input type="checkbox" id="auto-hide-checkbox">
+          Auto Hide
+        </label>
+      </div>
+      <div class="setting-group">
+        <label>
+          <input type="checkbox" id="show-performance-checkbox">
+          Show Performance
+        </label>
+      </div>
+      <button class="apply-btn">Apply</button>
+    </div>
+  `;
+  document.body.appendChild(settingsPanel);
 
   // 扩展内容容器选择器
   const mainContainers = [
@@ -655,6 +748,12 @@
         const li = document.createElement('li');
         li.className = `toc-item level-${level}`;
         li.dataset.headerId = header.id;
+        li.dataset.level = level;
+        
+        // 在骨架模式下，默认添加skeleton-mode类
+        if (currentConfig.tocStyle === 'skeleton') {
+          li.classList.add('skeleton-mode');
+        }
 
         const a = document.createElement('a');
         a.href = `#${header.id}`;
@@ -672,16 +771,18 @@
           // 添加当前目录项的高亮
           li.classList.add('active');
 
-          // 更新当前活动标题
+          // 更新当前活动标题和骨架模式状态
           updateActiveHeader();
+          updateSkeletonMode();
         });
 
         li.appendChild(a);
         tocList.appendChild(li);
       });
 
-      // 初始化当前活动标题
+      // 初始化当前活动标题和骨架模式
       updateActiveHeader();
+      updateSkeletonMode();
     });
   }
 
@@ -716,6 +817,41 @@
     }
   }
 
+  // 添加更新骨架模式的函数
+  function updateSkeletonMode() {
+    if (currentConfig.tocStyle !== 'skeleton') return;
+
+    const tocItems = document.querySelectorAll('.toc-item');
+    const activeItem = document.querySelector('.toc-item.active');
+    
+    // 首先，给所有项目添加skeleton-mode类
+    tocItems.forEach(item => {
+      item.classList.add('skeleton-mode');
+      item.classList.remove('current', 'parent-of-current');
+    });
+
+    if (activeItem) {
+      // 移除当前项的skeleton-mode类，显示文本
+      activeItem.classList.remove('skeleton-mode');
+      activeItem.classList.add('current');
+
+      // 查找并显示所有父级项目
+      const currentLevel = parseInt(activeItem.dataset.level);
+      let prevItem = activeItem.previousElementSibling;
+      let lastParentLevel = currentLevel;
+
+      while (prevItem) {
+        const prevLevel = parseInt(prevItem.dataset.level);
+        if (prevLevel < lastParentLevel) {
+          prevItem.classList.remove('skeleton-mode');
+          prevItem.classList.add('parent-of-current');
+          lastParentLevel = prevLevel;
+        }
+        prevItem = prevItem.previousElementSibling;
+      }
+    }
+  }
+
   // 修改滚动监听以包含性能监控
   window.addEventListener('scroll', () => {
     if (scrollTimeout) {
@@ -727,6 +863,7 @@
         const sTop = document.body.scrollTop + document.documentElement.scrollTop;
         tocContainer.style.display = sTop > 468 ? 'block' : 'none';
         updateActiveHeader();
+        updateSkeletonMode();
       });
     });
   });
@@ -832,13 +969,32 @@
   tocContainer.addEventListener('mouseenter', () => {
     tocContainer.classList.add('expanded');
     tocContainer.setAttribute('aria-expanded', 'true');
-    iconContainer.style.opacity = '0';
+    if (iconContainer) {
+      iconContainer.style.opacity = '0';
+    }
+    
+    // 骨架模式下，鼠标悬停时显示所有项目
+    if (currentConfig.tocStyle === 'skeleton') {
+      document.querySelectorAll('.toc-item').forEach(item => {
+        item.classList.add('hover-show');
+      });
+    }
   });
 
   tocContainer.addEventListener('mouseleave', () => {
     tocContainer.classList.remove('expanded');
     tocContainer.setAttribute('aria-expanded', 'false');
-    iconContainer.style.opacity = '1';
+    if (iconContainer) {
+      iconContainer.style.opacity = '1';
+    }
+    
+    // 骨架模式下，鼠标离开时恢复骨架状态
+    if (currentConfig.tocStyle === 'skeleton') {
+      document.querySelectorAll('.toc-item').forEach(item => {
+        item.classList.remove('hover-show');
+      });
+      updateSkeletonMode();
+    }
   });
 
   // 键盘导航支持
@@ -882,6 +1038,55 @@
       const holder = document.body.scrollTop === 0 ? document.documentElement : document.body;
       scrollTo(holder, 0, 348);
     }
+  });
+
+  // 设置按钮事件处理
+  const settingsBtn = document.querySelector('.toc-settings-btn, .toc-settings-btn-classic');
+  if (settingsBtn) {
+    settingsBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      settingsPanel.style.display = 'block';
+      
+      // 设置当前配置值
+      document.getElementById('toc-style-select').value = currentConfig.tocStyle;
+      document.getElementById('toc-position-select').value = currentConfig.tocPosition;
+      document.getElementById('auto-hide-checkbox').checked = currentConfig.autoHide;
+      document.getElementById('show-performance-checkbox').checked = currentConfig.showPerformance;
+      
+      // 显示/隐藏位置选项
+      const positionGroup = document.getElementById('position-group');
+      positionGroup.style.display = currentConfig.tocStyle === 'skeleton' ? 'block' : 'none';
+    });
+  }
+
+  // 设置面板事件处理
+  const closeBtn = settingsPanel.querySelector('.close-btn');
+  closeBtn.addEventListener('click', () => {
+    settingsPanel.style.display = 'none';
+  });
+
+  // 样式选择变化时显示/隐藏位置选项
+  const styleSelect = document.getElementById('toc-style-select');
+  styleSelect.addEventListener('change', () => {
+    const positionGroup = document.getElementById('position-group');
+    positionGroup.style.display = styleSelect.value === 'skeleton' ? 'block' : 'none';
+  });
+
+  // 应用设置
+  const applyBtn = settingsPanel.querySelector('.apply-btn');
+  applyBtn.addEventListener('click', () => {
+    const newConfig = {
+      tocStyle: document.getElementById('toc-style-select').value,
+      tocPosition: document.getElementById('toc-position-select').value,
+      autoHide: document.getElementById('auto-hide-checkbox').checked,
+      showPerformance: document.getElementById('show-performance-checkbox').checked
+    };
+    
+    saveConfig(newConfig);
+    settingsPanel.style.display = 'none';
+    
+    // 重新加载页面以应用新设置
+    location.reload();
   });
 
   document.addEventListener('focusin', (e) => {

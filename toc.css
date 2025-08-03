@@ -384,3 +384,356 @@
   overflow: hidden;
   text-overflow: ellipsis;
 }
+
+/* =================== 骨架式TOC样式 =================== */
+
+.github-toc-skeleton {
+  position: fixed;
+  top: 10%;
+  width: 280px;
+  max-height: 80vh;
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 12px;
+  padding: 20px 15px;
+  z-index: 9998;
+  overflow-y: auto;
+  transition: all 0.3s var(--ease-out);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+}
+
+.github-toc-skeleton.position-left {
+  left: 20px;
+}
+
+.github-toc-skeleton.position-right {
+  right: 20px;
+}
+
+.github-toc-skeleton::-webkit-scrollbar {
+  width: 6px;
+}
+
+.github-toc-skeleton::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 3px;
+}
+
+.github-toc-skeleton::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.3);
+  border-radius: 3px;
+}
+
+/* 设置按钮 */
+.toc-settings-btn {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 12px;
+  transition: all 0.2s var(--ease-out);
+  opacity: 0.7;
+}
+
+.toc-settings-btn:hover {
+  opacity: 1;
+  background: rgba(255, 255, 255, 0.3);
+  transform: scale(1.1);
+}
+
+/* 骨架式目录树 */
+.github-toc-skeleton .toc-tree {
+  position: static;
+  opacity: 1;
+  transform: none;
+  padding: 0;
+  background: none;
+  overflow: visible;
+  pointer-events: auto;
+}
+
+.github-toc-skeleton .toc-title {
+  display: none;
+}
+
+/* 骨架式目录列表 */
+.github-toc-skeleton .toc-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  background: none;
+  position: relative;
+}
+
+/* 骨架式目录项 */
+.github-toc-skeleton .toc-item {
+  position: relative;
+  margin: 8px 0;
+  opacity: 1;
+  transform: none;
+  transition: all 0.2s var(--ease-out);
+}
+
+/* 骨架线条（默认状态） */
+.github-toc-skeleton .toc-item.skeleton-mode {
+  height: 16px;
+  background: linear-gradient(90deg, 
+    rgba(255, 255, 255, 0.3) 0%, 
+    rgba(255, 255, 255, 0.1) 50%, 
+    rgba(255, 255, 255, 0.3) 100%);
+  border-radius: 8px;
+  overflow: hidden;
+  position: relative;
+}
+
+.github-toc-skeleton .toc-item.skeleton-mode::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, 
+    transparent, 
+    rgba(255, 255, 255, 0.4), 
+    transparent);
+  animation: skeleton-shimmer 2s infinite;
+}
+
+@keyframes skeleton-shimmer {
+  0% { left: -100%; }
+  100% { left: 100%; }
+}
+
+/* 当前项和父级项显示文字 */
+.github-toc-skeleton .toc-item.current,
+.github-toc-skeleton .toc-item.parent-of-current {
+  height: auto;
+  background: none;
+}
+
+.github-toc-skeleton .toc-item.current::before,
+.github-toc-skeleton .toc-item.parent-of-current::before {
+  display: none;
+}
+
+/* 悬浮时显示所有文字 */
+.github-toc-skeleton:hover .toc-item.skeleton-mode {
+  height: auto;
+  background: none;
+}
+
+.github-toc-skeleton:hover .toc-item.skeleton-mode::before {
+  display: none;
+}
+
+/* 骨架式链接样式 */
+.github-toc-skeleton .toc-item a {
+  color: rgba(255, 255, 255, 0.8);
+  text-decoration: none;
+  font-size: 13px;
+  font-weight: 400;
+  line-height: 1.4;
+  display: block;
+  padding: 4px 8px;
+  border-radius: 6px;
+  transition: all 0.2s var(--ease-out);
+  border-left: 2px solid transparent;
+}
+
+/* 骨架模式下隐藏链接文字 */
+.github-toc-skeleton .toc-item.skeleton-mode a {
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* 当前项和父级项显示文字 */
+.github-toc-skeleton .toc-item.current a,
+.github-toc-skeleton .toc-item.parent-of-current a {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+/* 悬浮时显示所有文字 */
+.github-toc-skeleton:hover .toc-item.skeleton-mode a {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+/* 当前项高亮 */
+.github-toc-skeleton .toc-item.current a {
+  color: #fff;
+  background: rgba(70, 130, 180, 0.3);
+  border-left-color: #4682b4;
+  font-weight: 500;
+}
+
+/* 父级项样式 */
+.github-toc-skeleton .toc-item.parent-of-current a {
+  color: rgba(255, 255, 255, 0.9);
+  border-left-color: rgba(255, 255, 255, 0.3);
+}
+
+/* 悬浮效果 */
+.github-toc-skeleton .toc-item a:hover {
+  background: rgba(255, 255, 255, 0.1);
+  border-left-color: rgba(255, 255, 255, 0.5);
+  transform: translateX(2px);
+}
+
+/* 层级缩进 */
+.github-toc-skeleton .toc-item.level-1 { margin-left: 0; }
+.github-toc-skeleton .toc-item.level-2 { margin-left: 16px; }
+.github-toc-skeleton .toc-item.level-3 { margin-left: 32px; }
+.github-toc-skeleton .toc-item.level-4 { margin-left: 48px; }
+.github-toc-skeleton .toc-item.level-5 { margin-left: 64px; }
+.github-toc-skeleton .toc-item.level-6 { margin-left: 80px; }
+
+/* 层级连线 */
+.github-toc-skeleton .toc-item.level-2::after,
+.github-toc-skeleton .toc-item.level-3::after,
+.github-toc-skeleton .toc-item.level-4::after,
+.github-toc-skeleton .toc-item.level-5::after,
+.github-toc-skeleton .toc-item.level-6::after {
+  content: '';
+  position: absolute;
+  left: -12px;
+  top: 50%;
+  width: 8px;
+  height: 1px;
+  background: rgba(255, 255, 255, 0.2);
+}
+
+/* 响应式适配 */
+@media (max-width: 768px) {
+  .github-toc-skeleton {
+    width: 240px;
+    padding: 15px 10px;
+  }
+}
+
+@media (max-height: 600px) {
+  .github-toc-skeleton {
+    top: 5%;
+    max-height: 90vh;
+  }
+}
+
+/* 设置面板样式 */
+.toc-settings-panel {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 300px;
+  background: #fff;
+  border-radius: 8px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+  z-index: 10000;
+  padding: 20px;
+}
+
+.toc-settings-panel .settings-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid #e1e4e8;
+}
+
+.toc-settings-panel .settings-header h3 {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.toc-settings-panel .close-btn {
+  background: none;
+  border: none;
+  font-size: 24px;
+  cursor: pointer;
+  color: #666;
+  padding: 0;
+  width: 30px;
+  height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.toc-settings-panel .close-btn:hover {
+  color: #000;
+}
+
+.toc-settings-panel .setting-group {
+  margin-bottom: 15px;
+}
+
+.toc-settings-panel .setting-group label {
+  display: flex;
+  align-items: center;
+  font-size: 14px;
+  color: #333;
+}
+
+.toc-settings-panel .setting-group select {
+  width: 100%;
+  padding: 6px 10px;
+  margin-top: 5px;
+  border: 1px solid #e1e4e8;
+  border-radius: 4px;
+  font-size: 14px;
+}
+
+.toc-settings-panel .setting-group input[type="checkbox"] {
+  margin-right: 8px;
+}
+
+.toc-settings-panel .apply-btn {
+  width: 100%;
+  padding: 8px 16px;
+  background: #0366d6;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  font-size: 14px;
+  cursor: pointer;
+  margin-top: 10px;
+}
+
+.toc-settings-panel .apply-btn:hover {
+  background: #0256c7;
+}
+
+/* 经典模式设置按钮 */
+.toc-settings-btn-classic {
+  position: absolute;
+  top: 5px;
+  right: 5px;
+  width: 20px;
+  height: 20px;
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  font-size: 14px;
+  line-height: 20px;
+  text-align: center;
+  z-index: 10;
+}
+
+.github-toc.expanded .toc-settings-btn-classic {
+  opacity: 0.6;
+}
+
+.github-toc.expanded .toc-settings-btn-classic:hover {
+  opacity: 1;
+}
