@@ -2,10 +2,24 @@
 
 // 使用立即执行函数来创建独立的作用域
 (function() {
-  // 检查是否已经存在目录树
-  if (document.getElementById('github-toc')) {
+  // 强化的竞态条件防护
+  const EXTENSION_NAMESPACE = 'smartTocScrollExtension';
+  const INIT_LOCK_KEY = EXTENSION_NAMESPACE + '_initializing';
+  const INSTANCE_KEY = EXTENSION_NAMESPACE + '_instance';
+  
+  // 检查是否已经有实例正在初始化或已初始化
+  if (window[INSTANCE_KEY] || window[INIT_LOCK_KEY]) {
     return;
   }
+  
+  // 原子性检查 - 同时检查DOM和全局状态
+  if (document.getElementById('github-toc')) {
+    window[INSTANCE_KEY] = true;
+    return;
+  }
+  
+  // 设置初始化锁，防止并发初始化
+  window[INIT_LOCK_KEY] = true;
 
   // 状态变量
   let observer = null;
@@ -14,6 +28,11 @@
   let lastUrl = window.location.href;
   let contentContainer = null;
   let isGitHub = window.location.hostname === 'github.com';
+  
+  // 内存泄漏防护 - 跟踪所有定时器和监听器
+  let performanceInterval = null;
+  let githubMonitorInterval = null;
+  let scrollTimeout = null;
 
   // 性能监控相关变量
   const performanceMetrics = {
@@ -27,13 +46,30 @@
   const tocContainer = document.createElement('div');
   tocContainer.id = 'github-toc';
   tocContainer.className = 'github-toc theme-light';
+  
+  // 可访问性改进 - ARIA标签和属性
+  tocContainer.setAttribute('role', 'navigation');
+  tocContainer.setAttribute('aria-label', 'Table of Contents');
+  tocContainer.setAttribute('aria-expanded', 'false');
+  tocContainer.setAttribute('tabindex', '0');
+  
   document.body.appendChild(tocContainer);
 
-  // 添加按钮图标
-  const buttonSvg = '<svg width="30" height="30" viewBox="0 0 24 24"><path d="M3 5h18v2H3V5zm0 6h18v2H3v-2zm0 6h18v2H3v-2z"/></svg>';
+  // 添加按钮图标 - 安全的DOM操作
   const iconContainer = document.createElement('div');
   iconContainer.className = 'toc-icon';
-  iconContainer.innerHTML = buttonSvg;
+  
+  // 创建SVG元素而不是使用innerHTML
+  const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+  svg.setAttribute('width', '30');
+  svg.setAttribute('height', '30');
+  svg.setAttribute('viewBox', '0 0 24 24');
+  
+  const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+  path.setAttribute('d', 'M3 5h18v2H3V5zm0 6h18v2H3v-2zm0 6h18v2H3v-2z');
+  
+  svg.appendChild(path);
+  iconContainer.appendChild(svg);
   tocContainer.appendChild(iconContainer);
 
   // 创建目录树结构
@@ -49,6 +85,8 @@
   // 创建目录列表
   const tocList = document.createElement('ul');
   tocList.className = 'toc-list';
+  tocList.setAttribute('role', 'list');
+  tocList.setAttribute('aria-label', 'Table of Contents Items');
   tocTree.appendChild(tocList);
 
   // 将目录树添加到容器中
@@ -169,15 +207,102 @@
     '.side-bar-zone'
   ];
 
-  // 工具函数
+  // 工具函数 - 改进的清理机制
   function cleanup() {
+    // 清理MutationObserver
     if (observer) {
       observer.disconnect();
+      observer = null;
     }
+    
+    // 清理所有定时器
     if (updateTimeout) {
       clearTimeout(updateTimeout);
+      updateTimeout = null;
     }
+    
+    if (performanceInterval) {
+      clearInterval(performanceInterval);
+      performanceInterval = null;
+    }
+    
+    if (githubMonitorInterval) {
+      clearInterval(githubMonitorInterval);
+      githubMonitorInterval = null;
+    }
+    
+    if (scrollTimeout) {
+      window.cancelAnimationFrame(scrollTimeout);
+      scrollTimeout = null;
+    }
+    
+    // 清理数据结构
     lastProcessedHeaders.clear();
+    
+    // 清理性能监控数据，防止内存累积
+    performanceMetrics.tocGeneration.length = 0;
+    performanceMetrics.tocUpdate.length = 0;
+    performanceMetrics.scrollPerformance.length = 0;
+    performanceMetrics.memoryUsage.length = 0;
+    
+    // 清理全局状态标记，允许重新初始化
+    delete window[INSTANCE_KEY];
+    delete window[INIT_LOCK_KEY];
+  }
+
+  // 安全地清空DOM元素
+  function clearElement(element) {
+    while (element.firstChild) {
+      element.removeChild(element.firstChild);
+    }
+  }
+
+  // 安全地创建文本节点和元素
+  function createSafeElement(tagName, textContent, className) {
+    const element = document.createElement(tagName);
+    if (textContent) {
+      element.textContent = textContent;
+    }
+    if (className) {
+      element.className = className;
+    }
+    return element;
+  }
+
+  // 安全的样式计算，带错误处理
+  function safeGetComputedStyle(element, property) {
+    try {
+      const style = window.getComputedStyle(element);
+      return property ? style.getPropertyValue(property) : style;
+    } catch (error) {
+      console.warn('Failed to get computed style:', error);
+      return property ? '' : {};
+    }
+  }
+
+  // 安全的数值解析
+  function safeParseInt(value, defaultValue = 0) {
+    const parsed = parseInt(value);
+    return isNaN(parsed) ? defaultValue : parsed;
+  }
+
+  // 安全的DOM查询
+  function safeQuerySelector(selector, parent = document) {
+    try {
+      return parent.querySelector(selector);
+    } catch (error) {
+      console.warn('Invalid selector:', selector, error);
+      return null;
+    }
+  }
+
+  function safeQuerySelectorAll(selector, parent = document) {
+    try {
+      return parent.querySelectorAll(selector);
+    } catch (error) {
+      console.warn('Invalid selector:', selector, error);
+      return [];
+    }
   }
 
   function debounce(func, wait) {
@@ -237,87 +362,151 @@
   }
 
   function getHeaders() {
-    const standardHeaders = Array.from(contentContainer.querySelectorAll('h1, h2, h3, h4, h5, h6'));
-    const customHeaders = Array.from(contentContainer.querySelectorAll('[class*="title"], [class*="heading"], [class*="header"]'))
-      .filter(el => {
-        const style = window.getComputedStyle(el);
-        const fontSize = parseInt(style.fontSize);
-        const fontWeight = parseInt(style.fontWeight);
-        return fontSize >= 16 && fontWeight >= 500;
-      });
+    // 安全地获取标题，带错误处理
+    if (!contentContainer) {
+      console.warn('Content container not found');
+      return [];
+    }
+    
+    try {
+      const standardHeaders = Array.from(safeQuerySelectorAll('h1, h2, h3, h4, h5, h6', contentContainer));
+      const customHeaders = Array.from(safeQuerySelectorAll('[class*="title"], [class*="heading"], [class*="header"]', contentContainer))
+        .filter(el => {
+          const style = safeGetComputedStyle(el);
+          if (!style || typeof style === 'string') return false;
+          
+          const fontSize = safeParseInt(style.fontSize, 0);
+          const fontWeight = safeParseInt(style.fontWeight, 0);
+          return fontSize >= 16 && fontWeight >= 500;
+        });
 
-    return [...standardHeaders, ...customHeaders]
-      .filter(header => {
-        const style = window.getComputedStyle(header);
-        if (style.display === 'none' || style.visibility === 'hidden') {
-          return false;
-        }
-
-        let parent = header.parentElement;
-        while (parent && parent !== contentContainer) {
-          if (excludeContainers.some(selector => parent.matches(selector))) {
+      return [...standardHeaders, ...customHeaders]
+        .filter(header => {
+          const style = safeGetComputedStyle(header);
+          if (!style || typeof style === 'string') return true; // 默认显示
+          
+          if (style.display === 'none' || style.visibility === 'hidden') {
             return false;
           }
-          parent = parent.parentElement;
-        }
 
-        const headerText = header.textContent.trim();
-        const headerId = `${headerText}-${header.tagName}-${header.offsetTop}`;
-        if (lastProcessedHeaders.has(headerId)) {
-          return false;
-        }
-        lastProcessedHeaders.add(headerId);
+          // 安全地检查父元素
+          let parent = header.parentElement;
+          let depth = 0;
+          while (parent && parent !== contentContainer && depth < 10) { // 限制深度防止无限循环
+            try {
+              if (excludeContainers.some(selector => parent.matches(selector))) {
+                return false;
+              }
+            } catch (error) {
+              // 如果matches失败，跳过这个检查
+              console.warn('Failed to match selector on parent element:', error);
+            }
+            parent = parent.parentElement;
+            depth++;
+          }
 
-        return true;
-      })
-      .sort((a, b) => {
-        return a.compareDocumentPosition(b) & Node.DOCUMENT_POSITION_FOLLOWING ? -1 : 1;
-      });
+          // 安全地获取文本内容
+          const headerText = (header.textContent || '').trim();
+          if (!headerText) return false;
+          
+          // 创建安全的ID
+          const headerId = `${headerText}-${header.tagName || 'unknown'}-${header.offsetTop || 0}`;
+          if (lastProcessedHeaders.has(headerId)) {
+            return false;
+          }
+          lastProcessedHeaders.add(headerId);
+
+          return true;
+        })
+        .sort((a, b) => {
+          try {
+            return a.compareDocumentPosition(b) & Node.DOCUMENT_POSITION_FOLLOWING ? -1 : 1;
+          } catch (error) {
+            // 如果compareDocumentPosition失败，保持原序
+            return 0;
+          }
+        });
+    } catch (error) {
+      console.error('Error in getHeaders:', error);
+      return [];
+    }
   }
 
-  // 性能监控工具函数
+  // 性能监控工具函数 - 带错误处理
   function measurePerformance(metricName, callback) {
-    const startTime = performance.now();
-    const startMemory = performance.memory ? performance.memory.usedJSHeapSize : 0;
-
-    const result = callback();
-
-    const endTime = performance.now();
-    const endMemory = performance.memory ? performance.memory.usedJSHeapSize : 0;
-
-    const duration = endTime - startTime;
-    const memoryDelta = endMemory - startMemory;
-
-    performanceMetrics[metricName].push({
-      timestamp: Date.now(),
-      duration,
-      memoryDelta,
-      memoryUsage: endMemory
-    });
-
-    // 只保留最近100条记录
-    if (performanceMetrics[metricName].length > 100) {
-      performanceMetrics[metricName].shift();
+    if (!performanceMetrics[metricName]) {
+      console.warn('Invalid performance metric name:', metricName);
+      return callback();
     }
+    
+    try {
+      const startTime = performance.now();
+      let startMemory = 0;
+      
+      // 安全地获取内存信息
+      try {
+        startMemory = performance.memory ? performance.memory.usedJSHeapSize : 0;
+      } catch (memError) {
+        // 内存API不可用时静默忽略
+      }
 
-    return result;
+      const result = callback();
+
+      const endTime = performance.now();
+      let endMemory = 0;
+      
+      try {
+        endMemory = performance.memory ? performance.memory.usedJSHeapSize : 0;
+      } catch (memError) {
+        // 内存API不可用时使用startMemory
+        endMemory = startMemory;
+      }
+
+      const duration = endTime - startTime;
+      const memoryDelta = endMemory - startMemory;
+
+      performanceMetrics[metricName].push({
+        timestamp: Date.now(),
+        duration: Math.max(0, duration), // 确保非负值
+        memoryDelta,
+        memoryUsage: endMemory
+      });
+
+      // 只保留最近100条记录，防止内存泄漏
+      if (performanceMetrics[metricName].length > 100) {
+        performanceMetrics[metricName].shift();
+      }
+
+      return result;
+    } catch (error) {
+      console.error('Performance measurement failed:', error);
+      // 性能监控失败时仍然执行回调
+      return callback();
+    }
   }
 
   function getPerformanceStats(metricName) {
-    const metrics = performanceMetrics[metricName];
-    if (metrics.length === 0) return null;
+    try {
+      const metrics = performanceMetrics[metricName];
+      if (!metrics || metrics.length === 0) return null;
 
-    const durations = metrics.map(m => m.duration);
-    const memoryDeltas = metrics.map(m => m.memoryDelta);
+      const durations = metrics.map(m => m.duration || 0).filter(d => !isNaN(d));
+      const memoryDeltas = metrics.map(m => m.memoryDelta || 0).filter(d => !isNaN(d));
 
-    return {
-      count: metrics.length,
-      avgDuration: durations.reduce((a, b) => a + b, 0) / durations.length,
-      minDuration: Math.min(...durations),
-      maxDuration: Math.max(...durations),
-      avgMemoryDelta: memoryDeltas.reduce((a, b) => a + b, 0) / memoryDeltas.length,
-      latestMemoryUsage: metrics[metrics.length - 1].memoryUsage
-    };
+      if (durations.length === 0) return null;
+
+      return {
+        count: metrics.length,
+        avgDuration: durations.reduce((a, b) => a + b, 0) / durations.length,
+        minDuration: Math.min(...durations),
+        maxDuration: Math.max(...durations),
+        avgMemoryDelta: memoryDeltas.length > 0 ? memoryDeltas.reduce((a, b) => a + b, 0) / memoryDeltas.length : 0,
+        latestMemoryUsage: metrics[metrics.length - 1]?.memoryUsage || 0
+      };
+    } catch (error) {
+      console.error('Failed to get performance stats:', error);
+      return null;
+    }
   }
 
   function displayPerformanceStats() {
@@ -346,8 +535,8 @@
       }
     });
 
-    // 定期更新性能统计
-    setInterval(() => {
+    // 定期更新性能统计 - 安全的DOM操作，防止内存泄漏
+    performanceInterval = setInterval(() => {
       const stats = {
         generation: getPerformanceStats('tocGeneration'),
         update: getPerformanceStats('tocUpdate'),
@@ -356,44 +545,40 @@
 
       if (!stats.generation && !stats.update && !stats.scroll) return;
 
-      let html = '<h3>TOC Performance Stats</h3>';
+      // 安全地重建性能统计显示
+      clearElement(statsContainer);
+      
+      const title = createSafeElement('h3', 'TOC Performance Stats');
+      statsContainer.appendChild(title);
 
       if (stats.generation) {
-        html += `
-          <div>
-            <h4>Generation</h4>
-            <p>Count: ${stats.generation.count}</p>
-            <p>Avg Duration: ${stats.generation.avgDuration.toFixed(2)}ms</p>
-            <p>Min/Max: ${stats.generation.minDuration.toFixed(2)}ms / ${stats.generation.maxDuration.toFixed(2)}ms</p>
-            <p>Memory Usage: ${(stats.generation.latestMemoryUsage / 1024 / 1024).toFixed(2)}MB</p>
-          </div>
-        `;
+        const genDiv = createSafeElement('div');
+        genDiv.appendChild(createSafeElement('h4', 'Generation'));
+        genDiv.appendChild(createSafeElement('p', `Count: ${stats.generation.count}`));
+        genDiv.appendChild(createSafeElement('p', `Avg Duration: ${stats.generation.avgDuration.toFixed(2)}ms`));
+        genDiv.appendChild(createSafeElement('p', `Min/Max: ${stats.generation.minDuration.toFixed(2)}ms / ${stats.generation.maxDuration.toFixed(2)}ms`));
+        genDiv.appendChild(createSafeElement('p', `Memory Usage: ${(stats.generation.latestMemoryUsage / 1024 / 1024).toFixed(2)}MB`));
+        statsContainer.appendChild(genDiv);
       }
 
       if (stats.update) {
-        html += `
-          <div>
-            <h4>Updates</h4>
-            <p>Count: ${stats.update.count}</p>
-            <p>Avg Duration: ${stats.update.avgDuration.toFixed(2)}ms</p>
-            <p>Min/Max: ${stats.update.minDuration.toFixed(2)}ms / ${stats.update.maxDuration.toFixed(2)}ms</p>
-            <p>Memory Delta: ${(stats.update.avgMemoryDelta / 1024 / 1024).toFixed(2)}MB</p>
-          </div>
-        `;
+        const updateDiv = createSafeElement('div');
+        updateDiv.appendChild(createSafeElement('h4', 'Updates'));
+        updateDiv.appendChild(createSafeElement('p', `Count: ${stats.update.count}`));
+        updateDiv.appendChild(createSafeElement('p', `Avg Duration: ${stats.update.avgDuration.toFixed(2)}ms`));
+        updateDiv.appendChild(createSafeElement('p', `Min/Max: ${stats.update.minDuration.toFixed(2)}ms / ${stats.update.maxDuration.toFixed(2)}ms`));
+        updateDiv.appendChild(createSafeElement('p', `Memory Delta: ${(stats.update.avgMemoryDelta / 1024 / 1024).toFixed(2)}MB`));
+        statsContainer.appendChild(updateDiv);
       }
 
       if (stats.scroll) {
-        html += `
-          <div>
-            <h4>Scroll Performance</h4>
-            <p>Count: ${stats.scroll.count}</p>
-            <p>Avg Duration: ${stats.scroll.avgDuration.toFixed(2)}ms</p>
-            <p>Min/Max: ${stats.scroll.minDuration.toFixed(2)}ms / ${stats.scroll.maxDuration.toFixed(2)}ms</p>
-          </div>
-        `;
+        const scrollDiv = createSafeElement('div');
+        scrollDiv.appendChild(createSafeElement('h4', 'Scroll Performance'));
+        scrollDiv.appendChild(createSafeElement('p', `Count: ${stats.scroll.count}`));
+        scrollDiv.appendChild(createSafeElement('p', `Avg Duration: ${stats.scroll.avgDuration.toFixed(2)}ms`));
+        scrollDiv.appendChild(createSafeElement('p', `Min/Max: ${stats.scroll.minDuration.toFixed(2)}ms / ${stats.scroll.maxDuration.toFixed(2)}ms`));
+        statsContainer.appendChild(scrollDiv);
       }
-
-      statsContainer.innerHTML = html;
     }, 1000);
   }
 
@@ -407,17 +592,36 @@
       if (headers.length === 0) {
         const tocList = document.querySelector('.toc-list');
         if (tocList) {
-          tocList.innerHTML = `
-            <li class="toc-item no-headers">
-              <div class="no-headers-message">
-                <svg viewBox="0 0 24 24" width="24" height="24">
-                  <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/>
-                </svg>
-                <span>No headers found</span>
-                <p>This page doesn't have any headings or the content is not loaded yet.</p>
-              </div>
-            </li>
-          `;
+          // 安全地创建"无标题"状态DOM
+          clearElement(tocList);
+          
+          const li = document.createElement('li');
+          li.className = 'toc-item no-headers';
+          
+          const messageDiv = document.createElement('div');
+          messageDiv.className = 'no-headers-message';
+          
+          // 创建SVG图标
+          const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+          svg.setAttribute('viewBox', '0 0 24 24');
+          svg.setAttribute('width', '24');
+          svg.setAttribute('height', '24');
+          
+          const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+          path.setAttribute('d', 'M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z');
+          svg.appendChild(path);
+          
+          const span = document.createElement('span');
+          span.textContent = 'No headers found';
+          
+          const p = document.createElement('p');
+          p.textContent = "This page doesn't have any headings or the content is not loaded yet.";
+          
+          messageDiv.appendChild(svg);
+          messageDiv.appendChild(span);
+          messageDiv.appendChild(p);
+          li.appendChild(messageDiv);
+          tocList.appendChild(li);
         }
         return;
       }
@@ -425,7 +629,7 @@
       const tocList = document.querySelector('.toc-list');
       if (!tocList) return;
 
-      tocList.innerHTML = '';
+      clearElement(tocList);
 
       headers.forEach(header => {
         let level = 1;
@@ -513,7 +717,6 @@
   }
 
   // 修改滚动监听以包含性能监控
-  let scrollTimeout;
   window.addEventListener('scroll', () => {
     if (scrollTimeout) {
       window.cancelAnimationFrame(scrollTimeout);
@@ -590,11 +793,21 @@
   }
 
   function reinitializeTOC() {
+    // 竞态条件防护：只有有效实例才能重新初始化
+    if (!window[INSTANCE_KEY] || window[INIT_LOCK_KEY]) {
+      return;
+    }
+    
     return measurePerformance('tocGeneration', () => {
-      cleanup();
-      contentContainer = findContentContainer();
-      setupObserver();
-      updateTOC();
+      try {
+        cleanup();
+        contentContainer = findContentContainer();
+        setupObserver();
+        updateTOC();
+      } catch (error) {
+        console.error('TOC reinitialization failed:', error);
+        // 重新初始化失败时，保持当前状态
+      }
     });
   }
 
@@ -606,7 +819,7 @@
     displayPerformanceStats();
 
     if (isGitHubPage()) {
-      setInterval(() => {
+      githubMonitorInterval = setInterval(() => {
         const currentContainer = findContentContainer();
         if (currentContainer !== contentContainer) {
           reinitializeTOC();
@@ -615,15 +828,53 @@
     }
   }
 
-  // 事件监听
+  // 事件监听 - 包含可访问性支持
   tocContainer.addEventListener('mouseenter', () => {
     tocContainer.classList.add('expanded');
+    tocContainer.setAttribute('aria-expanded', 'true');
     iconContainer.style.opacity = '0';
   });
 
   tocContainer.addEventListener('mouseleave', () => {
     tocContainer.classList.remove('expanded');
+    tocContainer.setAttribute('aria-expanded', 'false');
     iconContainer.style.opacity = '1';
+  });
+
+  // 键盘导航支持
+  tocContainer.addEventListener('keydown', (e) => {
+    switch (e.key) {
+      case 'Enter':
+      case ' ':
+        e.preventDefault();
+        // 切换展开状态
+        const isExpanded = tocContainer.classList.contains('expanded');
+        if (isExpanded) {
+          tocContainer.classList.remove('expanded');
+          tocContainer.setAttribute('aria-expanded', 'false');
+          iconContainer.style.opacity = '1';
+        } else {
+          tocContainer.classList.add('expanded');
+          tocContainer.setAttribute('aria-expanded', 'true');
+          iconContainer.style.opacity = '0';
+          // 聚焦到第一个目录项
+          const firstItem = tocContainer.querySelector('.toc-item a');
+          if (firstItem) {
+            setTimeout(() => firstItem.focus(), 100);
+          }
+        }
+        break;
+      case 'Escape':
+        // 收起TOC
+        if (tocContainer.classList.contains('expanded')) {
+          e.preventDefault();
+          tocContainer.classList.remove('expanded');
+          tocContainer.setAttribute('aria-expanded', 'false');
+          iconContainer.style.opacity = '1';
+          tocContainer.focus();
+        }
+        break;
+    }
   });
 
   tocContainer.addEventListener('click', (e) => {
@@ -652,8 +903,36 @@
   }
 
   // 启动初始化
-  initialize();
+  try {
+    initialize();
+    
+    // 初始化成功，设置实例标记并释放锁
+    window[INSTANCE_KEY] = true;
+    delete window[INIT_LOCK_KEY];
+  } catch (error) {
+    // 初始化失败，清理状态
+    console.error('Smart TOC initialization failed:', error);
+    delete window[INIT_LOCK_KEY];
+    delete window[INSTANCE_KEY];
+  }
 
-  // 清理
+  // 清理机制 - 防止内存泄漏
   window.addEventListener('unload', cleanup);
+  window.addEventListener('beforeunload', cleanup);
+  
+  // 页面可见性变化时也进行清理（移动端支持）
+  document.addEventListener('visibilitychange', () => {
+    if (document.hidden) {
+      // 页面隐藏时暂停不必要的操作
+      if (performanceInterval) {
+        clearInterval(performanceInterval);
+        performanceInterval = null;
+      }
+    } else {
+      // 页面重新可见时恢复性能监控
+      if (!performanceInterval && document.getElementById('toc-performance-stats')) {
+        displayPerformanceStats();
+      }
+    }
+  });
 })();

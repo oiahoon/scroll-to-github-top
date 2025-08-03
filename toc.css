@@ -326,3 +326,61 @@
 .toc-item.no-headers:hover {
   background: none;
 }
+
+/* 可访问性改进 - Focus 样式 */
+.github-toc:focus-visible {
+  outline: 2px solid var(--toc-text);
+  outline-offset: 2px;
+  box-shadow: var(--toc-elevation-hover), 0 0 0 4px rgba(70, 130, 180, 0.3);
+}
+
+.toc-item a:focus-visible {
+  outline: 2px solid var(--toc-text);
+  outline-offset: 1px;
+  background: var(--toc-highlight);
+  box-shadow: 0 0 0 2px rgba(70, 130, 180, 0.3);
+}
+
+/* 高对比度模式支持 */
+@media (prefers-contrast: high) {
+  .github-toc {
+    border: 2px solid currentColor;
+  }
+  
+  .toc-item a:focus-visible {
+    outline: 3px solid currentColor;
+    background: currentColor;
+    color: var(--toc-bg);
+  }
+}
+
+/* 减少动画偏好支持 */
+@media (prefers-reduced-motion: reduce) {
+  .github-toc, .toc-tree, .toc-item, .toc-title, .toc-icon svg {
+    transition: none !important;
+    animation: none !important;
+  }
+  
+  .github-toc.expanded {
+    transition: none !important;
+  }
+}
+
+/* 键盘导航提示 */
+.github-toc[aria-expanded="true"]:focus-visible::after {
+  content: "Use Tab to navigate items, Escape to close";
+  position: absolute;
+  top: -30px;
+  left: 0;
+  right: 0;
+  background: var(--toc-bg);
+  color: var(--toc-text);
+  font-size: 10px;
+  padding: 4px 8px;
+  border-radius: 4px;
+  z-index: 1000;
+  pointer-events: none;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
