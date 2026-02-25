@@ -5,6 +5,15 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Added
+- 扩展选项页，支持展开方式、显示条件、位置与禁用域名配置
+
+### Changed
+- 默认使用长按展开，减少悬停误触
+- 仅在满足滚动距离与标题数量条件时显示按钮
+
 ## [2.1] - 2024-05-15
 
 ### Added
@@ -23,6 +32,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - 使用 performance.now() 进行高精度时间测量
   - 使用 requestAnimationFrame 优化滚动性能监控
   - 限制性能数据存储大小，避免内存占用过大
+
 
 ## [2.0] - 2024-05-14
 
@@ -125,7 +135,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - 实现了按钮的滚动效果
 
 ### Changed
-- 优化了按钮的样式
+- 优化了按钮的显示逻辑
 - 改进了按钮的交互体验
 
 ### Fixed
@@ -163,40 +173,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - 初始版本发布
 - 添加了基本的滚动到顶部功能
 - 实现了按钮的样式和交互
-
-## [1.9] - 2024-03-20
-
-### Added
-- Updated to Manifest V3 for better security and performance
-- Implemented Material Design UI components
-- Added new modern SVG icon
-- Enhanced button animations and transitions
-- Improved table of contents styling
-- Added dark mode support
-- Added ripple effect to buttons
-
-### Changed
-- Refactored CSS to use Material Design principles
-- Improved scroll performance using requestAnimationFrame
-- Enhanced accessibility features
-- Updated documentation
-
-### Fixed
-- Fixed scroll position calculation
-- Improved button positioning
-- Enhanced mobile responsiveness
-
-## [1.8] - Previous
-
-### Added
-- Added hide and show animation for TOC
-
-## [1.7] - Previous
-
-### Added
-- Added TOC for some pages (based on Anchor Tag)
-
-## [1.6] - Previous
 
 ### Added
 - Added support for `http://guides.rubyonrails.org`

@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Smart TOC & Scroll 设置</title>
+    <link rel="stylesheet" href="options.css" />
+  </head>
+  <body>
+    <main class="page">
+      <header class="page-header">
+        <h1>Smart TOC & Scroll 设置</h1>
+        <p>配置目录展开方式、显示条件与禁用站点。</p>
+      </header>
+
+      <section class="card">
+        <h2>交互方式</h2>
+        <div class="field">
+          <label for="expandMode">目录展开方式</label>
+          <select id="expandMode">
+            <option value="press">长按展开（默认）</option>
+            <option value="hover">悬停展开</option>
+            <option value="click">点击展开</option>
+          </select>
+        </div>
+      </section>
+
+      <section class="card">
+        <h2>显示条件</h2>
+        <div class="field">
+          <label for="showAfterScrollScreens">滚动后显示（屏）</label>
+          <input id="showAfterScrollScreens" type="number" min="0" step="0.5" />
+        </div>
+        <div class="field">
+          <label for="minHeaders">最少标题数量</label>
+          <input id="minHeaders" type="number" min="0" step="1" />
+        </div>
+      </section>
+
+      <section class="card">
+        <h2>位置与禁用</h2>
+        <div class="field">
+          <label for="position">浮层位置</label>
+          <select id="position">
+            <option value="right">右下角</option>
+            <option value="left">左下角</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="disabledDomains">禁用域名（逗号分隔）</label>
+          <textarea id="disabledDomains" rows="3" placeholder="example.com, docs.example.org"></textarea>
+        </div>
+      </section>
+
+      <div class="actions">
+        <button id="save" type="button">保存设置</button>
+        <span id="status" role="status" aria-live="polite"></span>
+      </div>
+    </main>
+
+    <script src="options.js"></script>
+  </body>
+</html>
