@@ -51,6 +51,42 @@
     return settings.disabledDomains.includes(window.location.hostname);
   }
 
+  function hasExistingTOC() {
+    const selectors = [
+      '#toc',
+      '#table-of-contents',
+      '.toc',
+      '.table-of-contents',
+      '.toc-container',
+      '.toc-wrapper',
+      '.toc-sidebar',
+      '.toc-nav',
+      '.sidebar-toc',
+      '[data-toc]',
+      '[aria-label*="table of contents" i]',
+      '[aria-label*="toc" i]'
+    ];
+    return selectors.some((selector) => document.querySelector(selector));
+  }
+
+  function hasExistingScrollToTop() {
+    const selectors = [
+      '#scroll-to-top',
+      '#back-to-top',
+      '.scroll-to-top',
+      '.back-to-top',
+      '.scrolltop',
+      '.to-top',
+      '[data-scroll-to-top]',
+      '[aria-label*="scroll to top" i]'
+    ];
+    return selectors.some((selector) => document.querySelector(selector));
+  }
+
+  function shouldSkipInjection() {
+    return hasExistingTOC() || hasExistingScrollToTop();
+  }
+
   function normalizeSettings(input) {
     const normalized = { ...defaultSettings, ...input };
     if (!Array.isArray(normalized.disabledDomains)) {
@@ -701,6 +737,10 @@
     return event.target && event.target.closest && event.target.closest('.toc-item a');
   }
 
+  function isIconClick(event) {
+    return event.target && event.target.closest && event.target.closest('.toc-icon');
+  }
+
   function toggleExpanded(force) {
     if (!tocContainer) return;
     const shouldExpand = typeof force === 'boolean' ? force : !tocContainer.classList.contains('expanded');
@@ -731,6 +771,10 @@
     if (settings.expandMode === 'click') {
       tocContainer.addEventListener('click', (e) => {
         if (isClickOnTocLink(e)) return;
+        if (isIconClick(e) && !tocContainer.classList.contains('expanded')) {
+          scrollToTop();
+          return;
+        }
         toggleExpanded();
       });
     }
@@ -751,6 +795,10 @@
           longPressTimer = null;
         }
         if (!longPressTriggered && !isClickOnTocLink(e)) {
+          if (tocContainer.classList.contains('expanded') && isIconClick(e)) {
+            toggleExpanded(false);
+            return;
+          }
           scrollToTop();
         }
       });
@@ -791,6 +839,9 @@
 
   function start() {
     if (isDomainDisabled()) {
+      return;
+    }
+    if (shouldSkipInjection()) {
       return;
     }
     createUI();
