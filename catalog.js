@@ -27,7 +27,7 @@
   let longPressTriggered = false;
 
   const defaultSettings = {
-    expandMode: 'press', // 'press' | 'hover' | 'click'
+    expandMode: 'hover', // 'press' | 'hover' | 'click'
     minHeaders: 3,
     showAfterScrollScreens: 1,
     position: 'right', // 'right' | 'left'
@@ -812,6 +812,14 @@
       tocContainer.addEventListener('mouseleave', () => {
         toggleExpanded(false);
       });
+
+      if (iconContainer) {
+        iconContainer.addEventListener('click', (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          scrollToTop();
+        });
+      }
     }
 
     if (settings.expandMode === 'click') {

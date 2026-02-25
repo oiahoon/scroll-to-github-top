@@ -1,7 +1,7 @@
 'use strict';
 
 const defaultSettings = {
-  expandMode: 'press',
+  expandMode: 'hover',
   minHeaders: 3,
   showAfterScrollScreens: 1,
   position: 'right',

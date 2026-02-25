@@ -13,7 +13,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - 强制显示开关
 
 ### Changed
-- 默认使用长按展开，减少悬停误触
+- 默认使用悬停展开
 - 仅在满足滚动距离与标题数量条件时显示按钮
 - 仅避开侧栏 TOC 与固定/粘性控件，避免误判正文内小目录
 
