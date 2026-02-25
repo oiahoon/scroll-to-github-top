@@ -14,6 +14,27 @@
   let lastUrl = window.location.href;
   let contentContainer = null;
   let isGitHub = window.location.hostname === 'github.com';
+  let headerCount = 0;
+
+  let tocContainer = null;
+  let iconContainer = null;
+  let tocTree = null;
+  let tocList = null;
+  let tocTitle = null;
+  let tocTopButton = null;
+
+  let longPressTimer = null;
+  let longPressTriggered = false;
+
+  const defaultSettings = {
+    expandMode: 'press', // 'press' | 'hover' | 'click'
+    minHeaders: 3,
+    showAfterScrollScreens: 1,
+    position: 'right', // 'right' | 'left'
+    disabledDomains: []
+  };
+
+  let settings = { ...defaultSettings };
 
   // 性能监控相关变量
   const performanceMetrics = {
@@ -23,36 +44,83 @@
     memoryUsage: []
   };
 
+  function isDomainDisabled() {
+    if (!settings.disabledDomains || settings.disabledDomains.length === 0) {
+      return false;
+    }
+    return settings.disabledDomains.includes(window.location.hostname);
+  }
+
+  function normalizeSettings(input) {
+    const normalized = { ...defaultSettings, ...input };
+    if (!Array.isArray(normalized.disabledDomains)) {
+      normalized.disabledDomains = [];
+    }
+    if (!['press', 'hover', 'click'].includes(normalized.expandMode)) {
+      normalized.expandMode = defaultSettings.expandMode;
+    }
+    if (!['left', 'right'].includes(normalized.position)) {
+      normalized.position = defaultSettings.position;
+    }
+    normalized.minHeaders = Number.isFinite(normalized.minHeaders) ? Math.max(0, normalized.minHeaders) : defaultSettings.minHeaders;
+    normalized.showAfterScrollScreens = Number.isFinite(normalized.showAfterScrollScreens)
+      ? Math.max(0, normalized.showAfterScrollScreens)
+      : defaultSettings.showAfterScrollScreens;
+    return normalized;
+  }
+
+  function loadSettings() {
+    return new Promise((resolve) => {
+      if (typeof chrome === 'undefined' || !chrome.storage || !chrome.storage.sync) {
+        resolve({ ...defaultSettings });
+        return;
+      }
+      chrome.storage.sync.get(defaultSettings, (items) => {
+        resolve(items || { ...defaultSettings });
+      });
+    });
+  }
+
   // 创建目录树容器
-  const tocContainer = document.createElement('div');
-  tocContainer.id = 'github-toc';
-  tocContainer.className = 'github-toc theme-light';
-  document.body.appendChild(tocContainer);
+  function createUI() {
+    tocContainer = document.createElement('div');
+    tocContainer.id = 'github-toc';
+    tocContainer.className = 'github-toc theme-light';
+    tocContainer.classList.add(settings.position === 'left' ? 'position-left' : 'position-right');
+    document.body.appendChild(tocContainer);
 
-  // 添加按钮图标
-  const buttonSvg = '<svg width="30" height="30" viewBox="0 0 24 24"><path d="M3 5h18v2H3V5zm0 6h18v2H3v-2zm0 6h18v2H3v-2z"/></svg>';
-  const iconContainer = document.createElement('div');
-  iconContainer.className = 'toc-icon';
-  iconContainer.innerHTML = buttonSvg;
-  tocContainer.appendChild(iconContainer);
+    // 添加按钮图标
+    const buttonSvg = '<svg width="30" height="30" viewBox="0 0 24 24"><path d="M3 5h18v2H3V5zm0 6h18v2H3v-2zm0 6h18v2H3v-2z"/></svg>';
+    iconContainer = document.createElement('div');
+    iconContainer.className = 'toc-icon';
+    iconContainer.innerHTML = buttonSvg;
+    tocContainer.appendChild(iconContainer);
 
-  // 创建目录树结构
-  const tocTree = document.createElement('div');
-  tocTree.className = 'toc-tree';
+    // 创建目录树结构
+    tocTree = document.createElement('div');
+    tocTree.className = 'toc-tree';
 
-  // 添加标题
-  const tocTitle = document.createElement('div');
-  tocTitle.className = 'toc-title';
-  tocTitle.textContent = 'Outline';
-  tocTree.appendChild(tocTitle);
+    // 添加标题
+    tocTitle = document.createElement('div');
+    tocTitle.className = 'toc-title';
+    tocTitle.textContent = 'Outline';
 
-  // 创建目录列表
-  const tocList = document.createElement('ul');
-  tocList.className = 'toc-list';
-  tocTree.appendChild(tocList);
+    tocTopButton = document.createElement('button');
+    tocTopButton.type = 'button';
+    tocTopButton.className = 'toc-top-button';
+    tocTopButton.textContent = 'Top';
+    tocTitle.appendChild(tocTopButton);
 
-  // 将目录树添加到容器中
-  tocContainer.appendChild(tocTree);
+    tocTree.appendChild(tocTitle);
+
+    // 创建目录列表
+    tocList = document.createElement('ul');
+    tocList.className = 'toc-list';
+    tocTree.appendChild(tocList);
+
+    // 将目录树添加到容器中
+    tocContainer.appendChild(tocTree);
+  }
 
   // 扩展内容容器选择器
   const mainContainers = [
@@ -404,8 +472,8 @@
       lastProcessedHeaders.clear();
 
       const headers = getHeaders();
+      headerCount = headers.length;
       if (headers.length === 0) {
-        const tocList = document.querySelector('.toc-list');
         if (tocList) {
           tocList.innerHTML = `
             <li class="toc-item no-headers">
@@ -419,10 +487,10 @@
             </li>
           `;
         }
+        updateVisibility();
         return;
       }
 
-      const tocList = document.querySelector('.toc-list');
       if (!tocList) return;
 
       tocList.innerHTML = '';
@@ -478,6 +546,7 @@
 
       // 初始化当前活动标题
       updateActiveHeader();
+      updateVisibility();
     });
   }
 
@@ -514,6 +583,20 @@
 
   // 修改滚动监听以包含性能监控
   let scrollTimeout;
+  function getScrollTop() {
+    return document.body.scrollTop + document.documentElement.scrollTop;
+  }
+
+  function shouldShowToc() {
+    const threshold = window.innerHeight * settings.showAfterScrollScreens;
+    return headerCount >= settings.minHeaders && getScrollTop() > threshold;
+  }
+
+  function updateVisibility() {
+    if (!tocContainer) return;
+    tocContainer.style.display = shouldShowToc() ? 'block' : 'none';
+  }
+
   window.addEventListener('scroll', () => {
     if (scrollTimeout) {
       window.cancelAnimationFrame(scrollTimeout);
@@ -521,8 +604,7 @@
 
     scrollTimeout = window.requestAnimationFrame(() => {
       measurePerformance('scrollPerformance', () => {
-        const sTop = document.body.scrollTop + document.documentElement.scrollTop;
-        tocContainer.style.display = sTop > 468 ? 'block' : 'none';
+        updateVisibility();
         updateActiveHeader();
       });
     });
@@ -615,29 +697,85 @@
     }
   }
 
-  // 事件监听
-  tocContainer.addEventListener('mouseenter', () => {
-    tocContainer.classList.add('expanded');
-    iconContainer.style.opacity = '0';
-  });
+  function isClickOnTocLink(event) {
+    return event.target && event.target.closest && event.target.closest('.toc-item a');
+  }
 
-  tocContainer.addEventListener('mouseleave', () => {
-    tocContainer.classList.remove('expanded');
-    iconContainer.style.opacity = '1';
-  });
-
-  tocContainer.addEventListener('click', (e) => {
-    if (e.target.tagName === 'svg' || e.target.tagName === 'path') {
-      const holder = document.body.scrollTop === 0 ? document.documentElement : document.body;
-      scrollTo(holder, 0, 348);
+  function toggleExpanded(force) {
+    if (!tocContainer) return;
+    const shouldExpand = typeof force === 'boolean' ? force : !tocContainer.classList.contains('expanded');
+    tocContainer.classList.toggle('expanded', shouldExpand);
+    if (iconContainer) {
+      iconContainer.style.opacity = shouldExpand ? '0' : '1';
     }
-  });
+  }
 
-  document.addEventListener('focusin', (e) => {
-    if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') {
-      tocContainer.classList.remove('expanded');
+  function scrollToTop() {
+    const holder = document.body.scrollTop === 0 ? document.documentElement : document.body;
+    scrollTo(holder, 0, 348);
+  }
+
+  function setupInteractions() {
+    if (!tocContainer) return;
+
+    if (settings.expandMode === 'hover') {
+      tocContainer.addEventListener('mouseenter', () => {
+        toggleExpanded(true);
+      });
+
+      tocContainer.addEventListener('mouseleave', () => {
+        toggleExpanded(false);
+      });
     }
-  });
+
+    if (settings.expandMode === 'click') {
+      tocContainer.addEventListener('click', (e) => {
+        if (isClickOnTocLink(e)) return;
+        toggleExpanded();
+      });
+    }
+
+    if (settings.expandMode === 'press') {
+      tocContainer.addEventListener('pointerdown', (e) => {
+        if (isClickOnTocLink(e)) return;
+        longPressTriggered = false;
+        longPressTimer = setTimeout(() => {
+          longPressTriggered = true;
+          toggleExpanded();
+        }, 450);
+      });
+
+      tocContainer.addEventListener('pointerup', (e) => {
+        if (longPressTimer) {
+          clearTimeout(longPressTimer);
+          longPressTimer = null;
+        }
+        if (!longPressTriggered && !isClickOnTocLink(e)) {
+          scrollToTop();
+        }
+      });
+
+      tocContainer.addEventListener('pointerleave', () => {
+        if (longPressTimer) {
+          clearTimeout(longPressTimer);
+          longPressTimer = null;
+        }
+      });
+    }
+
+    if (tocTopButton) {
+      tocTopButton.addEventListener('click', (e) => {
+        e.preventDefault();
+        scrollToTop();
+      });
+    }
+
+    document.addEventListener('focusin', (e) => {
+      if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') {
+        toggleExpanded(false);
+      }
+    });
+  }
 
   function scrollTo(element, to, duration) {
     if (duration <= 0) return;
@@ -651,9 +789,24 @@
     }, 10);
   }
 
-  // 启动初始化
-  initialize();
+  function start() {
+    if (isDomainDisabled()) {
+      return;
+    }
+    createUI();
+    setupInteractions();
+    initialize();
+    updateVisibility();
+    window.addEventListener('unload', cleanup);
+  }
 
-  // 清理
-  window.addEventListener('unload', cleanup);
+  loadSettings()
+    .then((loaded) => {
+      settings = normalizeSettings(loaded);
+      start();
+    })
+    .catch(() => {
+      settings = { ...defaultSettings };
+      start();
+    });
 })();

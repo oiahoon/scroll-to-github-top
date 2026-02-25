@@ -18,6 +18,16 @@
   justify-content: center;
 }
 
+.github-toc.position-left {
+  left: 20px;
+  right: auto;
+}
+
+.github-toc.position-right {
+  right: 20px;
+  left: auto;
+}
+
 .github-toc:hover {
   box-shadow: var(--toc-elevation-hover);
   opacity: 1;
@@ -131,11 +141,31 @@
   transform: translateY(-10px);
   transition: all 0.3s var(--ease-out);
   letter-spacing: 0.15px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
 }
 
 .github-toc.expanded .toc-title {
   opacity: 1;
   transform: translateY(0);
+}
+
+.toc-top-button {
+  border: none;
+  background: var(--toc-highlight);
+  color: var(--toc-text);
+  font-size: 12px;
+  padding: 6px 10px;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.2s var(--ease-out);
+}
+
+.toc-top-button:hover {
+  background: var(--toc-highlight);
+  color: var(--toc-text-hover);
 }
 
 .toc-list {
