@@ -72,6 +72,18 @@ body {
   color: var(--text);
 }
 
+.checkbox-field label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--text);
+}
+
+.checkbox-field input[type="checkbox"] {
+  width: 16px;
+  height: 16px;
+}
+
 .actions {
   display: flex;
   align-items: center;

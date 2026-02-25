@@ -5,7 +5,9 @@ const defaultSettings = {
   minHeaders: 3,
   showAfterScrollScreens: 1,
   position: 'right',
-  disabledDomains: []
+  disabledDomains: [],
+  avoidExistingWidgets: true,
+  forceShow: false
 };
 
 const elements = {
@@ -14,6 +16,8 @@ const elements = {
   showAfterScrollScreens: document.getElementById('showAfterScrollScreens'),
   position: document.getElementById('position'),
   disabledDomains: document.getElementById('disabledDomains'),
+  avoidExistingWidgets: document.getElementById('avoidExistingWidgets'),
+  forceShow: document.getElementById('forceShow'),
   save: document.getElementById('save'),
   status: document.getElementById('status')
 };
@@ -59,6 +63,8 @@ function bindForm(settings) {
   elements.showAfterScrollScreens.value = settings.showAfterScrollScreens ?? defaultSettings.showAfterScrollScreens;
   elements.position.value = settings.position || defaultSettings.position;
   elements.disabledDomains.value = (settings.disabledDomains || []).join(', ');
+  elements.avoidExistingWidgets.checked = settings.avoidExistingWidgets ?? defaultSettings.avoidExistingWidgets;
+  elements.forceShow.checked = settings.forceShow ?? defaultSettings.forceShow;
 }
 
 elements.save.addEventListener('click', async () => {
@@ -67,7 +73,9 @@ elements.save.addEventListener('click', async () => {
     minHeaders: Number(elements.minHeaders.value),
     showAfterScrollScreens: Number(elements.showAfterScrollScreens.value),
     position: elements.position.value,
-    disabledDomains: normalizeDomains(elements.disabledDomains.value)
+    disabledDomains: normalizeDomains(elements.disabledDomains.value),
+    avoidExistingWidgets: elements.avoidExistingWidgets.checked,
+    forceShow: elements.forceShow.checked
   };
 
   await saveSettings(payload);

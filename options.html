@@ -50,6 +50,18 @@
           <label for="disabledDomains">禁用域名（逗号分隔）</label>
           <textarea id="disabledDomains" rows="3" placeholder="example.com, docs.example.org"></textarea>
         </div>
+        <div class="field checkbox-field">
+          <label>
+            <input id="avoidExistingWidgets" type="checkbox" />
+            检测到页面已有 TOC/回到顶部按钮时自动避开
+          </label>
+        </div>
+        <div class="field checkbox-field">
+          <label>
+            <input id="forceShow" type="checkbox" />
+            始终显示（即使页面已有 TOC/回到顶部按钮）
+          </label>
+        </div>
       </section>
 
       <div class="actions">

@@ -31,7 +31,9 @@
     minHeaders: 3,
     showAfterScrollScreens: 1,
     position: 'right', // 'right' | 'left'
-    disabledDomains: []
+    disabledDomains: [],
+    avoidExistingWidgets: true,
+    forceShow: false
   };
 
   let settings = { ...defaultSettings };
@@ -66,7 +68,10 @@
       '[aria-label*="table of contents" i]',
       '[aria-label*="toc" i]'
     ];
-    return selectors.some((selector) => document.querySelector(selector));
+    const candidates = selectors
+      .map((selector) => Array.from(document.querySelectorAll(selector)))
+      .flat();
+    return candidates.some((element) => isVisible(element) && hasTocLinks(element));
   }
 
   function hasExistingScrollToTop() {
@@ -80,11 +85,39 @@
       '[data-scroll-to-top]',
       '[aria-label*="scroll to top" i]'
     ];
-    return selectors.some((selector) => document.querySelector(selector));
+    const candidates = selectors
+      .map((selector) => Array.from(document.querySelectorAll(selector)))
+      .flat();
+    return candidates.some((element) => isVisible(element) && isFixedOrSticky(element));
   }
 
   function shouldSkipInjection() {
+    if (settings.forceShow) return false;
+    if (!settings.avoidExistingWidgets) return false;
     return hasExistingTOC() || hasExistingScrollToTop();
+  }
+
+  function isVisible(element) {
+    if (!element) return false;
+    const style = window.getComputedStyle(element);
+    if (style.display === 'none' || style.visibility === 'hidden' || style.opacity === '0') {
+      return false;
+    }
+    const rect = element.getBoundingClientRect();
+    return rect.width > 40 && rect.height > 40;
+  }
+
+  function hasTocLinks(element) {
+    const links = Array.from(element.querySelectorAll('a[href^="#"]'));
+    if (links.length < 3) return false;
+    return links.some((link) => link.getAttribute('href').length > 1);
+  }
+
+  function isFixedOrSticky(element) {
+    const style = window.getComputedStyle(element);
+    if (style.position !== 'fixed' && style.position !== 'sticky') return false;
+    const rect = element.getBoundingClientRect();
+    return rect.width >= 32 && rect.height >= 32;
   }
 
   function normalizeSettings(input) {

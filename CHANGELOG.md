@@ -9,6 +9,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 - 扩展选项页，支持展开方式、显示条件、位置与禁用域名配置
+- 自动避开页面已有 TOC/回到顶部控件的检测与开关
+- 强制显示开关
 
 ### Changed
 - 默认使用长按展开，减少悬停误触
