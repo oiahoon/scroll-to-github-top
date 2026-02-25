@@ -65,6 +65,16 @@ function bindForm(settings) {
   elements.disabledDomains.value = (settings.disabledDomains || []).join(', ');
   elements.avoidExistingWidgets.checked = settings.avoidExistingWidgets ?? defaultSettings.avoidExistingWidgets;
   elements.forceShow.checked = settings.forceShow ?? defaultSettings.forceShow;
+  syncForceShow();
+}
+
+function syncForceShow() {
+  if (elements.forceShow.checked) {
+    elements.avoidExistingWidgets.checked = false;
+    elements.avoidExistingWidgets.disabled = true;
+  } else {
+    elements.avoidExistingWidgets.disabled = false;
+  }
 }
 
 elements.save.addEventListener('click', async () => {
@@ -81,5 +91,7 @@ elements.save.addEventListener('click', async () => {
   await saveSettings(payload);
   renderStatus('已保存');
 });
+
+elements.forceShow.addEventListener('change', syncForceShow);
 
 loadSettings().then(bindForm);

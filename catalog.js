@@ -71,7 +71,7 @@
     const candidates = selectors
       .map((selector) => Array.from(document.querySelectorAll(selector)))
       .flat();
-    return candidates.some((element) => isVisible(element) && hasTocLinks(element));
+    return candidates.some((element) => isVisible(element) && hasTocLinks(element) && isLikelySidebarToc(element));
   }
 
   function hasExistingScrollToTop() {
@@ -118,6 +118,19 @@
     if (style.position !== 'fixed' && style.position !== 'sticky') return false;
     const rect = element.getBoundingClientRect();
     return rect.width >= 32 && rect.height >= 32;
+  }
+
+  function isLikelySidebarToc(element) {
+    if (!element) return false;
+    const rect = element.getBoundingClientRect();
+    const vw = Math.max(window.innerWidth, 1);
+    const isEdgeAligned = rect.left < vw * 0.35 || rect.right > vw * 0.65;
+    const inSidebarContainer = Boolean(
+      element.closest(
+        'aside, nav, .sidebar, .side-bar, .toc-sidebar, .toc-nav, .nav, .navigation, [role="navigation"]'
+      )
+    );
+    return isEdgeAligned && (isFixedOrSticky(element) || inSidebarContainer);
   }
 
   function normalizeSettings(input) {
@@ -809,6 +822,15 @@
           return;
         }
         toggleExpanded();
+      });
+    }
+
+    if (tocTree) {
+      tocTree.addEventListener('click', (e) => {
+        if (!tocContainer.classList.contains('expanded')) return;
+        if (isClickOnTocLink(e)) return;
+        if (e.target && e.target.closest && e.target.closest('.toc-top-button')) return;
+        toggleExpanded(false);
       });
     }
 
