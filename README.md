@@ -109,6 +109,11 @@
 
 查看 [CHANGELOG.md](CHANGELOG.md) 了解详细的更新历史。
 
+## 发布
+
+- 本地打包：`./scripts/package_extension.sh`
+- Chrome Web Store 自动发布说明：查看 [CHROME_STORE_RELEASE.md](CHROME_STORE_RELEASE.md)
+
 ## 技术栈
 
 - 原生 JavaScript

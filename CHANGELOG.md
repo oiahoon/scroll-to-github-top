@@ -9,6 +9,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 - TOC 浮标与展开面板补充键盘可达性与 ARIA 属性
+- Chrome Web Store 打包与自动发布脚本
+- GitHub Actions 发布工作流与发布说明文档
 
 ### Changed
 - 主题检测从“统计页面文字颜色”调整为“直接读取页面背景亮度”

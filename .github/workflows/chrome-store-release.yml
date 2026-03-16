@@ -1,0 +1,79 @@
+name: Chrome Store Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      publish_type:
+        description: Chrome Web Store publish type
+        required: true
+        default: DEFAULT_PUBLISH
+        type: choice
+        options:
+          - DEFAULT_PUBLISH
+          - STAGED_PUBLISH
+      skip_review:
+        description: Skip review when an existing item is eligible
+        required: true
+        default: false
+        type: boolean
+      deploy_percentage:
+        description: Optional staged rollout percentage for STAGED_PUBLISH
+        required: false
+        default: ''
+        type: string
+      upload_only:
+        description: Package only and skip Chrome Web Store publish
+        required: true
+        default: false
+        type: boolean
+  push:
+    tags:
+      - 'v*'
+      - 'V*'
+
+concurrency:
+  group: chrome-store-release-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    env:
+      CWS_EXTENSION_ID: ${{ secrets.CWS_EXTENSION_ID }}
+      CWS_PUBLISHER_ID: ${{ secrets.CWS_PUBLISHER_ID }}
+      CWS_SERVICE_ACCOUNT_JSON: ${{ secrets.CWS_SERVICE_ACCOUNT_JSON }}
+      CWS_PUBLISH_TYPE: ${{ github.event.inputs.publish_type || 'DEFAULT_PUBLISH' }}
+      CWS_SKIP_REVIEW: ${{ github.event.inputs.skip_review || 'false' }}
+      CWS_DEPLOY_PERCENTAGE: ${{ github.event.inputs.deploy_percentage || '' }}
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Ensure release scripts are executable
+        run: chmod +x package.sh scripts/package_extension.sh scripts/cws_publish.sh
+
+      - name: Package extension
+        id: package
+        run: |
+          PACKAGE_FILE="$(./scripts/package_extension.sh)"
+          echo "package_file=$PACKAGE_FILE" >> "$GITHUB_OUTPUT"
+          echo "package_name=$(basename "$PACKAGE_FILE")" >> "$GITHUB_OUTPUT"
+
+      - name: Upload package artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ steps.package.outputs.package_name }}
+          path: ${{ steps.package.outputs.package_file }}
+
+      - name: Validate Chrome Web Store secrets
+        if: ${{ github.event_name != 'workflow_dispatch' || github.event.inputs.upload_only != 'true' }}
+        run: |
+          test -n "$CWS_EXTENSION_ID" || (echo "Missing secret: CWS_EXTENSION_ID" && exit 1)
+          test -n "$CWS_PUBLISHER_ID" || (echo "Missing secret: CWS_PUBLISHER_ID" && exit 1)
+          test -n "$CWS_SERVICE_ACCOUNT_JSON" || (echo "Missing secret: CWS_SERVICE_ACCOUNT_JSON" && exit 1)
+
+      - name: Publish to Chrome Web Store
+        if: ${{ github.event_name != 'workflow_dispatch' || github.event.inputs.upload_only != 'true' }}
+        run: ./scripts/cws_publish.sh
