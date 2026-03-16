@@ -1,52 +1,123 @@
+/* =============================================
+   Smart TOC & Scroll — 主组件样式 v2.3
+   设计规范：UI_DESIGN_SPEC.md §3-§6、§11
+   ============================================= */
+
+/* === 浮标基础样式（折叠状态） === */
+/* 尺寸从 56px 缩小至 44px，底部/右侧间距从 20px 调整为 24px */
 .github-toc {
   position: fixed;
-  right: 20px;
-  bottom: 20px;
-  width: 56px;
-  height: 56px;
+  right: 24px;
+  bottom: 24px;
+  width: 44px;
+  height: 44px;
   background: var(--toc-bg) !important;
+  -webkit-backdrop-filter: var(--toc-backdrop-filter);
+  backdrop-filter: var(--toc-backdrop-filter);
+  border: 1px solid var(--toc-border);   /* 微描边，增强与任意背景的对比度 */
   border-radius: 50%;
   cursor: pointer;
   z-index: 9999;
-  transition: all 0.3s var(--ease-out);
+  /* 折叠时使用展开动画曲线（因展开是此元素的目的状态） */
+  transition:
+    opacity var(--duration-hover, 0.15s) ease,
+    box-shadow var(--duration-hover, 0.15s) ease,
+    width var(--duration-expand, 0.30s) var(--ease-expand, cubic-bezier(0.34,1.56,0.64,1)),
+    height var(--duration-expand, 0.30s) var(--ease-expand, cubic-bezier(0.34,1.56,0.64,1)),
+    border-radius var(--duration-expand, 0.30s) var(--ease-expand, cubic-bezier(0.34,1.56,0.64,1));
   overflow: hidden;
   will-change: transform, width, height, border-radius;
-  box-shadow: var(--toc-elevation);
-  opacity: 0.6;
+  box-shadow: var(--toc-elevation-rest, var(--toc-elevation));
+  /* 默认透明度降低，减少页面侵扰感 */
+  opacity: 0.38;
   display: flex;
   align-items: center;
   justify-content: center;
 }
 
+.github-toc::before {
+  content: '';
+  position: absolute;
+  inset: 1px;
+  border-radius: inherit;
+  background:
+    radial-gradient(circle at 30% 25%, rgba(255,255,255,0.18), transparent 48%),
+    linear-gradient(180deg, rgba(255,255,255,0.10), transparent 58%);
+  opacity: 0.42;
+  pointer-events: none;
+}
+
+/* 位置变体 */
 .github-toc.position-left {
-  left: 20px;
+  left: 24px;
   right: auto;
 }
 
 .github-toc.position-right {
-  right: 20px;
+  right: 24px;
   left: auto;
 }
 
+/* hover：提高透明度，提升阴影层级 */
 .github-toc:hover {
   box-shadow: var(--toc-elevation-hover);
-  opacity: 1;
+  opacity: 0.76;
 }
 
+/* active（按下）：轻微压下感 */
+.github-toc:active {
+  opacity: 0.88;
+  box-shadow: var(--toc-elevation-press, var(--toc-elevation));
+}
+
+/* === 图标容器（汉堡菜单） === */
+/* 图标 SVG 从 30×30 缩小至 20×20，在 44px 容器内占比约 45% */
 .toc-icon {
   position: absolute;
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  width: 24px;
-  height: 24px;
+  width: 20px;
+  height: 20px;
   transition: all 0.3s var(--ease-out);
   z-index: 2;
 }
 
-/* 防止伪元素影响 */
-.toc-icon::before,
 .toc-icon::after {
+  content: attr(data-label);
+  position: absolute;
+  top: 50%;
+  left: calc(100% + 8px);
+  transform: translateY(-50%) translateX(-4px);
+  padding: 3px 7px;
+  border-radius: 999px;
+  background: var(--toc-bg);
+  border: 1px solid var(--toc-border);
+  box-shadow: var(--toc-elevation-rest, var(--toc-elevation));
+  color: var(--toc-text-muted, var(--toc-text));
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  white-space: nowrap;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.18s ease 0.24s, transform 0.18s ease 0.24s;
+}
+
+.github-toc.position-left .toc-icon::after {
+  left: auto;
+  right: calc(100% + 8px);
+  transform: translateY(-50%) translateX(4px);
+}
+
+.github-toc:hover .toc-icon::after,
+.github-toc:focus-within .toc-icon::after {
+  opacity: 1;
+  transform: translateY(-50%) translateX(0);
+}
+
+/* 防止无关伪元素影响 */
+.toc-icon::before {
   display: none !important;
   content: none !important;
 }
@@ -57,7 +128,7 @@
   fill: var(--toc-text) !important;
   color: var(--toc-text) !important;
   stroke: var(--toc-text) !important;
-  /* 防止其他样式影响 */
+  /* 防止宿主页面样式影响 */
   background: none !important;
   box-shadow: none !important;
   border: none !important;
@@ -68,22 +139,22 @@
   fill: var(--toc-text) !important;
   color: var(--toc-text) !important;
   stroke: var(--toc-text) !important;
-  /* 防止其他样式影响 */
+  /* 防止宿主页面样式影响 */
   background: none !important;
   box-shadow: none !important;
   border: none !important;
   outline: none !important;
 }
 
-/* 确保图标容器不受其他样式影响 */
+/* 确保图标容器不受宿主页面样式污染（all: initial 重置后重新声明） */
 .github-toc .toc-icon {
   all: initial;
   position: absolute !important;
   top: 50% !important;
   left: 50% !important;
   transform: translate(-50%, -50%) !important;
-  width: 24px !important;
-  height: 24px !important;
+  width: 20px !important;
+  height: 20px !important;
   transition: all 0.3s var(--ease-out) !important;
   z-index: 2 !important;
   box-sizing: border-box !important;
@@ -95,35 +166,70 @@
   outline: none !important;
 }
 
+/* === 展开状态（expanded） === */
+/* 宽度 320→280px，高度改为自适应，border-radius 8→12px */
 .github-toc.expanded {
-  width: 320px;
-  height: 480px;
-  border-radius: 8px;
-  background: var(--toc-bg) !important;
+  width: 280px;
+  height: min(420px, calc(100vh - 64px));
+  border-radius: 12px;
+  background: var(--toc-bg-expanded, var(--toc-bg)) !important;  /* 展开时稍高不透明度 */
   box-shadow: var(--toc-elevation-expanded);
   opacity: 1;
+  /* 展开时使用弹出曲线 */
+  transition:
+    opacity var(--duration-fade, 0.20s) ease,
+    box-shadow var(--duration-expand, 0.30s) ease,
+    width var(--duration-expand, 0.30s) var(--ease-expand, cubic-bezier(0.34,1.56,0.64,1)),
+    height var(--duration-expand, 0.30s) var(--ease-expand, cubic-bezier(0.34,1.56,0.64,1)),
+    border-radius 0.25s var(--ease-expand, cubic-bezier(0.34,1.56,0.64,1));
 }
 
-.github-toc.expanded svg {
-  opacity: 0;
-  transform: translate(-50%, -50%) scale(0.8);
+.github-toc.expanded.is-pinned {
+  border-color: var(--toc-border-hover, var(--toc-border));
+  box-shadow: var(--toc-elevation-expanded);
 }
 
-.toc-tree {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
+.github-toc.expanded.is-pinned::before {
+  opacity: 0.6;
+}
+
+/* 折叠动画（JS 临时添加此 class，使用快速收缩曲线） */
+.github-toc.is-collapsing {
+  transition:
+    opacity var(--duration-fade, 0.20s) ease,
+    box-shadow var(--duration-collapse, 0.22s) ease,
+    width var(--duration-collapse, 0.22s) var(--ease-collapse, cubic-bezier(0.4,0,0.6,1)),
+    height var(--duration-collapse, 0.22s) var(--ease-collapse, cubic-bezier(0.4,0,0.6,1)),
+    border-radius 0.20s var(--ease-collapse, cubic-bezier(0.4,0,0.6,1));
+}
+
+/* 展开时仅折叠态图标淡出缩小，避免影响面板内其他图标 */
+.github-toc.expanded .toc-icon svg {
   opacity: 0;
   transform: scale(0.8);
-  transition: all 0.3s var(--ease-out);
-  padding: 16px;
+}
+
+.github-toc.expanded .toc-icon::after {
+  opacity: 0;
+}
+
+/* === 展开面板主体（toc-tree） === */
+.toc-tree {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  transform: scale(0.96);
+  transform-origin: bottom right;
+  transition:
+    opacity var(--duration-fade, 0.20s) ease,
+    transform var(--duration-expand, 0.30s) var(--ease-content, var(--ease-out));
   box-sizing: border-box;
   overflow: hidden;
-  background: var(--toc-bg);
-  border-radius: 8px;
+  background: transparent;  /* 透明，由父级 .github-toc 的磨砂背景显示 */
+  border-radius: 12px;
   pointer-events: none;
+  display: flex;
+  flex-direction: column;
 }
 
 .github-toc.expanded .toc-tree {
@@ -132,19 +238,31 @@
   pointer-events: auto;
 }
 
+/* === 顶栏（.toc-title 作为 header 使用） === */
+/* 标题字号从 20px 大幅缩至 11px，改为标签风格 */
 .toc-title {
-  color: var(--toc-text);
-  font-size: 20px;
-  font-weight: 500;
-  margin-bottom: 24px;
-  opacity: 0;
-  transform: translateY(-10px);
-  transition: all 0.3s var(--ease-out);
-  letter-spacing: 0.15px;
+  /* 标题标签文字改为 uppercase 小标签风格 */
+  color: var(--toc-text-muted, var(--toc-text));
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  /* 布局 */
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 8px;
+  padding: 12px 16px 10px 16px;
+  border-bottom: 1px solid var(--toc-divider, rgba(0,0,0,0.07));
+  backdrop-filter: blur(6px);
+  /* 入场动画 */
+  opacity: 0;
+  transform: translateY(-10px);
+  transition: all 0.3s var(--ease-out);
+  flex-shrink: 0;
+  position: sticky;
+  top: 0;
+  z-index: 2;
 }
 
 .github-toc.expanded .toc-title {
@@ -152,70 +270,141 @@
   transform: translateY(0);
 }
 
-.toc-top-button {
-  border: none;
-  background: var(--toc-highlight);
+.toc-count-badge {
+  min-width: 24px;
+  height: 22px;
+  padding: 0 7px;
+  border-radius: 999px;
+  border: 1px solid var(--toc-border);
+  background: transparent;
+  color: var(--toc-text-muted, var(--toc-text));
+  font-size: 10px;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+  margin-left: auto;
+  box-shadow: none;
+  opacity: 0;
+  transform: scale(0.92);
+  pointer-events: none;
+  transition: opacity 0.16s ease, transform 0.16s ease;
+}
+
+.github-toc.expanded.is-pinned .toc-count-badge {
   color: var(--toc-text);
-  font-size: 12px;
-  padding: 6px 10px;
-  border-radius: 12px;
+  border-color: var(--toc-border-hover, var(--toc-border));
+  opacity: 1;
+  transform: scale(1);
+}
+
+/* === Top 按钮（幽灵按钮样式） === */
+/* 从实心背景改为 ghost button：透明背景 + 描边 */
+.toc-top-button {
+  border: 1px solid var(--toc-border);
+  background: transparent;
+  color: var(--toc-text-muted, var(--toc-text));
+  font-size: 10px;
+  font-weight: 500;
+  height: 22px;
+  padding: 0 7px;
+  border-radius: 6px;
   cursor: pointer;
-  transition: all 0.2s var(--ease-out);
+  transition:
+    background var(--duration-hover, 0.15s) ease,
+    color var(--duration-hover, 0.15s) ease,
+    border-color var(--duration-hover, 0.15s) ease;
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 
 .toc-top-button:hover {
   background: var(--toc-highlight);
-  color: var(--toc-text-hover);
+  color: var(--toc-text);
+  border-color: var(--toc-border-hover, var(--toc-border));
 }
 
+.toc-top-button:active {
+  background: var(--toc-highlight-active);
+  color: var(--toc-text);
+  border-color: var(--toc-border-hover, var(--toc-border));
+}
+
+.toc-top-button:focus-visible {
+  outline: 2px solid var(--toc-accent);
+  outline-offset: 2px;
+}
+
+/* === TOC 列表容器 === */
 .toc-list {
   list-style: none;
-  padding: 0;
+  padding: 8px 10px 10px;
   margin: 0;
   overflow-y: auto;
-  max-height: calc(100% - 60px);
-  background: var(--toc-bg);
+  flex: 1;
+  min-height: 0;
+  background: transparent;  /* 透明，由父级磨砂背景显示 */
   position: relative;
   z-index: 1;
+  /* Firefox 滚动条 */
+  scrollbar-width: thin;
+  scrollbar-color: var(--toc-scrollbar-thumb) transparent;
 }
 
+/* 滚动条：从 8px 缩小至 4px，更精巧 */
 .toc-list::-webkit-scrollbar {
-  width: 8px;
+  width: 4px;
 }
 
 .toc-list::-webkit-scrollbar-track {
-  background: var(--toc-scrollbar-track);
-  border-radius: 4px;
+  background: transparent;   /* 轨道透明，更简洁 */
+  border-radius: 2px;
 }
 
 .toc-list::-webkit-scrollbar-thumb {
   background: var(--toc-scrollbar-thumb);
-  border-radius: 4px;
+  border-radius: 2px;
 }
 
+/* === TOC 条目 === */
+/* margin 从 8px 缩小至 1px，靠 padding 撑开高度 */
 .toc-item {
-  margin: 8px 0;
+  margin: 1px 0;
   opacity: 0;
-  transform: translateX(-10px);
-  transition: all 0.3s var(--ease-out);
+  /* 入场方向从 translateX(-10px) 改为 translateY(4px)，与面板从下角展开语义一致 */
+  transform: translateY(4px);
+  transition: opacity 0.3s var(--ease-out), transform 0.3s var(--ease-out);
   position: relative;
   z-index: 1;
 }
 
 .github-toc.expanded .toc-item {
   opacity: 1;
-  transform: translateX(0);
+  transform: translateY(0);
 }
 
+/* 折叠时清零所有条目延迟，防止折叠时条目还在"入场" */
+.github-toc:not(.expanded) .toc-item {
+  transition-delay: 0s !important;
+}
+
+/* === 条目链接 === */
+/* font-size 14→13px，padding 缩小，radius 增大 */
 .toc-item a {
   color: var(--toc-text);
   text-decoration: none;
-  font-size: 14px;
+  font-size: 13px;
+  line-height: 1.4;
   display: block;
-  padding: 8px 16px;
-  border-radius: 4px;
-  transition: all 0.2s var(--ease-out);
-  letter-spacing: 0.25px;
+  padding: 6px 12px 6px 8px;
+  border-radius: 7px;
+  transition:
+    background 0.2s var(--ease-out),
+    color 0.2s var(--ease-out),
+    transform 0.2s var(--ease-out),
+    border-color 0.2s var(--ease-out);
+  letter-spacing: 0.1px;
   position: relative;
   z-index: 1;
   white-space: nowrap;
@@ -226,68 +415,94 @@
 .toc-item a:hover {
   color: var(--toc-text-hover);
   background: var(--toc-highlight);
+  transform: none;
 }
 
-/* 活动目录项样式 */
-.toc-item.active a {
-  color: var(--toc-text-active, #0366d6);
-  background: var(--toc-highlight-active, rgba(3, 102, 214, 0.1));
+.toc-item a:focus-visible {
+  outline: 2px solid var(--toc-accent);
+  outline-offset: -2px;
+  border-radius: 6px;
+}
+
+/* === 激活状态 === */
+/* 指示条改为 a 标签的 border-left，跟随层级缩进 */
+/* 移除旧的 ::before 伪元素方案 */
+.toc-item.active > a {
+  color: var(--toc-accent, var(--toc-text-active, #0969da));
+  background: var(--toc-highlight-active, rgba(9,105,218,0.08));
   font-weight: 500;
+  box-shadow: inset 0 0 0 1px rgba(9,105,218,0.08);
 }
 
-.toc-item.active::before {
-  content: '';
-  position: absolute;
-  left: 0;
-  top: 50%;
-  transform: translateY(-50%);
-  width: 3px;
-  height: 16px;
-  background: var(--toc-text-active, #0366d6);
-  border-radius: 0 2px 2px 0;
+/* 各层级激活态：border-left 2px，padding 补偿 2px */
+.toc-item.level-1.active > a {
+  border-left: 2px solid var(--toc-accent, #0969da);
+  padding-left: 6px;    /* 8px - 2px */
+}
+.toc-item.level-2.active > a {
+  border-left: 2px solid var(--toc-accent, #0969da);
+  padding-left: 18px;   /* 20px - 2px */
+}
+.toc-item.level-3.active > a {
+  border-left: 2px solid var(--toc-accent, #0969da);
+  padding-left: 30px;   /* 32px - 2px */
+}
+.toc-item.level-4.active > a {
+  border-left: 2px solid var(--toc-accent, #0969da);
+  padding-left: 38px;   /* 40px - 2px */
+}
+.toc-item.level-5.active > a,
+.toc-item.level-6.active > a {
+  border-left: 2px solid var(--toc-accent, #0969da);
+  padding-left: 46px;   /* 48px - 2px */
 }
 
+/* === 层级缩进（收敛方案） === */
+/* 在 a 标签上用 padding-left，hover 背景能完整覆盖整行宽度 */
+/* 注意：非激活态的 padding-left 由此设置，激活态 padding-left 在上方声明 */
+.toc-item.level-1 > a { padding-left: 8px; }
+.toc-item.level-2 > a { padding-left: 20px; }    /* 缩进 12px */
+.toc-item.level-3 > a { padding-left: 32px; }    /* 缩进 12px */
+.toc-item.level-4 > a { padding-left: 40px; }    /* 缩进 8px（收敛） */
+.toc-item.level-5 > a { padding-left: 48px; }    /* 缩进 8px（收敛） */
+.toc-item.level-6 > a { padding-left: 48px; }    /* 与 level-5 同，不再深入 */
+
+/* 移除旧的 margin-left 层级缩进（改用 padding-left 方案） */
 .toc-item.level-1 { margin-left: 0; }
-.toc-item.level-2 { margin-left: 16px; }
-.toc-item.level-3 { margin-left: 32px; }
-.toc-item.level-4 { margin-left: 48px; }
-.toc-item.level-5 { margin-left: 64px; }
-.toc-item.level-6 { margin-left: 80px; }
+.toc-item.level-2 { margin-left: 0; }
+.toc-item.level-3 { margin-left: 0; }
+.toc-item.level-4 { margin-left: 0; }
+.toc-item.level-5 { margin-left: 0; }
+.toc-item.level-6 { margin-left: 0; }
 
-/* Material Design 动画延迟 */
-.toc-item:nth-child(1) { transition-delay: 0.05s; }
-.toc-item:nth-child(2) { transition-delay: 0.1s; }
-.toc-item:nth-child(3) { transition-delay: 0.15s; }
-.toc-item:nth-child(4) { transition-delay: 0.2s; }
-.toc-item:nth-child(5) { transition-delay: 0.25s; }
-.toc-item:nth-child(6) { transition-delay: 0.3s; }
-.toc-item:nth-child(7) { transition-delay: 0.35s; }
-.toc-item:nth-child(8) { transition-delay: 0.4s; }
-.toc-item:nth-child(9) { transition-delay: 0.45s; }
-.toc-item:nth-child(10) { transition-delay: 0.5s; }
+/* === 条目入场动画时序 === */
+/* 间隔从 50ms 压缩至 30ms，最大延迟 200ms（8条后不再增加） */
+.toc-item:nth-child(1) { transition-delay: 0.03s; }
+.toc-item:nth-child(2) { transition-delay: 0.06s; }
+.toc-item:nth-child(3) { transition-delay: 0.09s; }
+.toc-item:nth-child(4) { transition-delay: 0.12s; }
+.toc-item:nth-child(5) { transition-delay: 0.15s; }
+.toc-item:nth-child(6) { transition-delay: 0.17s; }
+.toc-item:nth-child(7) { transition-delay: 0.19s; }
+.toc-item:nth-child(8) { transition-delay: 0.20s; }
+.toc-item:nth-child(n+9) { transition-delay: 0.20s; } /* 8条后封顶 */
 
-/* Material Design 高亮动画 */
-@keyframes toc-highlight {
-  0% {
-    background-color: var(--toc-highlight);
-  }
-  50% {
-    background-color: var(--toc-highlight);
-  }
-  100% {
-    background-color: var(--toc-highlight);
-  }
-}
-
-.toc-highlight {
-  display: none;
-}
-
+/* === 字体栈（中文优化） === */
+/* 在现有栈前补充中文优先字体 */
 .github-toc, .github-toc * {
-  font-family: 'Roboto', 'Segoe UI', 'Arial', 'Helvetica Neue', Arial, sans-serif !important;
+  font-family:
+    -apple-system,           /* macOS/iOS 系统字体 */
+    'PingFang SC',           /* macOS 中文 */
+    'Microsoft YaHei',       /* Windows 中文 */
+    'Roboto',
+    'Segoe UI',
+    'Helvetica Neue',
+    Arial,
+    sans-serif !important;
   box-sizing: border-box;
 }
 
+/* === 样式隔离：防止宿主页面 CSS 污染 === */
 .github-toc, .github-toc .toc-title, .github-toc .toc-list, .github-toc .toc-item, .github-toc .toc-item a {
   color: var(--toc-text) !important;
   background: none;
@@ -296,16 +511,18 @@
   text-shadow: none;
 }
 
+/* 标题标签：使用 muted 色，不抢夺视觉焦点 */
 .github-toc .toc-title {
-  font-size: 20px !important;
-  font-weight: 500 !important;
-  color: var(--toc-text) !important;
+  font-size: 11px !important;
+  font-weight: 600 !important;
+  color: var(--toc-text-muted, var(--toc-text)) !important;
 }
 
+/* 条目链接 */
 .github-toc .toc-item a {
   color: var(--toc-text) !important;
   background: none !important;
-  font-size: 14px !important;
+  font-size: 13px !important;
   font-weight: 400 !important;
   text-decoration: none !important;
 }
@@ -315,44 +532,129 @@
   background: var(--toc-highlight) !important;
 }
 
-/* 无标题时的提示样式 */
+/* 激活链接强调色 */
+.github-toc .toc-item.active > a {
+  color: var(--toc-accent, var(--toc-text-active, #0969da)) !important;
+  font-weight: 500 !important;
+}
+
+/* === 全局 focus-visible 保护（确保不被宿主页面 outline:none 污染） === */
+.github-toc *:focus-visible {
+  outline: 2px solid var(--toc-accent) !important;
+}
+
+/* 图标容器 focus-visible */
+.toc-icon:focus-visible {
+  outline: 2px solid var(--toc-accent);
+  outline-offset: 3px;
+  border-radius: 50%;
+}
+
+/* === 无标题时的空状态样式 === */
+/* 布局：flex column，图标更淡，文字减小 */
 .no-headers-message {
-  padding: 16px;
+  padding: 28px 16px;
   text-align: center;
-  color: var(--toc-text-secondary);
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 8px;
+  gap: 6px;
 }
 
 .no-headers-message svg {
-  width: 32px;
-  height: 32px;
-  fill: var(--toc-text-secondary);
-  opacity: 0.7;
+  width: 20px;
+  height: 20px;
+  fill: var(--toc-text-muted, var(--toc-text-secondary));
+  opacity: 0.4;
 }
 
 .no-headers-message span {
-  font-size: 16px;
+  font-size: 13px;
   font-weight: 500;
-  color: var(--toc-text);
+  color: var(--toc-text-muted, var(--toc-text));
 }
 
 .no-headers-message p {
-  font-size: 14px;
+  font-size: 12px;
   margin: 0;
-  opacity: 0.8;
-  line-height: 1.4;
+  opacity: 0.6;
+  line-height: 1.5;
+  text-align: center;
+  color: var(--toc-text);
 }
 
 .toc-item.no-headers {
   margin: 0;
-  padding: 8px;
+  padding: 0;
   opacity: 1;
   transform: none;
 }
 
 .toc-item.no-headers:hover {
   background: none;
+}
+
+/* 空状态条目不需要入场动画延迟 */
+.toc-item.no-headers { transition-delay: 0s !important; }
+
+/* === 响应式适配 === */
+
+/* 平板（768px–1023px）：面板宽度 240px */
+@media (max-width: 1023px) and (min-width: 768px) {
+  .github-toc.expanded {
+    width: 240px;
+    max-height: min(420px, calc(100vh - 80px));
+  }
+}
+
+/* 小桌面（1024px–1439px）：面板宽度 260px */
+@media (min-width: 1024px) and (max-width: 1439px) {
+  .github-toc.expanded {
+    width: 260px;
+    max-height: min(460px, calc(100vh - 64px));
+  }
+}
+
+/* 标准桌面（>=1440px）：面板宽度 280px（toc.css 默认值） */
+
+/* 手机端（<768px）：近全宽底部弹层风格 */
+@media (max-width: 767px) {
+  .github-toc {
+    bottom: 16px;
+    right: 16px;
+    /* 手机无 hover，稍提高默认透明度 */
+    opacity: 0.5;
+  }
+
+  .github-toc.position-left {
+    left: 16px;
+    right: auto;
+  }
+
+  .github-toc.expanded {
+    width: calc(100vw - 32px);
+    max-width: 360px;
+    max-height: 40vh;
+    height: min(40vh, 360px);
+    border-radius: 16px;  /* 手机端更圆润 */
+  }
+
+  .toc-icon::after {
+    display: none;
+  }
+}
+
+/* === 减少动态效果（无障碍：尊重用户偏好） === */
+@media (prefers-reduced-motion: reduce) {
+  .github-toc,
+  .github-toc *,
+  .toc-icon,
+  .toc-tree,
+  .toc-item,
+  .toc-title {
+    transition: none !important;
+    animation: none !important;
+    transition-delay: 0s !important;
+  }
+
 }

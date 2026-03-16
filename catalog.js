@@ -15,6 +15,8 @@
   let contentContainer = null;
   let isGitHub = window.location.hostname === 'github.com';
   let headerCount = 0;
+  let currentHeaders = [];
+  let reinitializeTimer = null;
 
   let tocContainer = null;
   let iconContainer = null;
@@ -22,9 +24,17 @@
   let tocList = null;
   let tocTitle = null;
   let tocTopButton = null;
+  let tocCountBadge = null;
 
   let longPressTimer = null;
   let longPressTriggered = false;
+  let hoverOpenTimer = null;
+  let hoverCloseTimer = null;
+  let isPinnedOpen = false;
+  let performancePanelVisible = false;
+  let performanceStatsTimer = null;
+  let performanceStatsContainer = null;
+  let shouldShowIconHint = true;
 
   const defaultSettings = {
     expandMode: 'hover', // 'press' | 'hover' | 'click'
@@ -163,34 +173,91 @@
     });
   }
 
+  function loadUiState() {
+    return new Promise((resolve) => {
+      if (typeof chrome === 'undefined' || !chrome.storage || !chrome.storage.local) {
+        resolve({ tocHintDismissed: false });
+        return;
+      }
+
+      chrome.storage.local.get({ tocHintDismissed: false }, (items) => {
+        resolve(items || { tocHintDismissed: false });
+      });
+    });
+  }
+
+  function dismissIconHint() {
+    if (!shouldShowIconHint) return;
+    shouldShowIconHint = false;
+    if (iconContainer) {
+      iconContainer.setAttribute('data-label', '');
+    }
+    if (typeof chrome !== 'undefined' && chrome.storage && chrome.storage.local) {
+      chrome.storage.local.set({ tocHintDismissed: true });
+    }
+  }
+
   // 创建目录树容器
   function createUI() {
     tocContainer = document.createElement('div');
     tocContainer.id = 'github-toc';
     tocContainer.className = 'github-toc theme-light';
     tocContainer.classList.add(settings.position === 'left' ? 'position-left' : 'position-right');
+    // ARIA：辅助导航区域
+    tocContainer.setAttribute('role', 'complementary');
+    tocContainer.setAttribute('aria-label', '页面目录导航');
+    tocContainer.setAttribute('aria-expanded', 'false');
+    tocContainer.setAttribute('data-pinned', 'false');
     document.body.appendChild(tocContainer);
 
-    // 添加按钮图标
-    const buttonSvg = '<svg width="30" height="30" viewBox="0 0 24 24"><path d="M3 5h18v2H3V5zm0 6h18v2H3v-2zm0 6h18v2H3v-2z"/></svg>';
+    // 添加按钮图标（20×20，在 44px 容器内占比约 45%）
+    const buttonSvg = '<svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M3 5h18v2H3V5zm0 6h18v2H3v-2zm0 6h18v2H3v-2z"/></svg>';
     iconContainer = document.createElement('div');
     iconContainer.className = 'toc-icon';
     iconContainer.innerHTML = buttonSvg;
+    // ARIA：图标作为可聚焦按钮
+    iconContainer.setAttribute('role', 'button');
+    iconContainer.setAttribute('tabindex', '0');
+    iconContainer.setAttribute('aria-label', '展开目录');
+    iconContainer.setAttribute('aria-haspopup', 'true');
+    iconContainer.setAttribute('data-label', shouldShowIconHint ? 'TOC' : '');
     tocContainer.appendChild(iconContainer);
+
+    // 为图标绑定键盘事件（Enter / Space 触发展开/折叠或回到顶部）
+    iconContainer.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        // 模拟点击行为（与各交互模式下的 click 处理一致）
+        iconContainer.click();
+      }
+    });
 
     // 创建目录树结构
     tocTree = document.createElement('div');
     tocTree.className = 'toc-tree';
+    // 初始折叠时对屏幕阅读器隐藏
+    tocTree.setAttribute('aria-hidden', 'true');
 
     // 添加标题
     tocTitle = document.createElement('div');
     tocTitle.className = 'toc-title';
-    tocTitle.textContent = 'Outline';
+    // 标题文字节点（OUTLINE 标签，对屏幕阅读器装饰性隐藏）
+    const titleSpan = document.createElement('span');
+    titleSpan.textContent = 'OUTLINE';
+    titleSpan.setAttribute('aria-hidden', 'true');
+    tocTitle.appendChild(titleSpan);
+
+    tocCountBadge = document.createElement('span');
+    tocCountBadge.className = 'toc-count-badge';
+    tocCountBadge.textContent = '0';
+    tocCountBadge.setAttribute('aria-label', '0 sections');
+    tocTitle.appendChild(tocCountBadge);
 
     tocTopButton = document.createElement('button');
     tocTopButton.type = 'button';
     tocTopButton.className = 'toc-top-button';
     tocTopButton.textContent = 'Top';
+    tocTopButton.setAttribute('aria-label', '回到页面顶部');
     tocTitle.appendChild(tocTopButton);
 
     tocTree.appendChild(tocTitle);
@@ -198,10 +265,37 @@
     // 创建目录列表
     tocList = document.createElement('ul');
     tocList.className = 'toc-list';
+    tocList.setAttribute('role', 'list');
+    tocList.setAttribute('aria-label', '文章目录');
     tocTree.appendChild(tocList);
 
     // 将目录树添加到容器中
     tocContainer.appendChild(tocTree);
+
+    // 键盘导航：Escape 折叠面板，Arrow Up/Down 在条目间移动
+    tocContainer.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && tocContainer.classList.contains('expanded')) {
+        e.preventDefault();
+        closePanel();
+        iconContainer.focus();
+        return;
+      }
+      if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+        const links = Array.from(tocList.querySelectorAll('.toc-item:not(.no-headers) a'));
+        if (links.length === 0) return;
+        const focused = document.activeElement;
+        const idx = links.indexOf(focused);
+        if (e.key === 'ArrowDown') {
+          e.preventDefault();
+          const next = links[idx + 1] || links[0];
+          next.focus();
+        } else {
+          e.preventDefault();
+          const prev = links[idx - 1] || links[links.length - 1];
+          prev.focus();
+        }
+      }
+    });
   }
 
   // 扩展内容容器选择器
@@ -323,9 +417,14 @@
   function cleanup() {
     if (observer) {
       observer.disconnect();
+      observer = null;
     }
     if (updateTimeout) {
       clearTimeout(updateTimeout);
+    }
+    if (reinitializeTimer) {
+      clearTimeout(reinitializeTimer);
+      reinitializeTimer = null;
     }
     lastProcessedHeaders.clear();
   }
@@ -387,6 +486,10 @@
   }
 
   function getHeaders() {
+    if (!contentContainer) {
+      return [];
+    }
+
     const standardHeaders = Array.from(contentContainer.querySelectorAll('h1, h2, h3, h4, h5, h6'));
     const customHeaders = Array.from(contentContainer.querySelectorAll('[class*="title"], [class*="heading"], [class*="header"]'))
       .filter(el => {
@@ -427,6 +530,10 @@
 
   // 性能监控工具函数
   function measurePerformance(metricName, callback) {
+    if (!performancePanelVisible) {
+      return callback();
+    }
+
     const startTime = performance.now();
     const startMemory = performance.memory ? performance.memory.usedJSHeapSize : 0;
 
@@ -470,10 +577,14 @@
     };
   }
 
-  function displayPerformanceStats() {
-    const statsContainer = document.createElement('div');
-    statsContainer.id = 'toc-performance-stats';
-    statsContainer.style.cssText = `
+  function ensurePerformanceStatsContainer() {
+    if (performanceStatsContainer) {
+      return performanceStatsContainer;
+    }
+
+    performanceStatsContainer = document.createElement('div');
+    performanceStatsContainer.id = 'toc-performance-stats';
+    performanceStatsContainer.style.cssText = `
       position: fixed;
       bottom: 20px;
       left: 20px;
@@ -486,75 +597,104 @@
       z-index: 10000;
       display: none;
     `;
+    document.body.appendChild(performanceStatsContainer);
+    return performanceStatsContainer;
+  }
 
-    document.body.appendChild(statsContainer);
+  function renderPerformanceStats() {
+    const statsContainer = ensurePerformanceStatsContainer();
+    if (!performancePanelVisible) return;
 
-    // 添加显示/隐藏快捷键
+    const stats = {
+      generation: getPerformanceStats('tocGeneration'),
+      update: getPerformanceStats('tocUpdate'),
+      scroll: getPerformanceStats('scrollPerformance')
+    };
+
+    if (!stats.generation && !stats.update && !stats.scroll) {
+      statsContainer.innerHTML = '<h3>TOC Performance Stats</h3><p>No metrics collected yet.</p>';
+      return;
+    }
+
+    let html = '<h3>TOC Performance Stats</h3>';
+
+    if (stats.generation) {
+      html += `
+        <div>
+          <h4>Generation</h4>
+          <p>Count: ${stats.generation.count}</p>
+          <p>Avg Duration: ${stats.generation.avgDuration.toFixed(2)}ms</p>
+          <p>Min/Max: ${stats.generation.minDuration.toFixed(2)}ms / ${stats.generation.maxDuration.toFixed(2)}ms</p>
+          <p>Memory Usage: ${(stats.generation.latestMemoryUsage / 1024 / 1024).toFixed(2)}MB</p>
+        </div>
+      `;
+    }
+
+    if (stats.update) {
+      html += `
+        <div>
+          <h4>Updates</h4>
+          <p>Count: ${stats.update.count}</p>
+          <p>Avg Duration: ${stats.update.avgDuration.toFixed(2)}ms</p>
+          <p>Min/Max: ${stats.update.minDuration.toFixed(2)}ms / ${stats.update.maxDuration.toFixed(2)}ms</p>
+          <p>Memory Delta: ${(stats.update.avgMemoryDelta / 1024 / 1024).toFixed(2)}MB</p>
+        </div>
+      `;
+    }
+
+    if (stats.scroll) {
+      html += `
+        <div>
+          <h4>Scroll Performance</h4>
+          <p>Count: ${stats.scroll.count}</p>
+          <p>Avg Duration: ${stats.scroll.avgDuration.toFixed(2)}ms</p>
+          <p>Min/Max: ${stats.scroll.minDuration.toFixed(2)}ms / ${stats.scroll.maxDuration.toFixed(2)}ms</p>
+        </div>
+      `;
+    }
+
+    statsContainer.innerHTML = html;
+  }
+
+  function togglePerformanceStats() {
+    const statsContainer = ensurePerformanceStatsContainer();
+    performancePanelVisible = !performancePanelVisible;
+    statsContainer.style.display = performancePanelVisible ? 'block' : 'none';
+
+    if (performancePanelVisible) {
+      renderPerformanceStats();
+      if (!performanceStatsTimer) {
+        performanceStatsTimer = setInterval(renderPerformanceStats, 1000);
+      }
+      return;
+    }
+
+    if (performanceStatsTimer) {
+      clearInterval(performanceStatsTimer);
+      performanceStatsTimer = null;
+    }
+  }
+
+  function setupPerformanceStats() {
     document.addEventListener('keydown', (e) => {
       if (e.ctrlKey && e.shiftKey && e.key === 'P') {
-        statsContainer.style.display = statsContainer.style.display === 'none' ? 'block' : 'none';
+        togglePerformanceStats();
       }
     });
-
-    // 定期更新性能统计
-    setInterval(() => {
-      const stats = {
-        generation: getPerformanceStats('tocGeneration'),
-        update: getPerformanceStats('tocUpdate'),
-        scroll: getPerformanceStats('scrollPerformance')
-      };
-
-      if (!stats.generation && !stats.update && !stats.scroll) return;
-
-      let html = '<h3>TOC Performance Stats</h3>';
-
-      if (stats.generation) {
-        html += `
-          <div>
-            <h4>Generation</h4>
-            <p>Count: ${stats.generation.count}</p>
-            <p>Avg Duration: ${stats.generation.avgDuration.toFixed(2)}ms</p>
-            <p>Min/Max: ${stats.generation.minDuration.toFixed(2)}ms / ${stats.generation.maxDuration.toFixed(2)}ms</p>
-            <p>Memory Usage: ${(stats.generation.latestMemoryUsage / 1024 / 1024).toFixed(2)}MB</p>
-          </div>
-        `;
-      }
-
-      if (stats.update) {
-        html += `
-          <div>
-            <h4>Updates</h4>
-            <p>Count: ${stats.update.count}</p>
-            <p>Avg Duration: ${stats.update.avgDuration.toFixed(2)}ms</p>
-            <p>Min/Max: ${stats.update.minDuration.toFixed(2)}ms / ${stats.update.maxDuration.toFixed(2)}ms</p>
-            <p>Memory Delta: ${(stats.update.avgMemoryDelta / 1024 / 1024).toFixed(2)}MB</p>
-          </div>
-        `;
-      }
-
-      if (stats.scroll) {
-        html += `
-          <div>
-            <h4>Scroll Performance</h4>
-            <p>Count: ${stats.scroll.count}</p>
-            <p>Avg Duration: ${stats.scroll.avgDuration.toFixed(2)}ms</p>
-            <p>Min/Max: ${stats.scroll.minDuration.toFixed(2)}ms / ${stats.scroll.maxDuration.toFixed(2)}ms</p>
-          </div>
-        `;
-      }
-
-      statsContainer.innerHTML = html;
-    }, 1000);
   }
 
   // 修改现有的函数以包含性能监控
   function updateTOC() {
     return measurePerformance('tocUpdate', () => {
-      cleanup();
       lastProcessedHeaders.clear();
 
       const headers = getHeaders();
+      currentHeaders = headers;
       headerCount = headers.length;
+      if (tocCountBadge) {
+        tocCountBadge.textContent = String(headerCount);
+        tocCountBadge.setAttribute('aria-label', `${headerCount} sections`);
+      }
       if (headers.length === 0) {
         if (tocList) {
           tocList.innerHTML = `
@@ -610,13 +750,16 @@
           e.preventDefault();
           header.scrollIntoView({ behavior: 'smooth' });
 
-          // 移除所有目录项的高亮
-          document.querySelectorAll('.toc-item').forEach(item => {
+          // 移除所有目录项的高亮及 aria-current
+          tocList.querySelectorAll('.toc-item').forEach(item => {
             item.classList.remove('active');
+            const itemLink = item.querySelector('a');
+            if (itemLink) itemLink.removeAttribute('aria-current');
           });
 
-          // 添加当前目录项的高亮
+          // 添加当前目录项的高亮及 aria-current
           li.classList.add('active');
+          a.setAttribute('aria-current', 'location');
 
           // 更新当前活动标题
           updateActiveHeader();
@@ -634,8 +777,8 @@
 
   // 添加更新当前活动标题的函数
   function updateActiveHeader() {
-    const headers = Array.from(contentContainer.querySelectorAll('h1, h2, h3, h4, h5, h6'));
-    const scrollPosition = window.scrollY;
+    const headers = currentHeaders;
+    if (!headers || headers.length === 0) return;
 
     // 找到当前视口中的标题
     let activeHeader = null;
@@ -651,13 +794,16 @@
       }
     });
 
-    // 更新目录项的高亮状态
+    // 更新目录项的高亮状态及 aria-current
     if (activeHeader) {
-      document.querySelectorAll('.toc-item').forEach(item => {
+      tocList.querySelectorAll('.toc-item').forEach(item => {
+        const link = item.querySelector('a');
         if (item.dataset.headerId === activeHeader.id) {
           item.classList.add('active');
+          if (link) link.setAttribute('aria-current', 'location');
         } else {
           item.classList.remove('active');
+          if (link) link.removeAttribute('aria-current');
         }
       });
     }
@@ -675,8 +821,9 @@
   }
 
   function updateVisibility() {
-    if (!tocContainer) return;
-    tocContainer.style.display = shouldShowToc() ? 'block' : 'none';
+    if (tocContainer) {
+      tocContainer.style.display = shouldShowToc() ? 'flex' : 'none';
+    }
   }
 
   window.addEventListener('scroll', () => {
@@ -692,6 +839,16 @@
     });
   });
 
+  function scheduleReinitialize(delay = 100) {
+    if (reinitializeTimer) {
+      clearTimeout(reinitializeTimer);
+    }
+    reinitializeTimer = setTimeout(() => {
+      reinitializeTimer = null;
+      reinitializeTOC();
+    }, delay);
+  }
+
   function setupObserver() {
     if (observer) {
       observer.disconnect();
@@ -705,23 +862,35 @@
       }
 
       for (const mutation of mutations) {
-        if (mutation.type === 'childList' || mutation.type === 'subtree') {
+        if (mutation.type !== 'childList') {
+          continue;
+        }
+
+        const changedNodes = [...mutation.addedNodes, ...mutation.removedNodes];
+        const affectsHeadings = changedNodes.some((node) => {
+          if (!(node instanceof Element)) {
+            return false;
+          }
+          return (
+            node.matches('h1, h2, h3, h4, h5, h6, [class*="title"], [class*="heading"], [class*="header"]') ||
+            node.querySelector('h1, h2, h3, h4, h5, h6, [class*="title"], [class*="heading"], [class*="header"]')
+          );
+        });
+
+        if (affectsHeadings) {
           shouldUpdate = true;
           break;
         }
       }
 
       if (shouldUpdate) {
-        setTimeout(() => {
-          reinitializeTOC();
-        }, 100);
+        scheduleReinitialize(120);
       }
     }, 250));
 
-    observer.observe(document.documentElement, {
+    observer.observe(contentContainer || document.body, {
       childList: true,
-      subtree: true,
-      characterData: true
+      subtree: true
     });
 
     updateTOC();
@@ -731,34 +900,39 @@
     if (!isGitHubPage()) return;
 
     document.addEventListener('pjax:start', cleanup);
-    document.addEventListener('pjax:end', () => setTimeout(reinitializeTOC, 100));
-    document.addEventListener('turbo:load', () => setTimeout(reinitializeTOC, 100));
-    document.addEventListener('ajaxComplete', () => setTimeout(reinitializeTOC, 100));
+    document.addEventListener('pjax:end', () => scheduleReinitialize(120));
+    document.addEventListener('turbo:load', () => scheduleReinitialize(120));
+    document.addEventListener('ajaxComplete', () => scheduleReinitialize(120));
   }
 
   function setupHistoryListener() {
-    window.addEventListener('popstate', () => setTimeout(reinitializeTOC, 100));
+    window.addEventListener('popstate', () => scheduleReinitialize(120));
 
     const originalPushState = history.pushState;
     const originalReplaceState = history.replaceState;
 
     history.pushState = function() {
       originalPushState.apply(this, arguments);
-      setTimeout(reinitializeTOC, 100);
+      scheduleReinitialize(120);
     };
 
     history.replaceState = function() {
       originalReplaceState.apply(this, arguments);
-      setTimeout(reinitializeTOC, 100);
+      scheduleReinitialize(120);
     };
   }
 
   function reinitializeTOC() {
     return measurePerformance('tocGeneration', () => {
-      cleanup();
-      contentContainer = findContentContainer();
-      setupObserver();
-      updateTOC();
+      const nextContainer = findContentContainer();
+      const containerChanged = nextContainer !== contentContainer;
+      contentContainer = nextContainer;
+
+      if (containerChanged || !observer) {
+        setupObserver();
+      } else {
+        updateTOC();
+      }
     });
   }
 
@@ -767,16 +941,7 @@
     setupObserver();
     setupHistoryListener();
     setupGitHubListener();
-    displayPerformanceStats();
-
-    if (isGitHubPage()) {
-      setInterval(() => {
-        const currentContainer = findContentContainer();
-        if (currentContainer !== contentContainer) {
-          reinitializeTOC();
-        }
-      }, 1000);
-    }
+    setupPerformanceStats();
   }
 
   function isClickOnTocLink(event) {
@@ -790,10 +955,67 @@
   function toggleExpanded(force) {
     if (!tocContainer) return;
     const shouldExpand = typeof force === 'boolean' ? force : !tocContainer.classList.contains('expanded');
-    tocContainer.classList.toggle('expanded', shouldExpand);
-    if (iconContainer) {
-      iconContainer.style.opacity = shouldExpand ? '0' : '1';
+    if (!shouldExpand) {
+      // 折叠时临时添加 is-collapsing，使 CSS 使用快速收缩曲线
+      tocContainer.classList.add('is-collapsing');
+      // transition 结束后移除；同时设置 setTimeout 兜底，
+      // 防止 prefers-reduced-motion: reduce 禁用 transition 后 transitionend 永不触发
+      const collapseCleanup = () => {
+        tocContainer.classList.remove('is-collapsing');
+        tocContainer.removeEventListener('transitionend', collapseCleanup);
+        clearTimeout(collapseFallback);
+      };
+      tocContainer.addEventListener('transitionend', collapseCleanup);
+      const collapseFallback = setTimeout(collapseCleanup, 300);
+    } else {
+      tocContainer.classList.remove('is-collapsing');
     }
+    tocContainer.classList.toggle('expanded', shouldExpand);
+    // 同步 ARIA 状态
+    tocContainer.setAttribute('aria-expanded', shouldExpand ? 'true' : 'false');
+    if (tocTree) {
+      tocTree.setAttribute('aria-hidden', shouldExpand ? 'false' : 'true');
+    }
+    if (iconContainer) {
+      iconContainer.setAttribute('aria-label', shouldExpand ? '折叠目录' : '展开目录');
+    }
+  }
+
+  function clearHoverTimers() {
+    clearTimeout(hoverOpenTimer);
+    clearTimeout(hoverCloseTimer);
+  }
+
+  function setPinnedState(pinned) {
+    isPinnedOpen = pinned;
+    if (!tocContainer) return;
+    tocContainer.classList.toggle('is-pinned', pinned);
+    tocContainer.setAttribute('data-pinned', pinned ? 'true' : 'false');
+    if (pinned) {
+      dismissIconHint();
+    }
+  }
+
+  function closePanel() {
+    clearHoverTimers();
+    setPinnedState(false);
+    toggleExpanded(false);
+  }
+
+  function scheduleHoverOpen() {
+    if (isPinnedOpen) return;
+    clearHoverTimers();
+    hoverOpenTimer = setTimeout(() => {
+      toggleExpanded(true);
+    }, 120);
+  }
+
+  function scheduleHoverClose() {
+    if (isPinnedOpen) return;
+    clearHoverTimers();
+    hoverCloseTimer = setTimeout(() => {
+      toggleExpanded(false);
+    }, 180);
   }
 
   function scrollToTop() {
@@ -805,19 +1027,24 @@
     if (!tocContainer) return;
 
     if (settings.expandMode === 'hover') {
-      tocContainer.addEventListener('mouseenter', () => {
-        toggleExpanded(true);
-      });
-
-      tocContainer.addEventListener('mouseleave', () => {
-        toggleExpanded(false);
-      });
+      tocContainer.addEventListener('mouseenter', scheduleHoverOpen);
+      tocContainer.addEventListener('mouseleave', scheduleHoverClose);
 
       if (iconContainer) {
         iconContainer.addEventListener('click', (e) => {
           e.preventDefault();
           e.stopPropagation();
-          scrollToTop();
+          clearHoverTimers();
+          if (!tocContainer.classList.contains('expanded')) {
+            setPinnedState(true);
+            toggleExpanded(true);
+            return;
+          }
+          if (isPinnedOpen) {
+            closePanel();
+            return;
+          }
+          setPinnedState(true);
         });
       }
     }
@@ -825,11 +1052,13 @@
     if (settings.expandMode === 'click') {
       tocContainer.addEventListener('click', (e) => {
         if (isClickOnTocLink(e)) return;
-        if (isIconClick(e) && !tocContainer.classList.contains('expanded')) {
-          scrollToTop();
-          return;
+        if (e.target && e.target.closest && e.target.closest('.toc-top-button')) return;
+        if (tocContainer.classList.contains('expanded')) {
+          closePanel();
+        } else {
+          setPinnedState(true);
+          toggleExpanded(true);
         }
-        toggleExpanded();
       });
     }
 
@@ -838,7 +1067,7 @@
         if (!tocContainer.classList.contains('expanded')) return;
         if (isClickOnTocLink(e)) return;
         if (e.target && e.target.closest && e.target.closest('.toc-top-button')) return;
-        toggleExpanded(false);
+        closePanel();
       });
     }
 
@@ -859,7 +1088,7 @@
         }
         if (!longPressTriggered && !isClickOnTocLink(e)) {
           if (tocContainer.classList.contains('expanded') && isIconClick(e)) {
-            toggleExpanded(false);
+            closePanel();
             return;
           }
           scrollToTop();
@@ -883,7 +1112,20 @@
 
     document.addEventListener('focusin', (e) => {
       if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') {
-        toggleExpanded(false);
+        closePanel();
+      }
+    });
+
+    document.addEventListener('pointerdown', (e) => {
+      if (!tocContainer.classList.contains('expanded')) return;
+      if (tocContainer.contains(e.target)) return;
+      if (settings.expandMode === 'hover' && !isPinnedOpen) return;
+      closePanel();
+    });
+
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && tocContainer.classList.contains('expanded')) {
+        closePanel();
       }
     });
   }
@@ -901,6 +1143,10 @@
   }
 
   function start() {
+    const legacyScrollTopButton = document.getElementById('github-sst');
+    if (legacyScrollTopButton) {
+      legacyScrollTopButton.remove();
+    }
     if (isDomainDisabled()) {
       return;
     }
@@ -915,8 +1161,10 @@
   }
 
   loadSettings()
-    .then((loaded) => {
+    .then((loaded) => Promise.all([Promise.resolve(loaded), loadUiState()]))
+    .then(([loaded, uiState]) => {
       settings = normalizeSettings(loaded);
+      shouldShowIconHint = !uiState.tocHintDismissed;
       start();
     })
     .catch(() => {

@@ -9,64 +9,112 @@
   <body>
     <main class="page">
       <header class="page-header">
-        <h1>Smart TOC & Scroll 设置</h1>
-        <p>配置目录展开方式、显示条件与禁用站点。</p>
+        <!-- 扩展图标区块 -->
+        <div class="page-header-icon" aria-hidden="true">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M3 5h18v2H3V5zm0 6h18v2H3v-2zm0 6h18v2H3v-2z" fill="#ffffff"/>
+          </svg>
+        </div>
+        <div>
+          <h1>Smart TOC &amp; Scroll</h1>
+          <p class="page-subtitle">配置目录展开方式、显示条件与禁用站点。</p>
+        </div>
       </header>
 
+      <!-- 交互方式 -->
       <section class="card">
-        <h2>交互方式</h2>
-        <div class="field">
-          <label for="expandMode">目录展开方式</label>
-          <select id="expandMode">
-            <option value="hover">悬停展开（默认）</option>
-            <option value="press">长按展开</option>
-            <option value="click">点击展开</option>
-          </select>
+        <div class="card-header">
+          <div class="card-icon card-icon--interaction" aria-hidden="true">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+              <path d="M9 3H5a2 2 0 00-2 2v4m6-6h10a2 2 0 012 2v4M9 3v18m0 0h10a2 2 0 002-2V9M9 21H5a2 2 0 01-2-2V9m0 0h18" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </div>
+          <h2>交互方式</h2>
+        </div>
+        <div class="card-body">
+          <div class="field">
+            <label for="expandMode">目录展开方式</label>
+            <select id="expandMode">
+              <option value="hover">悬停预览（默认）</option>
+              <option value="press">短按回顶 / 长按展开</option>
+              <option value="click">点击开关</option>
+            </select>
+            <span id="expandModeHint" class="field-hint">悬停可预览目录，点击浮标可固定展开；移开后自动收起。</span>
+          </div>
         </div>
       </section>
 
+      <!-- 显示条件 -->
       <section class="card">
-        <h2>显示条件</h2>
-        <div class="field">
-          <label for="showAfterScrollScreens">滚动后显示（屏）</label>
-          <input id="showAfterScrollScreens" type="number" min="0" step="0.5" />
+        <div class="card-header">
+          <div class="card-icon card-icon--display" aria-hidden="true">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+              <path d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" stroke="currentColor" stroke-width="2"/>
+              <path d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" stroke="currentColor" stroke-width="2"/>
+            </svg>
+          </div>
+          <h2>显示条件</h2>
         </div>
-        <div class="field">
-          <label for="minHeaders">最少标题数量</label>
-          <input id="minHeaders" type="number" min="0" step="1" />
+        <div class="card-body">
+          <div class="field">
+            <label for="showAfterScrollScreens">滚动后显示（屏）</label>
+            <input
+              id="showAfterScrollScreens"
+              type="number"
+              min="0"
+              step="0.5"
+              aria-describedby="showAfterScrollScreens-desc"
+            />
+            <span id="showAfterScrollScreens-desc" class="field-hint">滚动超过此屏数后才显示目录浮标，设为 0 则页面加载即显示</span>
+          </div>
+          <div class="field">
+            <label for="minHeaders">最少标题数量</label>
+            <input id="minHeaders" type="number" min="0" step="1" />
+          </div>
         </div>
       </section>
 
+      <!-- 位置与禁用 -->
       <section class="card">
-        <h2>位置与禁用</h2>
-        <div class="field">
-          <label for="position">浮层位置</label>
-          <select id="position">
-            <option value="right">右下角</option>
-            <option value="left">左下角</option>
-          </select>
+        <div class="card-header">
+          <div class="card-icon card-icon--settings" aria-hidden="true">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+              <path d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" stroke="currentColor" stroke-width="2"/>
+              <path d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" stroke="currentColor" stroke-width="2"/>
+            </svg>
+          </div>
+          <h2>位置与禁用</h2>
         </div>
-        <div class="field">
-          <label for="disabledDomains">禁用域名（逗号分隔）</label>
-          <textarea id="disabledDomains" rows="3" placeholder="example.com, docs.example.org"></textarea>
-        </div>
-        <div class="field checkbox-field">
-          <label>
-            <input id="avoidExistingWidgets" type="checkbox" />
-            检测到页面已有 TOC/回到顶部按钮时自动避开
-          </label>
-        </div>
-        <div class="field checkbox-field">
-          <label>
-            <input id="forceShow" type="checkbox" />
-            始终显示（即使页面已有 TOC/回到顶部按钮）
-          </label>
+        <div class="card-body">
+          <div class="field">
+            <label for="position">浮层位置</label>
+            <select id="position">
+              <option value="right">右下角</option>
+              <option value="left">左下角</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="disabledDomains">禁用域名（逗号分隔）</label>
+            <textarea id="disabledDomains" rows="3" placeholder="example.com, docs.example.org"></textarea>
+          </div>
+          <div class="field checkbox-field">
+            <label>
+              <input id="avoidExistingWidgets" type="checkbox" />
+              检测到页面已有 TOC/回到顶部按钮时自动避开
+            </label>
+          </div>
+          <div class="field checkbox-field">
+            <label>
+              <input id="forceShow" type="checkbox" />
+              始终显示（即使页面已有 TOC/回到顶部按钮）
+            </label>
+          </div>
         </div>
       </section>
 
       <div class="actions">
         <button id="save" type="button">保存设置</button>
-        <span id="status" role="status" aria-live="polite"></span>
+        <span id="status" role="status" aria-live="polite" aria-atomic="true"></span>
       </div>
     </main>
 

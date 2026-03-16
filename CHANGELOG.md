@@ -5,6 +5,26 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.3] - 2026-03-16
+
+### Added
+- TOC 浮标与展开面板补充键盘可达性与 ARIA 属性
+
+### Changed
+- 主题检测从“统计页面文字颜色”调整为“直接读取页面背景亮度”
+- 主题系统收敛为浅色/深色磨砂浮层，并保留旧彩色主题类兼容映射
+- Options 页面改为 v2.3 视觉样式
+- 性能统计改为按需启用，默认不再持续采样和刷新
+- TOC 更新链路收敛为更保守的重建策略，减少整页频繁扫描
+
+### Fixed
+- 避免主题脚本在 `document.body` 尚未可用时提前观察失败
+- 修正文档与当前 v2.3 重构方向不一致的说明
+- 移除与 TOC 浮标并列的独立回顶按钮，恢复单入口交互
+- 修复 hover 模式下浮标闪烁与 TOC 面板展开不稳定的问题
+- 将 hover 模式打磨为“悬停预览、点击固定”，并优化 click / press 模式语义
+- 将 TOC 入口提示收敛为首次使用阶段提示，避免长期打扰
+
 ## [2.2] - 2026-02-25
 
 ### Added

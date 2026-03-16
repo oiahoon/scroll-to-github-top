@@ -12,6 +12,7 @@ const defaultSettings = {
 
 const elements = {
   expandMode: document.getElementById('expandMode'),
+  expandModeHint: document.getElementById('expandModeHint'),
   minHeaders: document.getElementById('minHeaders'),
   showAfterScrollScreens: document.getElementById('showAfterScrollScreens'),
   position: document.getElementById('position'),
@@ -20,6 +21,12 @@ const elements = {
   forceShow: document.getElementById('forceShow'),
   save: document.getElementById('save'),
   status: document.getElementById('status')
+};
+
+const expandModeDescriptions = {
+  hover: '悬停可预览目录，点击浮标可固定展开；移开后自动收起。',
+  click: '点击浮标打开或关闭目录，适合希望面板稳定停留的场景。',
+  press: '短按直接回到顶部，长按浮标后展开目录。'
 };
 
 function normalizeDomains(input) {
@@ -31,8 +38,13 @@ function normalizeDomains(input) {
 
 function renderStatus(message) {
   elements.status.textContent = message;
+  elements.status.classList.add('visible');
   setTimeout(() => {
-    elements.status.textContent = '';
+    elements.status.classList.remove('visible');
+    // 等待淡出动画结束后再清空文字（0.2s）
+    setTimeout(() => {
+      elements.status.textContent = '';
+    }, 200);
   }, 1500);
 }
 
@@ -65,7 +77,12 @@ function bindForm(settings) {
   elements.disabledDomains.value = (settings.disabledDomains || []).join(', ');
   elements.avoidExistingWidgets.checked = settings.avoidExistingWidgets ?? defaultSettings.avoidExistingWidgets;
   elements.forceShow.checked = settings.forceShow ?? defaultSettings.forceShow;
+  syncExpandModeHint();
   syncForceShow();
+}
+
+function syncExpandModeHint() {
+  elements.expandModeHint.textContent = expandModeDescriptions[elements.expandMode.value] || expandModeDescriptions.hover;
 }
 
 function syncForceShow() {
@@ -93,5 +110,6 @@ elements.save.addEventListener('click', async () => {
 });
 
 elements.forceShow.addEventListener('change', syncForceShow);
+elements.expandMode.addEventListener('change', syncExpandModeHint);
 
 loadSettings().then(bindForm);

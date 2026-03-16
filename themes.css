@@ -1,81 +1,221 @@
-/* Material Design 主题变量 */
+/* =============================================
+   Smart TOC & Scroll — 主题系统 v2.3
+   设计规范：UI_DESIGN_SPEC.md §7、§12
+   ============================================= */
+
+/* === 全局基础变量 === */
 :root {
-  /* 阴影 */
+  /* 动画曲线 */
+  --ease-expand:   cubic-bezier(0.34, 1.56, 0.64, 1);   /* 展开：带轻微弹出感 */
+  --ease-collapse: cubic-bezier(0.40, 0.00, 0.60, 1);   /* 折叠：快速收缩，无弹出 */
+  --ease-content:  cubic-bezier(0.00, 0.00, 0.20, 1);   /* 内容淡入，Material 标准 */
+  --ease-standard: cubic-bezier(0.40, 0.00, 0.20, 1);   /* 标准曲线 */
+
+  /* 兼容旧变量（toc.css 内部引用） */
+  --ease-out: cubic-bezier(0.0, 0.0, 0.2, 1);
+  --ease-in:  cubic-bezier(0.4, 0.0, 1, 1);
+
+  /* 动画时长 */
+  --duration-expand:   0.30s;
+  --duration-collapse: 0.22s;
+  --duration-fade:     0.20s;
+  --duration-hover:    0.15s;
+
+  /* 保留旧的 elevation 变量，供存量代码引用 */
   --elevation-1: 0 2px 1px -1px rgba(0,0,0,0.2), 0 1px 1px 0 rgba(0,0,0,0.14), 0 1px 3px 0 rgba(0,0,0,0.12);
   --elevation-2: 0 3px 3px -2px rgba(0,0,0,0.2), 0 3px 4px 0 rgba(0,0,0,0.14), 0 1px 8px 0 rgba(0,0,0,0.12);
   --elevation-3: 0 3px 5px -1px rgba(0,0,0,0.2), 0 6px 10px 0 rgba(0,0,0,0.14), 0 1px 18px 0 rgba(0,0,0,0.12);
-
-  /* 动画曲线 */
-  --ease-out: cubic-bezier(0.0, 0.0, 0.2, 1);
-  --ease-in: cubic-bezier(0.4, 0.0, 1, 1);
 }
 
-/* 深色主题 - 适用于浅色背景网站 */
-.theme-dark {
-  --toc-bg: #424242;
-  --toc-text: #ffffff;
-  --toc-text-secondary: rgba(255, 255, 255, 0.7);
-  --toc-text-hover: #ffffff;
-  --toc-highlight: rgba(255, 255, 255, 0.08);
-  --toc-scrollbar-track: rgba(255, 255, 255, 0.05);
-  --toc-scrollbar-thumb: rgba(255, 255, 255, 0.2);
-  --toc-elevation: var(--elevation-1);
-  --toc-elevation-hover: var(--elevation-2);
-  --toc-elevation-expanded: var(--elevation-3);
-}
-
-/* 浅色主题 - 适用于深色背景网站 */
+/* =============================================
+   主题 A：light（面向深色/中色背景页面）
+   半透明磨砂白
+   ============================================= */
 .theme-light {
-  --toc-bg: #ffffff;
-  --toc-text: #000000;
-  --toc-text-secondary: rgba(0, 0, 0, 0.7);
-  --toc-text-hover: #000000;
-  --toc-highlight: rgba(0, 0, 0, 0.04);
-  --toc-scrollbar-track: rgba(0, 0, 0, 0.05);
-  --toc-scrollbar-thumb: rgba(0, 0, 0, 0.2);
-  --toc-elevation: var(--elevation-1);
-  --toc-elevation-hover: var(--elevation-2);
-  --toc-elevation-expanded: var(--elevation-3);
+  /* 背景：半透明白色 + 磨砂模糊 */
+  --toc-bg:               rgba(255, 255, 255, 0.88);
+  --toc-bg-expanded:      rgba(255, 255, 255, 0.95);
+  --toc-bg-fallback:      rgba(255, 255, 255, 0.98);  /* backdrop-filter 不支持时降级 */
+  --toc-backdrop-filter:  blur(16px) saturate(180%);
+
+  /* 文字 */
+  --toc-text:             #1a1a1a;
+  --toc-text-secondary:   rgba(26, 26, 26, 0.60);     /* 兼容旧引用 */
+  --toc-text-muted:       rgba(26, 26, 26, 0.50);
+  --toc-text-hover:       #000000;
+  --toc-accent:           #0969da;                     /* 激活态强调色（GitHub 蓝） */
+  --toc-text-active:      #0969da;                     /* 兼容旧引用 */
+
+  /* 高亮 */
+  --toc-highlight:        rgba(0, 0, 0, 0.05);
+  --toc-highlight-active: rgba(9, 105, 218, 0.08);
+
+  /* 描边 */
+  --toc-border:           rgba(0, 0, 0, 0.10);
+  --toc-border-hover:     rgba(0, 0, 0, 0.20);
+  --toc-divider:          rgba(0, 0, 0, 0.07);
+
+  /* 滚动条 */
+  --toc-scrollbar-track:  transparent;                 /* 轨道透明 */
+  --toc-scrollbar-thumb:  rgba(0, 0, 0, 0.18);
+
+  /* 阴影 */
+  --toc-elevation:          0 1px 3px rgba(0,0,0,0.10), 0 1px 2px rgba(0,0,0,0.06);
+  --toc-elevation-rest:     0 1px 3px rgba(0,0,0,0.10), 0 1px 2px rgba(0,0,0,0.06);
+  --toc-elevation-hover:    0 4px 12px rgba(0,0,0,0.12), 0 2px 4px rgba(0,0,0,0.08);
+  --toc-elevation-press:    0 1px 2px rgba(0,0,0,0.08);
+  --toc-elevation-expanded: 0 8px 32px rgba(0,0,0,0.14), 0 4px 8px rgba(0,0,0,0.08);
 }
 
-/* 蓝色主题 - 适用于暖色背景网站 */
-.theme-blue {
-  --toc-bg: #1976d2;
-  --toc-text: #ffffff;
-  --toc-text-secondary: rgba(255, 255, 255, 0.7);
-  --toc-text-hover: #ffffff;
-  --toc-highlight: rgba(255, 255, 255, 0.08);
-  --toc-scrollbar-track: rgba(255, 255, 255, 0.05);
-  --toc-scrollbar-thumb: rgba(255, 255, 255, 0.2);
-  --toc-elevation: var(--elevation-1);
-  --toc-elevation-hover: var(--elevation-2);
-  --toc-elevation-expanded: var(--elevation-3);
+/* =============================================
+   主题 B：dark（面向浅色背景页面）
+   半透明磨砂深灰
+   ============================================= */
+.theme-dark {
+  /* 背景：半透明深色 + 磨砂模糊 */
+  --toc-bg:               rgba(30, 30, 30, 0.82);
+  --toc-bg-expanded:      rgba(28, 28, 28, 0.94);
+  --toc-bg-fallback:      rgba(28, 28, 28, 0.98);     /* backdrop-filter 不支持时降级 */
+  --toc-backdrop-filter:  blur(16px) saturate(150%);
+
+  /* 文字 */
+  --toc-text:             rgba(255, 255, 255, 0.90);
+  --toc-text-secondary:   rgba(255, 255, 255, 0.60);  /* 兼容旧引用 */
+  --toc-text-muted:       rgba(255, 255, 255, 0.40);
+  --toc-text-hover:       #ffffff;
+  --toc-accent:           #58a6ff;                    /* 深色模式下的蓝色（GitHub 风格） */
+  --toc-text-active:      #58a6ff;                    /* 兼容旧引用 */
+
+  /* 高亮 */
+  --toc-highlight:        rgba(255, 255, 255, 0.06);
+  --toc-highlight-active: rgba(88, 166, 255, 0.12);
+
+  /* 描边 */
+  --toc-border:           rgba(255, 255, 255, 0.10);
+  --toc-border-hover:     rgba(255, 255, 255, 0.20);
+  --toc-divider:          rgba(255, 255, 255, 0.07);
+
+  /* 滚动条 */
+  --toc-scrollbar-track:  transparent;                /* 轨道透明 */
+  --toc-scrollbar-thumb:  rgba(255, 255, 255, 0.18);
+
+  /* 阴影 */
+  --toc-elevation:          0 1px 4px rgba(0,0,0,0.35), 0 1px 2px rgba(0,0,0,0.20);
+  --toc-elevation-rest:     0 1px 4px rgba(0,0,0,0.35), 0 1px 2px rgba(0,0,0,0.20);
+  --toc-elevation-hover:    0 4px 12px rgba(0,0,0,0.45), 0 2px 4px rgba(0,0,0,0.25);
+  --toc-elevation-press:    0 1px 2px rgba(0,0,0,0.25);
+  --toc-elevation-expanded: 0 8px 32px rgba(0,0,0,0.55), 0 4px 8px rgba(0,0,0,0.30);
 }
 
-/* 绿色主题 - 适用于红色背景网站 */
-.theme-green {
-  --toc-bg: #2e7d32;
-  --toc-text: #ffffff;
-  --toc-text-secondary: rgba(255, 255, 255, 0.7);
-  --toc-text-hover: #ffffff;
-  --toc-highlight: rgba(255, 255, 255, 0.08);
-  --toc-scrollbar-track: rgba(255, 255, 255, 0.05);
-  --toc-scrollbar-thumb: rgba(255, 255, 255, 0.2);
-  --toc-elevation: var(--elevation-1);
-  --toc-elevation-hover: var(--elevation-2);
-  --toc-elevation-expanded: var(--elevation-3);
+/* =============================================
+   主题 C：auto（媒体查询自动跟随操作系统偏好）
+   浅色系统 → 深色浮层；深色系统 → 浅色浮层
+   ============================================= */
+.theme-auto {
+  color-scheme: light dark;
 }
 
-/* 紫色主题 - 适用于黄色背景网站 */
+@media (prefers-color-scheme: light) {
+  /* 浅色系统 → 深色浮层（在浅色页面上更显眼） */
+  .theme-auto {
+    --toc-bg:               rgba(30, 30, 30, 0.82);
+    --toc-bg-expanded:      rgba(28, 28, 28, 0.94);
+    --toc-bg-fallback:      rgba(28, 28, 28, 0.98);
+    --toc-backdrop-filter:  blur(16px) saturate(150%);
+    --toc-text:             rgba(255, 255, 255, 0.90);
+    --toc-text-secondary:   rgba(255, 255, 255, 0.60);
+    --toc-text-muted:       rgba(255, 255, 255, 0.40);
+    --toc-text-hover:       #ffffff;
+    --toc-accent:           #58a6ff;
+    --toc-text-active:      #58a6ff;
+    --toc-highlight:        rgba(255, 255, 255, 0.06);
+    --toc-highlight-active: rgba(88, 166, 255, 0.12);
+    --toc-border:           rgba(255, 255, 255, 0.10);
+    --toc-border-hover:     rgba(255, 255, 255, 0.20);
+    --toc-divider:          rgba(255, 255, 255, 0.07);
+    --toc-scrollbar-track:  transparent;
+    --toc-scrollbar-thumb:  rgba(255, 255, 255, 0.18);
+    --toc-elevation:          0 1px 4px rgba(0,0,0,0.35), 0 1px 2px rgba(0,0,0,0.20);
+    --toc-elevation-rest:     0 1px 4px rgba(0,0,0,0.35), 0 1px 2px rgba(0,0,0,0.20);
+    --toc-elevation-hover:    0 4px 12px rgba(0,0,0,0.45), 0 2px 4px rgba(0,0,0,0.25);
+    --toc-elevation-press:    0 1px 2px rgba(0,0,0,0.25);
+    --toc-elevation-expanded: 0 8px 32px rgba(0,0,0,0.55), 0 4px 8px rgba(0,0,0,0.30);
+  }
+}
+
+@media (prefers-color-scheme: dark) {
+  /* 深色系统 → 浅色浮层（在深色页面上更清晰） */
+  .theme-auto {
+    --toc-bg:               rgba(255, 255, 255, 0.88);
+    --toc-bg-expanded:      rgba(255, 255, 255, 0.95);
+    --toc-bg-fallback:      rgba(255, 255, 255, 0.98);
+    --toc-backdrop-filter:  blur(16px) saturate(180%);
+    --toc-text:             #1a1a1a;
+    --toc-text-secondary:   rgba(26, 26, 26, 0.60);
+    --toc-text-muted:       rgba(26, 26, 26, 0.50);
+    --toc-text-hover:       #000000;
+    --toc-accent:           #0969da;
+    --toc-text-active:      #0969da;
+    --toc-highlight:        rgba(0, 0, 0, 0.05);
+    --toc-highlight-active: rgba(9, 105, 218, 0.08);
+    --toc-border:           rgba(0, 0, 0, 0.10);
+    --toc-border-hover:     rgba(0, 0, 0, 0.20);
+    --toc-divider:          rgba(0, 0, 0, 0.07);
+    --toc-scrollbar-track:  transparent;
+    --toc-scrollbar-thumb:  rgba(0, 0, 0, 0.18);
+    --toc-elevation:          0 1px 3px rgba(0,0,0,0.10), 0 1px 2px rgba(0,0,0,0.06);
+    --toc-elevation-rest:     0 1px 3px rgba(0,0,0,0.10), 0 1px 2px rgba(0,0,0,0.06);
+    --toc-elevation-hover:    0 4px 12px rgba(0,0,0,0.12), 0 2px 4px rgba(0,0,0,0.08);
+    --toc-elevation-press:    0 1px 2px rgba(0,0,0,0.08);
+    --toc-elevation-expanded: 0 8px 32px rgba(0,0,0,0.14), 0 4px 8px rgba(0,0,0,0.08);
+  }
+}
+
+/* =============================================
+   旧版彩色主题兼容映射
+   theme-blue/green/purple → theme-dark 变量
+   （保持 theme.js 逻辑不变，旧 class 不丢失功能）
+   ============================================= */
+.theme-blue,
+.theme-green,
 .theme-purple {
-  --toc-bg: #512da8;
-  --toc-text: #ffffff;
-  --toc-text-secondary: rgba(255, 255, 255, 0.7);
-  --toc-text-hover: #ffffff;
-  --toc-highlight: rgba(255, 255, 255, 0.08);
-  --toc-scrollbar-track: rgba(255, 255, 255, 0.05);
-  --toc-scrollbar-thumb: rgba(255, 255, 255, 0.2);
-  --toc-elevation: var(--elevation-1);
-  --toc-elevation-hover: var(--elevation-2);
-  --toc-elevation-expanded: var(--elevation-3);
+  --toc-bg:               rgba(30, 30, 30, 0.82);
+  --toc-bg-expanded:      rgba(28, 28, 28, 0.94);
+  --toc-bg-fallback:      rgba(28, 28, 28, 0.98);
+  --toc-backdrop-filter:  blur(16px) saturate(150%);
+  --toc-text:             rgba(255, 255, 255, 0.90);
+  --toc-text-secondary:   rgba(255, 255, 255, 0.60);
+  --toc-text-muted:       rgba(255, 255, 255, 0.40);
+  --toc-text-hover:       #ffffff;
+  --toc-accent:           #58a6ff;
+  --toc-text-active:      #58a6ff;
+  --toc-highlight:        rgba(255, 255, 255, 0.06);
+  --toc-highlight-active: rgba(88, 166, 255, 0.12);
+  --toc-border:           rgba(255, 255, 255, 0.10);
+  --toc-border-hover:     rgba(255, 255, 255, 0.20);
+  --toc-divider:          rgba(255, 255, 255, 0.07);
+  --toc-scrollbar-track:  transparent;
+  --toc-scrollbar-thumb:  rgba(255, 255, 255, 0.18);
+  --toc-elevation:          0 1px 4px rgba(0,0,0,0.35), 0 1px 2px rgba(0,0,0,0.20);
+  --toc-elevation-rest:     0 1px 4px rgba(0,0,0,0.35), 0 1px 2px rgba(0,0,0,0.20);
+  --toc-elevation-hover:    0 4px 12px rgba(0,0,0,0.45), 0 2px 4px rgba(0,0,0,0.25);
+  --toc-elevation-press:    0 1px 2px rgba(0,0,0,0.25);
+  --toc-elevation-expanded: 0 8px 32px rgba(0,0,0,0.55), 0 4px 8px rgba(0,0,0,0.30);
+}
+
+/* =============================================
+   backdrop-filter 降级处理
+   磨砂效果由 toc.css 中的 .github-toc 应用，
+   此处仅处理不支持时的降级背景
+   ============================================= */
+@supports not (backdrop-filter: blur(1px)) {
+  .theme-light,
+  .theme-dark,
+  .theme-auto,
+  .theme-blue,
+  .theme-green,
+  .theme-purple {
+    /* 降级：提高不透明度以补偿缺少的磨砂效果 */
+    --toc-bg: var(--toc-bg-fallback);
+  }
 }

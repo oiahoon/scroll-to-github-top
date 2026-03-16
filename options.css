@@ -1,107 +1,448 @@
+/* =============================================
+   Smart TOC & Scroll — Options 设置页面样式 v2.3
+   设计规范：UI_DESIGN_SPEC.md §9、§10、§12.3
+   ============================================= */
+
+/* === CSS 变量（亮色模式） === */
 :root {
-  color-scheme: light;
-  --bg: #f5f6f8;
-  --card: #ffffff;
-  --text: #1f2328;
-  --muted: #6b7280;
-  --accent: #1f6feb;
-  --border: #e5e7eb;
+  color-scheme: light dark;
+  --bg:       #f5f6f8;
+  --card:     #ffffff;
+  --text:     #1f2328;
+  --muted:    #6b7280;
+  --accent:   #1f6feb;
+  --border:   #e5e7eb;
+  --input-bg: #ffffff;
+  --icon-bg-1: rgba(9, 105, 218, 0.10);    /* 交互方式卡片图标背景 */
+  --icon-bg-2: rgba(227, 119, 12, 0.10);   /* 显示条件卡片图标背景 */
+  --icon-bg-3: rgba(100, 110, 120, 0.10);  /* 位置禁用卡片图标背景 */
+  --icon-color-1: #0969da;
+  --icon-color-2: #e3770c;
+  --icon-color-3: #6b7280;
 }
 
-* {
+/* === 暗色模式变量覆盖 === */
+@media (prefers-color-scheme: dark) {
+  :root {
+    color-scheme: dark;
+    --bg:       #0d1117;
+    --card:     #161b22;
+    --text:     #e6edf3;
+    --muted:    #7d8590;
+    --accent:   #58a6ff;
+    --border:   #30363d;
+    --input-bg: #0d1117;
+  }
+}
+
+/* === 全局重置 === */
+*, *::before, *::after {
   box-sizing: border-box;
 }
 
 body {
   margin: 0;
-  font-family: "Segoe UI", "Roboto", "Helvetica Neue", Arial, sans-serif;
+  font-family:
+    -apple-system,
+    'PingFang SC',
+    'Microsoft YaHei',
+    'Segoe UI',
+    'Roboto',
+    'Helvetica Neue',
+    Arial,
+    sans-serif;
+  font-size: 14px;
   background: var(--bg);
   color: var(--text);
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
 }
 
+/* === 页面布局 === */
+/* 最大宽度从 720px 缩小至 640px，内容更聚焦 */
 .page {
-  max-width: 720px;
-  margin: 32px auto 64px;
-  padding: 0 20px;
+  max-width: 640px;
+  margin: 40px auto 80px;
+  padding: 0 24px;
+}
+
+/* === 页面头部 === */
+.page-header {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  padding-bottom: 28px;
+  margin-bottom: 20px;
+  border-bottom: 1px solid var(--border);
+}
+
+/* 扩展图标区块 */
+.page-header-icon {
+  width: 44px;
+  height: 44px;
+  border-radius: 10px;
+  background: linear-gradient(135deg, #0969da 0%, #218bff 100%);
+  box-shadow: 0 2px 8px rgba(9, 105, 218, 0.30);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
 }
 
 .page-header h1 {
-  margin: 0 0 8px;
-  font-size: 28px;
+  font-size: 22px;
+  font-weight: 700;
+  margin: 0 0 4px;
+  color: var(--text);
+  line-height: 1.2;
 }
 
-.page-header p {
-  margin: 0 0 24px;
+.page-subtitle {
+  font-size: 13px;
   color: var(--muted);
+  margin: 0;
+  line-height: 1.5;
 }
 
+/* === 卡片 === */
 .card {
   background: var(--card);
   border: 1px solid var(--border);
   border-radius: 12px;
-  padding: 20px;
-  margin-bottom: 16px;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.06);
+  margin-bottom: 12px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  overflow: hidden;  /* 确保圆角裁剪子元素 */
 }
 
-.card h2 {
-  margin: 0 0 16px;
-  font-size: 18px;
+/* 卡片头部 */
+.card-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--border);
 }
 
+.card-header h2 {
+  font-size: 14px;
+  font-weight: 600;
+  margin: 0;
+  color: var(--text);
+}
+
+/* 卡片图标 */
+.card-icon {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+/* 各卡片图标颜色 */
+.card-icon--interaction {
+  background: var(--icon-bg-1);
+  color: var(--icon-color-1);
+}
+
+.card-icon--display {
+  background: var(--icon-bg-2);
+  color: var(--icon-color-2);
+}
+
+.card-icon--settings {
+  background: var(--icon-bg-3);
+  color: var(--icon-color-3);
+}
+
+/* 卡片内容区 */
+.card-body {
+  padding: 16px 20px;
+}
+
+/* === 表单字段 === */
 .field {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 6px;
   margin-bottom: 16px;
 }
 
-.field label {
-  font-size: 14px;
-  color: var(--muted);
+.field:last-child {
+  margin-bottom: 0;
 }
 
-.field input,
-.field select,
-.field textarea {
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  padding: 10px 12px;
-  font-size: 14px;
-  background: #fff;
+.field label {
+  font-size: 13px;
+  font-weight: 500;
   color: var(--text);
 }
 
+/* 辅助说明文字 */
+.field-hint {
+  font-size: 12px;
+  color: var(--muted);
+  line-height: 1.4;
+}
+
+/* === 表单控件基础样式 === */
+.field input[type="text"],
+.field input[type="number"],
+.field select,
+.field textarea {
+  border: 1.5px solid var(--border);
+  border-radius: 8px;
+  padding: 9px 12px;
+  font-size: 14px;
+  font-family: inherit;
+  background: var(--input-bg);
+  color: var(--text);
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+  outline: none;
+  width: 100%;
+  appearance: none;
+  -webkit-appearance: none;
+}
+
+/* Select 下拉箭头 */
+.field select {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%236b7280' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  padding-right: 36px;
+}
+
+/* hover 状态 */
+.field input[type="text"]:hover,
+.field input[type="number"]:hover,
+.field select:hover,
+.field textarea:hover {
+  border-color: #d1d5db;
+}
+
+/* focus 状态 */
+.field input[type="text"]:focus,
+.field input[type="number"]:focus,
+.field select:focus,
+.field textarea:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(31, 111, 235, 0.15);
+}
+
+/* disabled 状态 */
+.field input:disabled,
+.field select:disabled,
+.field textarea:disabled {
+  border-color: #f3f4f6;
+  background: #f9fafb;
+  color: var(--muted);
+  cursor: not-allowed;
+}
+
+/* === Checkbox 字段 === */
 .checkbox-field label {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 10px;
   color: var(--text);
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: normal;
 }
 
+/* 自定义 Checkbox 外观 */
 .checkbox-field input[type="checkbox"] {
-  width: 16px;
-  height: 16px;
+  appearance: none;
+  -webkit-appearance: none;
+  width: 18px;
+  height: 18px;
+  min-width: 18px;
+  border: 1.5px solid var(--border);
+  border-radius: 5px;
+  background: var(--input-bg);
+  cursor: pointer;
+  transition: background 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
+  position: relative;
+  margin: 0;
 }
 
+.checkbox-field input[type="checkbox"]:checked {
+  background: var(--accent);
+  border-color: var(--accent);
+}
+
+/* 勾选符号（::after 实现） */
+.checkbox-field input[type="checkbox"]:checked::after {
+  content: '';
+  position: absolute;
+  left: 4px;
+  top: 2px;
+  width: 6px;
+  height: 10px;
+  border: 2px solid #ffffff;
+  border-top: none;
+  border-left: none;
+  transform: rotate(45deg);
+}
+
+.checkbox-field input[type="checkbox"]:focus-visible {
+  box-shadow: 0 0 0 3px rgba(31, 111, 235, 0.20);
+  outline: none;
+}
+
+/* 禁用态 Checkbox */
+.checkbox-field input[type="checkbox"]:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.checkbox-field label:has(input:disabled) {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+/* === 操作区 === */
 .actions {
   display: flex;
   align-items: center;
   gap: 12px;
-  margin-top: 12px;
+  margin-top: 20px;
 }
 
+/* === 保存按钮（完整状态规范） === */
 button#save {
-  background: var(--accent);
-  color: #fff;
+  background: var(--accent);          /* #1f6feb */
+  color: #ffffff;
   border: none;
-  border-radius: 999px;
-  padding: 10px 18px;
-  cursor: pointer;
+  border-radius: 8px;                 /* 从 999px 改为 8px，更现代 */
+  padding: 10px 20px;
   font-size: 14px;
+  font-weight: 500;
+  font-family: inherit;
+  cursor: pointer;
+  box-shadow: 0 1px 3px rgba(31, 111, 235, 0.30);
+  transition:
+    background-color 0.15s ease,
+    box-shadow 0.15s ease,
+    transform 0.10s ease;
 }
 
+button#save:hover {
+  background: #1b63d3;               /* 加深 5% */
+  box-shadow: 0 3px 8px rgba(31, 111, 235, 0.35);
+  transform: translateY(-1px);
+}
+
+button#save:active {
+  background: #1859bf;               /* 加深 10% */
+  box-shadow: 0 1px 2px rgba(31, 111, 235, 0.20);
+  transform: translateY(0);
+}
+
+button#save:focus-visible {
+  background: var(--accent);
+  box-shadow: 0 0 0 3px rgba(31, 111, 235, 0.35);
+  outline: none;
+  transform: none;
+}
+
+button#save:disabled {
+  background: #93b4f5;
+  box-shadow: none;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* === 状态提示（fade + slide 动效） === */
 #status {
-  color: var(--muted);
   font-size: 13px;
+  color: #16a34a;               /* 成功绿色 */
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  /* 初始隐藏 */
+  opacity: 0;
+  transform: translateX(-4px);
+  transition: opacity 0.20s ease, transform 0.20s ease;
+}
+
+#status.visible {
+  opacity: 1;
+  transform: translateX(0);
+}
+
+/* === 暗色模式特定调整 === */
+@media (prefers-color-scheme: dark) {
+  /* 保存按钮改为 GitHub 暗色绿色 */
+  button#save {
+    background: #238636;
+    box-shadow: 0 1px 3px rgba(35, 134, 54, 0.30);
+  }
+
+  button#save:hover {
+    background: #2ea043;
+    box-shadow: 0 3px 8px rgba(35, 134, 54, 0.35);
+  }
+
+  button#save:active {
+    background: #1e7a30;
+    box-shadow: 0 1px 2px rgba(35, 134, 54, 0.20);
+  }
+
+  button#save:focus-visible {
+    background: #238636;
+    box-shadow: 0 0 0 3px rgba(35, 134, 54, 0.40);
+  }
+
+  /* Select 下拉箭头颜色在暗色模式下调整 */
+  .field select {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%237d8590' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+  }
+
+  /* 暗色模式 focus ring 调整 */
+  .field input[type="text"]:focus,
+  .field input[type="number"]:focus,
+  .field select:focus,
+  .field textarea:focus {
+    box-shadow: 0 0 0 3px rgba(88, 166, 255, 0.20);
+  }
+
+  .checkbox-field input[type="checkbox"]:focus-visible {
+    box-shadow: 0 0 0 3px rgba(88, 166, 255, 0.25);
+  }
+
+  /* 图标颜色在暗色模式下 */
+  .card-icon--interaction { color: #58a6ff; }
+  .card-icon--display     { color: #f0883e; }
+  .card-icon--settings    { color: #8b949e; }
+
+  /* disabled 状态 */
+  .field input:disabled,
+  .field select:disabled,
+  .field textarea:disabled {
+    border-color: #21262d;
+    background: #161b22;
+  }
+}
+
+/* === 响应式适配 === */
+@media (max-width: 640px) {
+  .page {
+    margin: 16px auto 40px;
+    padding: 0 16px;
+  }
+
+  .card-header {
+    padding: 14px 16px;
+  }
+
+  .card-body {
+    padding: 14px 16px;
+  }
+
+  .page-header {
+    padding-bottom: 20px;
+  }
 }
