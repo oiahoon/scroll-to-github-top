@@ -75,6 +75,22 @@ base64url() {
   openssl base64 -A | tr '+/' '-_' | tr -d '='
 }
 
+curl_json() {
+  local method="$1"
+  local url="$2"
+  local output_file="$3"
+  shift 3
+
+  local http_code
+  http_code="$(curl -sS -o "$output_file" -w '%{http_code}' -X "$method" "$@" "$url")"
+
+  if [[ ! "$http_code" =~ ^2 ]]; then
+    echo "Chrome Web Store API request failed: ${method} ${url} -> HTTP ${http_code}" >&2
+    cat "$output_file" >&2
+    exit 1
+  fi
+}
+
 JWT_HEADER="$(printf '{"alg":"RS256","typ":"JWT"}' | base64url)"
 NOW="$(date +%s)"
 EXP="$((NOW + 3600))"
@@ -90,13 +106,13 @@ JWT_UNSIGNED="${JWT_HEADER}.${JWT_PAYLOAD}"
 JWT_SIGNATURE="$(printf '%s' "$JWT_UNSIGNED" | openssl dgst -sha256 -sign "$KEY_FILE" | base64url)"
 JWT_ASSERTION="${JWT_UNSIGNED}.${JWT_SIGNATURE}"
 
-curl -fsS \
-  -X POST \
+curl_json \
+  POST \
+  "$TOKEN_URI" \
+  "$TOKEN_RESPONSE_FILE" \
   -H "Content-Type: application/x-www-form-urlencoded" \
   --data-urlencode "grant_type=urn:ietf:params:oauth:grant-type:jwt-bearer" \
-  --data-urlencode "assertion=${JWT_ASSERTION}" \
-  "$TOKEN_URI" \
-  > "$TOKEN_RESPONSE_FILE"
+  --data-urlencode "assertion=${JWT_ASSERTION}"
 
 ACCESS_TOKEN="$(jq -r '.access_token' "$TOKEN_RESPONSE_FILE")"
 if [[ -z "$ACCESS_TOKEN" || "$ACCESS_TOKEN" == "null" ]]; then
@@ -108,13 +124,13 @@ fi
 ITEM_NAME="publishers/${CWS_PUBLISHER_ID}/items/${CWS_EXTENSION_ID}"
 AUTH_HEADER="Authorization: Bearer ${ACCESS_TOKEN}"
 
-curl -fsS \
-  -X POST \
+curl_json \
+  POST \
+  "https://chromewebstore.googleapis.com/upload/v2/${ITEM_NAME}:upload" \
+  "$UPLOAD_RESPONSE_FILE" \
   -H "$AUTH_HEADER" \
   -H "Content-Type: application/zip" \
-  --data-binary "@${PACKAGE_FILE}" \
-  "https://chromewebstore.googleapis.com/upload/v2/${ITEM_NAME}:upload" \
-  > "$UPLOAD_RESPONSE_FILE"
+  --data-binary "@${PACKAGE_FILE}"
 
 UPLOAD_STATE="$(jq -r '.uploadState // empty' "$UPLOAD_RESPONSE_FILE")"
 if [[ "$UPLOAD_STATE" == "UPLOAD_STATE_UNSPECIFIED" || -z "$UPLOAD_STATE" ]]; then
@@ -132,15 +148,16 @@ while [[ "$UPLOAD_STATE" == "IN_PROGRESS" || "$UPLOAD_STATE" == "UPLOAD_IN_PROGR
   fi
 
   sleep 3
-  curl -fsS \
-    -H "$AUTH_HEADER" \
+  curl_json \
+    GET \
     "https://chromewebstore.googleapis.com/v2/${ITEM_NAME}:fetchStatus" \
-    > "$STATUS_RESPONSE_FILE"
+    "$STATUS_RESPONSE_FILE" \
+    -H "$AUTH_HEADER"
 
   UPLOAD_STATE="$(jq -r '.lastAsyncUploadState // empty' "$STATUS_RESPONSE_FILE")"
 done
 
-if [[ "$UPLOAD_STATE" != "SUCCESS" ]]; then
+if [[ "$UPLOAD_STATE" != "SUCCESS" && "$UPLOAD_STATE" != "SUCCEEDED" ]]; then
   echo "Upload did not complete successfully" >&2
   cat "$UPLOAD_RESPONSE_FILE" >&2
   if [[ -s "$STATUS_RESPONSE_FILE" ]]; then
@@ -171,13 +188,13 @@ PUBLISH_PAYLOAD="$(jq -cn \
     end
   ')"
 
-curl -fsS \
-  -X POST \
+curl_json \
+  POST \
+  "https://chromewebstore.googleapis.com/v2/${ITEM_NAME}:publish" \
+  "$PUBLISH_RESPONSE_FILE" \
   -H "$AUTH_HEADER" \
   -H "Content-Type: application/json" \
-  -d "$PUBLISH_PAYLOAD" \
-  "https://chromewebstore.googleapis.com/v2/${ITEM_NAME}:publish" \
-  > "$PUBLISH_RESPONSE_FILE"
+  -d "$PUBLISH_PAYLOAD"
 
 echo "Upload succeeded: $PACKAGE_FILE"
 cat "$PUBLISH_RESPONSE_FILE"
