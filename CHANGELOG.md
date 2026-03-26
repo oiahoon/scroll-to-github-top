@@ -5,12 +5,25 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.3.1] - 2026-03-27
+
+### Changed
+- 当前章节高亮改为 `IntersectionObserver` 优先驱动，滚动监听仅在需要时回退到位置遍历
+- 标题结构不变时不再重复重建标题观察器，并忽略扩展自身节点触发的无意义重建
+- 扩展描述继续收敛为“轻量阅读导航”定位，并补充商店文案与截图脚本草稿
+
+### Fixed
+- 修复 Astro 站点在文章页与列表页之间客户端跳转后 TOC 不再自动恢复的问题
+- 新增对 `astro:after-swap`、`astro:page-load`、`pageshow` 和页面恢复场景的重建兜底
+
 ## [2.3] - 2026-03-16
 
 ### Added
 - TOC 浮标与展开面板补充键盘可达性与 ARIA 属性
 - Chrome Web Store 打包与自动发布脚本
 - GitHub Actions 发布工作流与发布说明文档
+- 新增 `sspai` 主题预设，支持线状目录与独立回顶按钮
+- 新增 Chrome Web Store 商店文案草稿，整理产品定位、截图脚本与隐私说明
 
 ### Changed
 - 主题检测从“统计页面文字颜色”调整为“直接读取页面背景亮度”
@@ -18,6 +31,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Options 页面改为 v2.3 视觉样式
 - 性能统计改为按需启用，默认不再持续采样和刷新
 - TOC 更新链路收敛为更保守的重建策略，减少整页频繁扫描
+- 设置页新增主题预设切换，并在 `sspai` 主题下固定为悬停展开
+- 设置页文案从“换皮肤”收敛为“阅读导航样式”，明确标准目录面板与阅读进度目录的区别
+- 扩展描述同步收敛为“轻量阅读导航”定位，减少与普通回顶插件的同质化表达
 
 ### Fixed
 - 避免主题脚本在 `document.body` 尚未可用时提前观察失败
@@ -26,6 +42,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - 修复 hover 模式下浮标闪烁与 TOC 面板展开不稳定的问题
 - 将 hover 模式打磨为“悬停预览、点击固定”，并优化 click / press 模式语义
 - 将 TOC 入口提示收敛为首次使用阶段提示，避免长期打扰
+- 强化对边缘浮动目录的结构识别，减少在少数派这类页面上的重复注入
+- 长目录中当前高亮章节会自动滚入可视区域，减少阅读时的定位成本
+- 点击目录项时会立即同步当前高亮并保持该项可见
+- 避让已有控件时会记录命中原因，为兼容性诊断提供基础
+- 已有控件检测开始拆分为通用规则与站点特征规则，便于持续扩展兼容性
+- 正文主内容里的内联目录会优先排除，减少误把正文小目录当成侧栏 TOC 的情况
+- 新增对语义化侧栏导航的通用 TOC 检测，并提供主动刷新诊断快照的方法
+- `标准目录面板` 与 `SSPAI` 阅读目录已开始拆分为独立 UI / interaction 路径，降低后续维护复杂度
+- 目录项渲染已开始抽离，标题结构不变时不再重建整棵 TOC
+- 修正 `SSPAI` 模式在左侧位置时的对齐，标题位于短横线外侧且整体右对齐
+- 当前章节高亮改为 `IntersectionObserver` 优先驱动，滚动监听仅在需要时回退到位置遍历
+- 标题结构不变时不再重复重建标题观察器，并忽略扩展自身节点触发的无意义重建
 
 ## [2.2] - 2026-02-25
 

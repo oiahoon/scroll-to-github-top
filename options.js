@@ -1,6 +1,7 @@
 'use strict';
 
 const defaultSettings = {
+  themePreset: 'default',
   expandMode: 'hover',
   minHeaders: 3,
   showAfterScrollScreens: 1,
@@ -11,6 +12,8 @@ const defaultSettings = {
 };
 
 const elements = {
+  themePreset: document.getElementById('themePreset'),
+  themePresetHint: document.getElementById('themePresetHint'),
   expandMode: document.getElementById('expandMode'),
   expandModeHint: document.getElementById('expandModeHint'),
   minHeaders: document.getElementById('minHeaders'),
@@ -24,9 +27,14 @@ const elements = {
 };
 
 const expandModeDescriptions = {
-  hover: '悬停可预览目录，点击浮标可固定展开；移开后自动收起。',
-  click: '点击浮标打开或关闭目录，适合希望面板稳定停留的场景。',
-  press: '短按直接回到顶部，长按浮标后展开目录。'
+  hover: '推荐给桌面端阅读场景。悬停可预览目录，点击浮标可固定展开；移开后自动收起。',
+  click: '适合希望目录稳定停留的场景。点击浮标打开或关闭目录。',
+  press: '高级模式。短按直接回到顶部，长按浮标后展开目录。'
+};
+
+const themePresetDescriptions = {
+  default: '标准目录面板：适合文档站、博客和技术内容页面，信息完整、易理解。',
+  sspai: '阅读进度目录：适合沉浸式长文阅读，使用低侵扰线状目录和独立回顶按钮。'
 };
 
 function normalizeDomains(input) {
@@ -70,6 +78,7 @@ function saveSettings(data) {
 }
 
 function bindForm(settings) {
+  elements.themePreset.value = settings.themePreset || defaultSettings.themePreset;
   elements.expandMode.value = settings.expandMode || defaultSettings.expandMode;
   elements.minHeaders.value = settings.minHeaders ?? defaultSettings.minHeaders;
   elements.showAfterScrollScreens.value = settings.showAfterScrollScreens ?? defaultSettings.showAfterScrollScreens;
@@ -77,12 +86,24 @@ function bindForm(settings) {
   elements.disabledDomains.value = (settings.disabledDomains || []).join(', ');
   elements.avoidExistingWidgets.checked = settings.avoidExistingWidgets ?? defaultSettings.avoidExistingWidgets;
   elements.forceShow.checked = settings.forceShow ?? defaultSettings.forceShow;
+  syncThemePreset();
   syncExpandModeHint();
   syncForceShow();
 }
 
 function syncExpandModeHint() {
+  if (elements.themePreset.value === 'sspai') {
+    elements.expandModeHint.textContent = '阅读进度目录固定为悬停展开；短横线靠近正文，标题在外侧展开。';
+    return;
+  }
   elements.expandModeHint.textContent = expandModeDescriptions[elements.expandMode.value] || expandModeDescriptions.hover;
+}
+
+function syncThemePreset() {
+  const isSspai = elements.themePreset.value === 'sspai';
+  elements.themePresetHint.textContent = themePresetDescriptions[elements.themePreset.value] || themePresetDescriptions.default;
+  elements.expandMode.disabled = isSspai;
+  syncExpandModeHint();
 }
 
 function syncForceShow() {
@@ -96,6 +117,7 @@ function syncForceShow() {
 
 elements.save.addEventListener('click', async () => {
   const payload = {
+    themePreset: elements.themePreset.value,
     expandMode: elements.expandMode.value,
     minHeaders: Number(elements.minHeaders.value),
     showAfterScrollScreens: Number(elements.showAfterScrollScreens.value),
@@ -110,6 +132,7 @@ elements.save.addEventListener('click', async () => {
 });
 
 elements.forceShow.addEventListener('change', syncForceShow);
+elements.themePreset.addEventListener('change', syncThemePreset);
 elements.expandMode.addEventListener('change', syncExpandModeHint);
 
 loadSettings().then(bindForm);

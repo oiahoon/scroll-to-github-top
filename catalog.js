@@ -9,6 +9,7 @@
 
   // 状态变量
   let observer = null;
+  let headingObserver = null;
   let updateTimeout = null;
   let lastProcessedHeaders = new Set();
   let lastUrl = window.location.href;
@@ -17,6 +18,10 @@
   let headerCount = 0;
   let currentHeaders = [];
   let reinitializeTimer = null;
+  let lastActiveHeaderId = null;
+  let lastRenderedTocSignature = '';
+  let lastObservedHeadersSignature = '';
+  let observerActiveHeaderId = null;
 
   let tocContainer = null;
   let iconContainer = null;
@@ -25,6 +30,7 @@
   let tocTitle = null;
   let tocTopButton = null;
   let tocCountBadge = null;
+  let scrollTopButton = null;
 
   let longPressTimer = null;
   let longPressTriggered = false;
@@ -35,8 +41,10 @@
   let performanceStatsTimer = null;
   let performanceStatsContainer = null;
   let shouldShowIconHint = true;
+  let lastSkipDecision = null;
 
   const defaultSettings = {
+    themePreset: 'default',
     expandMode: 'hover', // 'press' | 'hover' | 'click'
     minHeaders: 3,
     showAfterScrollScreens: 1,
@@ -56,6 +64,56 @@
     memoryUsage: []
   };
 
+  const genericTocSelectors = [
+    '#toc',
+    '#table-of-contents',
+    '.toc',
+    '.table-of-contents',
+    '.toc-container',
+    '.toc-wrapper',
+    '.toc-sidebar',
+    '.toc-nav',
+    '.sidebar-toc',
+    '[class*="toc" i]',
+    '[class*="outline" i]',
+    '[class*="catalog" i]',
+    '[class*="directory" i]',
+    '[class*="anchor" i]',
+    '[class*="article-nav" i]',
+    '[id*="toc" i]',
+    '[id*="outline" i]',
+    '[data-toc]',
+    '[aria-label*="table of contents" i]',
+    '[aria-label*="toc" i]'
+  ];
+
+  const genericScrollToTopSelectors = [
+    '#scroll-to-top',
+    '#back-to-top',
+    '.scroll-to-top',
+    '.back-to-top',
+    '.scrolltop',
+    '.to-top',
+    '[data-scroll-to-top]',
+    '[aria-label*="scroll to top" i]'
+  ];
+
+  const siteSpecificWidgetDetectors = [
+    {
+      type: 'toc',
+      name: 'sspai-right-rail',
+      hosts: ['sspai.com'],
+      selectors: [
+        '[class*="catalog" i]',
+        '[class*="outline" i]',
+        '[class*="toc" i]',
+        '[class*="article-nav" i]',
+        '[class*="post-nav" i]'
+      ],
+      predicate: (element) => isVisible(element) && isLikelySidebarToc(element) && hasLinearNavigationItems(element)
+    }
+  ];
+
   function isDomainDisabled() {
     if (!settings.disabledDomains || settings.disabledDomains.length === 0) {
       return false;
@@ -63,48 +121,153 @@
     return settings.disabledDomains.includes(window.location.hostname);
   }
 
-  function hasExistingTOC() {
-    const selectors = [
-      '#toc',
-      '#table-of-contents',
-      '.toc',
-      '.table-of-contents',
-      '.toc-container',
-      '.toc-wrapper',
-      '.toc-sidebar',
-      '.toc-nav',
-      '.sidebar-toc',
-      '[data-toc]',
-      '[aria-label*="table of contents" i]',
-      '[aria-label*="toc" i]'
-    ];
-    const candidates = selectors
-      .map((selector) => Array.from(document.querySelectorAll(selector)))
-      .flat();
-    return candidates.some((element) => isVisible(element) && hasTocLinks(element) && isLikelySidebarToc(element));
+  function matchesConfiguredHost(hostname, configuredHosts) {
+    return configuredHosts.some((host) => hostname === host || hostname.endsWith(`.${host}`));
   }
 
-  function hasExistingScrollToTop() {
-    const selectors = [
-      '#scroll-to-top',
-      '#back-to-top',
-      '.scroll-to-top',
-      '.back-to-top',
-      '.scrolltop',
-      '.to-top',
-      '[data-scroll-to-top]',
-      '[aria-label*="scroll to top" i]'
-    ];
-    const candidates = selectors
-      .map((selector) => Array.from(document.querySelectorAll(selector)))
-      .flat();
-    return candidates.some((element) => isVisible(element) && isFixedOrSticky(element));
+  function buildSkipDecision(type, source, element, details = {}) {
+    return {
+      type,
+      source,
+      element,
+      details
+    };
   }
 
-  function shouldSkipInjection() {
-    if (settings.forceShow) return false;
-    if (!settings.avoidExistingWidgets) return false;
-    return hasExistingTOC() || hasExistingScrollToTop();
+  function recordSkipDecision(decision) {
+    lastSkipDecision = decision;
+
+    const reason = decision ? `${decision.type}:${decision.source}` : '';
+    if (reason) {
+      document.documentElement.setAttribute('data-smart-toc-skip-reason', reason);
+    } else {
+      document.documentElement.removeAttribute('data-smart-toc-skip-reason');
+    }
+
+    if (decision) {
+      window.__SMART_TOC_LAST_SKIP__ = {
+        type: decision.type,
+        source: decision.source,
+        details: decision.details
+      };
+    } else {
+      delete window.__SMART_TOC_LAST_SKIP__;
+    }
+  }
+
+  function publishWidgetDiagnostics(snapshot) {
+    window.__SMART_TOC_WIDGET_DIAGNOSTICS__ = snapshot;
+    window.__SMART_TOC_INSPECT_WIDGETS__ = inspectExistingWidgets;
+  }
+
+  function findElementsBySelectors(selectors) {
+    return selectors
+      .map((selector) => Array.from(document.querySelectorAll(selector)))
+      .flat();
+  }
+
+  function findSiteSpecificWidget(type) {
+    const hostname = window.location.hostname;
+
+    for (const detector of siteSpecificWidgetDetectors) {
+      if (detector.type !== type || !matchesConfiguredHost(hostname, detector.hosts)) {
+        continue;
+      }
+
+      for (const selector of detector.selectors) {
+        const matches = Array.from(document.querySelectorAll(selector)).filter((element) => detector.predicate(element));
+
+        if (matches.length > 0) {
+          return buildSkipDecision(detector.type, detector.name, matches[0], { selector });
+        }
+      }
+    }
+
+    return null;
+  }
+
+  function getExistingTocDecision() {
+    const candidates = findElementsBySelectors(genericTocSelectors);
+
+    const explicitMatch = candidates.find((element) => isVisible(element) && hasTocLinks(element) && isLikelySidebarToc(element));
+    if (explicitMatch) {
+      return buildSkipDecision('toc', 'generic-explicit-selector', explicitMatch, {
+        selector: explicitMatch.id ? `#${explicitMatch.id}` : explicitMatch.className || explicitMatch.tagName.toLowerCase()
+      });
+    }
+
+    const siteSpecificMatch = findSiteSpecificWidget('toc');
+    if (siteSpecificMatch) {
+      return siteSpecificMatch;
+    }
+
+    const semanticSidebarMatch = findSemanticSidebarToc();
+    if (semanticSidebarMatch) {
+      return buildSkipDecision('toc', 'generic-semantic-sidebar', semanticSidebarMatch, {
+        selector: semanticSidebarMatch.tagName.toLowerCase()
+      });
+    }
+
+    const edgeRailMatch = findEdgeNavigationWidgets()[0];
+    if (edgeRailMatch) {
+      return buildSkipDecision('toc', 'generic-edge-rail', edgeRailMatch);
+    }
+
+    return null;
+  }
+
+  function getExistingScrollToTopDecision() {
+    const siteSpecificMatch = findSiteSpecificWidget('scroll-to-top');
+    if (siteSpecificMatch) {
+      return siteSpecificMatch;
+    }
+
+    const candidates = findElementsBySelectors(genericScrollToTopSelectors);
+    const match = candidates.find((element) => isVisible(element) && isFixedOrSticky(element));
+    if (!match) {
+      return null;
+    }
+
+    return buildSkipDecision('scroll-to-top', 'generic-fixed-button', match, {
+      selector: match.id ? `#${match.id}` : match.className || match.tagName.toLowerCase()
+    });
+  }
+
+  function inspectExistingWidgets() {
+    const tocDecision = getExistingTocDecision();
+    const scrollDecision = getExistingScrollToTopDecision();
+    const inlineNavigationCandidates = findElementsBySelectors(genericTocSelectors)
+      .filter((element) => isVisible(element) && isLikelyInlineContentNavigation(element))
+      .slice(0, 5)
+      .map((element) => ({
+        tagName: element.tagName.toLowerCase(),
+        selectorHint: element.id ? `#${element.id}` : element.className || element.tagName.toLowerCase()
+      }));
+    const snapshot = {
+      hostname: window.location.hostname,
+      tocDecision,
+      scrollDecision,
+      toc: tocDecision ? { source: tocDecision.source, details: tocDecision.details } : null,
+      scrollToTop: scrollDecision ? { source: scrollDecision.source, details: scrollDecision.details } : null,
+      inlineNavigationCandidates
+    };
+    publishWidgetDiagnostics(snapshot);
+    return snapshot;
+  }
+
+  function getSkipInjectionDecision() {
+    if (settings.forceShow || !settings.avoidExistingWidgets) {
+      publishWidgetDiagnostics({
+        hostname: window.location.hostname,
+        toc: null,
+        scrollToTop: null,
+        disabledBySettings: true
+      });
+      return null;
+    }
+
+    const diagnostics = inspectExistingWidgets();
+    return diagnostics.tocDecision || diagnostics.scrollDecision || null;
   }
 
   function isVisible(element) {
@@ -117,10 +280,29 @@
     return rect.width > 40 && rect.height > 40;
   }
 
+  function getDetectionContentContainer() {
+    return contentContainer || findContentContainer();
+  }
+
   function hasTocLinks(element) {
-    const links = Array.from(element.querySelectorAll('a[href^="#"]'));
+    const pageUrl = new URL(window.location.href);
+    pageUrl.hash = '';
+
+    const links = Array.from(element.querySelectorAll('a[href]')).filter((link) => {
+      const href = link.getAttribute('href');
+      if (!href) return false;
+      if (href.startsWith('#') && href.length > 1) return true;
+
+      try {
+        const resolved = new URL(href, window.location.href);
+        return resolved.hash.length > 1 && resolved.origin === pageUrl.origin && resolved.pathname === pageUrl.pathname;
+      } catch {
+        return false;
+      }
+    });
+
     if (links.length < 3) return false;
-    return links.some((link) => link.getAttribute('href').length > 1);
+    return true;
   }
 
   function isFixedOrSticky(element) {
@@ -130,8 +312,43 @@
     return rect.width >= 32 && rect.height >= 32;
   }
 
+  function hasFixedOrStickyAncestor(element) {
+    let current = element;
+    while (current && current !== document.body) {
+      if (isFixedOrSticky(current)) {
+        return true;
+      }
+      current = current.parentElement;
+    }
+    return false;
+  }
+
+  function isInsidePrimaryContent(element) {
+    const container = getDetectionContentContainer();
+    if (!container || !element || container === document.body) {
+      return false;
+    }
+    return container === element || container.contains(element);
+  }
+
+  function isLikelyInlineContentNavigation(element) {
+    if (!element) return false;
+
+    const inPrimaryContent = isInsidePrimaryContent(element);
+    const anchoredAsSidebar = Boolean(
+      element.closest('aside, nav, [role="navigation"], [role="complementary"], .sidebar, .toc-sidebar, .toc-nav')
+    );
+
+    if (!inPrimaryContent || anchoredAsSidebar) {
+      return false;
+    }
+
+    return !isFixedOrSticky(element) && !hasFixedOrStickyAncestor(element);
+  }
+
   function isLikelySidebarToc(element) {
     if (!element) return false;
+    if (isLikelyInlineContentNavigation(element)) return false;
     const rect = element.getBoundingClientRect();
     const vw = Math.max(window.innerWidth, 1);
     const isEdgeAligned = rect.left < vw * 0.35 || rect.right > vw * 0.65;
@@ -143,6 +360,80 @@
     return isEdgeAligned && (isFixedOrSticky(element) || inSidebarContainer);
   }
 
+  function isLikelyEdgeRail(element) {
+    if (!element || element.id === 'github-toc' || element.id === 'github-sst') {
+      return false;
+    }
+    if (isLikelyInlineContentNavigation(element)) {
+      return false;
+    }
+
+    const rect = element.getBoundingClientRect();
+    const vw = Math.max(window.innerWidth, 1);
+    const vh = Math.max(window.innerHeight, 1);
+    const edgeAligned = rect.left <= vw * 0.18 || rect.right >= vw * 0.82;
+
+    return (
+      edgeAligned &&
+      rect.width >= 20 &&
+      rect.width <= 360 &&
+      rect.height >= 120 &&
+      rect.top >= 0 &&
+      rect.bottom <= vh + 40 &&
+      (isFixedOrSticky(element) || hasFixedOrStickyAncestor(element))
+    );
+  }
+
+  function isPotentialNavItem(element) {
+    if (!element) return false;
+    const style = window.getComputedStyle(element);
+    if (style.display === 'none' || style.visibility === 'hidden' || style.opacity === '0') {
+      return false;
+    }
+    const rect = element.getBoundingClientRect();
+    const text = element.textContent.trim();
+    return rect.height >= 8 && rect.height <= 40 && rect.width >= 8 && rect.width <= 280 && (text.length > 0 || rect.width <= 80);
+  }
+
+  function hasLinearNavigationItems(element) {
+    const items = Array.from(element.querySelectorAll('a, button, li, [role="link"], [role="button"]'))
+      .filter((item) => item !== element && isPotentialNavItem(item));
+
+    if (items.length < 4) {
+      return false;
+    }
+
+    const rows = new Set(items.map((item) => Math.round(item.getBoundingClientRect().top / 6) * 6));
+    if (rows.size < 4) {
+      return false;
+    }
+
+    const shortRowItems = items.filter((item) => {
+      const rect = item.getBoundingClientRect();
+      const text = item.textContent.trim();
+      return rect.width <= 260 && (text.length <= 72 || rect.width <= 96);
+    });
+
+    return shortRowItems.length >= Math.max(4, Math.ceil(items.length * 0.6));
+  }
+
+  function findSemanticSidebarToc() {
+    return Array.from(document.querySelectorAll('aside, nav, [role="navigation"], [role="complementary"]'))
+      .filter((element) => {
+        if (!isVisible(element)) return false;
+        if (!hasTocLinks(element)) return false;
+        if (!hasLinearNavigationItems(element)) return false;
+        return isLikelySidebarToc(element) || isLikelyEdgeRail(element);
+      })
+      .slice(0, 5)[0] || null;
+  }
+
+  function findEdgeNavigationWidgets() {
+    return Array.from(document.querySelectorAll('aside, nav, [role="navigation"], [role="complementary"], div, section'))
+      .filter((element) => isLikelyEdgeRail(element) && hasLinearNavigationItems(element))
+      .slice(0, 8);
+  }
+
   function normalizeSettings(input) {
     const normalized = { ...defaultSettings, ...input };
     if (!Array.isArray(normalized.disabledDomains)) {
@@ -150,6 +441,9 @@
     }
     if (!['press', 'hover', 'click'].includes(normalized.expandMode)) {
       normalized.expandMode = defaultSettings.expandMode;
+    }
+    if (!['default', 'sspai'].includes(normalized.themePreset)) {
+      normalized.themePreset = defaultSettings.themePreset;
     }
     if (!['left', 'right'].includes(normalized.position)) {
       normalized.position = defaultSettings.position;
@@ -197,25 +491,66 @@
     }
   }
 
-  // 创建目录树容器
-  function createUI() {
-    tocContainer = document.createElement('div');
-    tocContainer.id = 'github-toc';
-    tocContainer.className = 'github-toc theme-light';
-    tocContainer.classList.add(settings.position === 'left' ? 'position-left' : 'position-right');
-    // ARIA：辅助导航区域
-    tocContainer.setAttribute('role', 'complementary');
-    tocContainer.setAttribute('aria-label', '页面目录导航');
-    tocContainer.setAttribute('aria-expanded', 'false');
-    tocContainer.setAttribute('data-pinned', 'false');
-    document.body.appendChild(tocContainer);
+  function isSspaiPreset() {
+    return settings.themePreset === 'sspai';
+  }
 
-    // 添加按钮图标（20×20，在 44px 容器内占比约 45%）
+  function bindDefaultKeyboardNavigation() {
+    if (!tocContainer) return;
+
+    tocContainer.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && tocContainer.classList.contains('expanded')) {
+        e.preventDefault();
+        closePanel();
+        if (iconContainer) {
+          iconContainer.focus();
+        }
+        return;
+      }
+      if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+        const links = Array.from(tocList.querySelectorAll('.toc-item:not(.no-headers) a'));
+        if (links.length === 0) return;
+        const focused = document.activeElement;
+        const idx = links.indexOf(focused);
+        if (e.key === 'ArrowDown') {
+          e.preventDefault();
+          const next = links[idx + 1] || links[0];
+          next.focus();
+        } else {
+          e.preventDefault();
+          const prev = links[idx - 1] || links[links.length - 1];
+          prev.focus();
+        }
+      }
+    });
+  }
+
+  function createSspaiUI() {
+    tocTree = document.createElement('div');
+    tocTree.className = 'toc-tree toc-tree-sspai';
+    tocTree.setAttribute('aria-hidden', 'false');
+
+    tocList = document.createElement('ul');
+    tocList.className = 'toc-list toc-list-sspai';
+    tocList.setAttribute('role', 'list');
+    tocList.setAttribute('aria-label', '文章目录');
+    tocTree.appendChild(tocList);
+    tocContainer.appendChild(tocTree);
+
+    scrollTopButton = document.createElement('button');
+    scrollTopButton.id = 'github-sst';
+    scrollTopButton.type = 'button';
+    scrollTopButton.className = `github-sst theme-light theme-preset-sspai ${settings.position === 'left' ? 'position-left' : 'position-right'}`;
+    scrollTopButton.setAttribute('aria-label', '回到页面顶部');
+    scrollTopButton.innerHTML = '<svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 5l-6 6 1.4 1.4 3.6-3.6V19h2V8.8l3.6 3.6L18 11z"/></svg>';
+    document.body.appendChild(scrollTopButton);
+  }
+
+  function createDefaultPanelUI() {
     const buttonSvg = '<svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M3 5h18v2H3V5zm0 6h18v2H3v-2zm0 6h18v2H3v-2z"/></svg>';
     iconContainer = document.createElement('div');
     iconContainer.className = 'toc-icon';
     iconContainer.innerHTML = buttonSvg;
-    // ARIA：图标作为可聚焦按钮
     iconContainer.setAttribute('role', 'button');
     iconContainer.setAttribute('tabindex', '0');
     iconContainer.setAttribute('aria-label', '展开目录');
@@ -223,25 +558,19 @@
     iconContainer.setAttribute('data-label', shouldShowIconHint ? 'TOC' : '');
     tocContainer.appendChild(iconContainer);
 
-    // 为图标绑定键盘事件（Enter / Space 触发展开/折叠或回到顶部）
     iconContainer.addEventListener('keydown', (e) => {
       if (e.key === 'Enter' || e.key === ' ') {
         e.preventDefault();
-        // 模拟点击行为（与各交互模式下的 click 处理一致）
         iconContainer.click();
       }
     });
 
-    // 创建目录树结构
     tocTree = document.createElement('div');
     tocTree.className = 'toc-tree';
-    // 初始折叠时对屏幕阅读器隐藏
     tocTree.setAttribute('aria-hidden', 'true');
 
-    // 添加标题
     tocTitle = document.createElement('div');
     tocTitle.className = 'toc-title';
-    // 标题文字节点（OUTLINE 标签，对屏幕阅读器装饰性隐藏）
     const titleSpan = document.createElement('span');
     titleSpan.textContent = 'OUTLINE';
     titleSpan.setAttribute('aria-hidden', 'true');
@@ -262,40 +591,35 @@
 
     tocTree.appendChild(tocTitle);
 
-    // 创建目录列表
     tocList = document.createElement('ul');
     tocList.className = 'toc-list';
     tocList.setAttribute('role', 'list');
     tocList.setAttribute('aria-label', '文章目录');
     tocTree.appendChild(tocList);
-
-    // 将目录树添加到容器中
     tocContainer.appendChild(tocTree);
 
-    // 键盘导航：Escape 折叠面板，Arrow Up/Down 在条目间移动
-    tocContainer.addEventListener('keydown', (e) => {
-      if (e.key === 'Escape' && tocContainer.classList.contains('expanded')) {
-        e.preventDefault();
-        closePanel();
-        iconContainer.focus();
-        return;
-      }
-      if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
-        const links = Array.from(tocList.querySelectorAll('.toc-item:not(.no-headers) a'));
-        if (links.length === 0) return;
-        const focused = document.activeElement;
-        const idx = links.indexOf(focused);
-        if (e.key === 'ArrowDown') {
-          e.preventDefault();
-          const next = links[idx + 1] || links[0];
-          next.focus();
-        } else {
-          e.preventDefault();
-          const prev = links[idx - 1] || links[links.length - 1];
-          prev.focus();
-        }
-      }
-    });
+    bindDefaultKeyboardNavigation();
+  }
+
+  // 创建目录树容器
+  function createUI() {
+    tocContainer = document.createElement('div');
+    tocContainer.id = 'github-toc';
+    tocContainer.className = `github-toc theme-light ${isSspaiPreset() ? 'theme-preset-sspai' : 'theme-preset-default'}`;
+    tocContainer.classList.add(settings.position === 'left' ? 'position-left' : 'position-right');
+    // ARIA：辅助导航区域
+    tocContainer.setAttribute('role', 'complementary');
+    tocContainer.setAttribute('aria-label', '页面目录导航');
+    tocContainer.setAttribute('aria-expanded', 'false');
+    tocContainer.setAttribute('data-pinned', 'false');
+    document.body.appendChild(tocContainer);
+
+    if (isSspaiPreset()) {
+      createSspaiUI();
+      return;
+    }
+
+    createDefaultPanelUI();
   }
 
   // 扩展内容容器选择器
@@ -419,6 +743,10 @@
       observer.disconnect();
       observer = null;
     }
+    if (headingObserver) {
+      headingObserver.disconnect();
+      headingObserver = null;
+    }
     if (updateTimeout) {
       clearTimeout(updateTimeout);
     }
@@ -427,6 +755,8 @@
       reinitializeTimer = null;
     }
     lastProcessedHeaders.clear();
+    lastObservedHeadersSignature = '';
+    observerActiveHeaderId = null;
   }
 
   function debounce(func, wait) {
@@ -683,12 +1013,160 @@
     });
   }
 
+  function getHeaderLevel(header) {
+    if (header.tagName && header.tagName.match(/^H[1-6]$/)) {
+      return parseInt(header.tagName[1], 10);
+    }
+
+    const style = window.getComputedStyle(header);
+    const fontSize = parseInt(style.fontSize, 10);
+    if (fontSize >= 24) return 1;
+    if (fontSize >= 20) return 2;
+    if (fontSize >= 18) return 3;
+    if (fontSize >= 16) return 4;
+    return 5;
+  }
+
+  function ensureHeaderId(header, text) {
+    if (!header.id) {
+      header.id = text.toLowerCase().replace(/[^a-z0-9]+/g, '-');
+    }
+    return header.id;
+  }
+
+  function getHeadersSignature(headers) {
+    return headers
+      .map((header) => {
+        const text = header.textContent.trim();
+        const id = ensureHeaderId(header, text || 'section');
+        const level = getHeaderLevel(header);
+        return `${id}|${level}|${text}`;
+      })
+      .join('||');
+  }
+
+  function createNoHeadersMarkup() {
+    return `
+      <li class="toc-item no-headers">
+        <div class="no-headers-message">
+          <svg viewBox="0 0 24 24" width="24" height="24">
+            <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/>
+          </svg>
+          <span>No headers found</span>
+          <p>This page doesn't have any headings or the content is not loaded yet.</p>
+        </div>
+      </li>
+    `;
+  }
+
+  function buildTocItemLink(header, text) {
+    const headerId = ensureHeaderId(header, text);
+    const a = document.createElement('a');
+    a.href = `#${headerId}`;
+    a.title = text;
+
+    if (isSspaiPreset()) {
+      a.className = 'toc-rail-link';
+
+      const bar = document.createElement('span');
+      bar.className = 'toc-rail-bar';
+      bar.setAttribute('aria-hidden', 'true');
+
+      const label = document.createElement('span');
+      label.className = 'toc-rail-label';
+      label.textContent = text;
+
+      a.appendChild(bar);
+      a.appendChild(label);
+    } else {
+      a.textContent = text;
+    }
+
+    a.addEventListener('click', (e) => {
+      e.preventDefault();
+      header.scrollIntoView({ behavior: 'smooth' });
+      syncActiveTocItem(headerId);
+    });
+
+    return { a, headerId };
+  }
+
+  function createTocItem(header) {
+    const text = header.textContent.trim();
+    if (!text) return null;
+
+    const level = getHeaderLevel(header);
+    const { a, headerId } = buildTocItemLink(header, text);
+
+    const li = document.createElement('li');
+    li.className = `toc-item level-${level}`;
+    li.dataset.headerId = headerId;
+    li.dataset.level = String(level);
+    li.appendChild(a);
+    return li;
+  }
+
+  function renderHeadersIntoToc(headers) {
+    if (!tocList) return;
+
+    tocList.innerHTML = '';
+    headers.forEach((header) => {
+      const item = createTocItem(header);
+      if (item) {
+        tocList.appendChild(item);
+      }
+    });
+  }
+
+  function syncHeadingObserver(signature) {
+    if (headingObserver && signature === lastObservedHeadersSignature) {
+      return;
+    }
+
+    if (headingObserver) {
+      headingObserver.disconnect();
+      headingObserver = null;
+    }
+
+    lastObservedHeadersSignature = signature;
+
+    if (typeof IntersectionObserver === 'undefined') {
+      observerActiveHeaderId = null;
+      return;
+    }
+
+    headingObserver = new IntersectionObserver((entries) => {
+      const visibleCandidates = entries
+        .filter((entry) => entry.isIntersecting)
+        .sort((a, b) => Math.abs(a.boundingClientRect.top) - Math.abs(b.boundingClientRect.top));
+
+      if (visibleCandidates.length > 0) {
+        observerActiveHeaderId = visibleCandidates[0].target.id || null;
+        if (observerActiveHeaderId) {
+          syncActiveTocItem(observerActiveHeaderId);
+        }
+        return;
+      }
+
+      observerActiveHeaderId = null;
+    }, {
+      root: null,
+      rootMargin: '-96px 0px -70% 0px',
+      threshold: [0, 1]
+    });
+
+    currentHeaders.forEach((header) => {
+      headingObserver.observe(header);
+    });
+  }
+
   // 修改现有的函数以包含性能监控
   function updateTOC() {
     return measurePerformance('tocUpdate', () => {
       lastProcessedHeaders.clear();
 
       const headers = getHeaders();
+      const nextSignature = getHeadersSignature(headers);
       currentHeaders = headers;
       headerCount = headers.length;
       if (tocCountBadge) {
@@ -696,18 +1174,17 @@
         tocCountBadge.setAttribute('aria-label', `${headerCount} sections`);
       }
       if (headers.length === 0) {
+        if (headingObserver) {
+          headingObserver.disconnect();
+          headingObserver = null;
+        }
+        lastObservedHeadersSignature = '__empty__';
+        observerActiveHeaderId = null;
         if (tocList) {
-          tocList.innerHTML = `
-            <li class="toc-item no-headers">
-              <div class="no-headers-message">
-                <svg viewBox="0 0 24 24" width="24" height="24">
-                  <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/>
-                </svg>
-                <span>No headers found</span>
-                <p>This page doesn't have any headings or the content is not loaded yet.</p>
-              </div>
-            </li>
-          `;
+          if (lastRenderedTocSignature !== '__empty__') {
+            tocList.innerHTML = createNoHeadersMarkup();
+            lastRenderedTocSignature = '__empty__';
+          }
         }
         updateVisibility();
         return;
@@ -715,59 +1192,13 @@
 
       if (!tocList) return;
 
-      tocList.innerHTML = '';
+      if (nextSignature !== lastRenderedTocSignature) {
+        renderHeadersIntoToc(headers);
+        lastRenderedTocSignature = nextSignature;
+        lastActiveHeaderId = null;
+      }
 
-      headers.forEach(header => {
-        let level = 1;
-        if (header.tagName && header.tagName.match(/^H[1-6]$/)) {
-          level = parseInt(header.tagName[1]);
-        } else {
-          const style = window.getComputedStyle(header);
-          const fontSize = parseInt(style.fontSize);
-          if (fontSize >= 24) level = 1;
-          else if (fontSize >= 20) level = 2;
-          else if (fontSize >= 18) level = 3;
-          else if (fontSize >= 16) level = 4;
-          else level = 5;
-        }
-
-        const text = header.textContent.trim();
-        if (!text) return;
-
-        if (!header.id) {
-          header.id = text.toLowerCase().replace(/[^a-z0-9]+/g, '-');
-        }
-
-        const li = document.createElement('li');
-        li.className = `toc-item level-${level}`;
-        li.dataset.headerId = header.id;
-
-        const a = document.createElement('a');
-        a.href = `#${header.id}`;
-        a.textContent = text;
-
-        a.addEventListener('click', (e) => {
-          e.preventDefault();
-          header.scrollIntoView({ behavior: 'smooth' });
-
-          // 移除所有目录项的高亮及 aria-current
-          tocList.querySelectorAll('.toc-item').forEach(item => {
-            item.classList.remove('active');
-            const itemLink = item.querySelector('a');
-            if (itemLink) itemLink.removeAttribute('aria-current');
-          });
-
-          // 添加当前目录项的高亮及 aria-current
-          li.classList.add('active');
-          a.setAttribute('aria-current', 'location');
-
-          // 更新当前活动标题
-          updateActiveHeader();
-        });
-
-        li.appendChild(a);
-        tocList.appendChild(li);
-      });
+      syncHeadingObserver(nextSignature);
 
       // 初始化当前活动标题
       updateActiveHeader();
@@ -776,15 +1207,51 @@
   }
 
   // 添加更新当前活动标题的函数
-  function updateActiveHeader() {
-    const headers = currentHeaders;
-    if (!headers || headers.length === 0) return;
+  function revealActiveTocItem(item) {
+    if (!item || !tocList) return;
 
-    // 找到当前视口中的标题
+    const listRect = tocList.getBoundingClientRect();
+    const itemRect = item.getBoundingClientRect();
+    const padding = settings.themePreset === 'sspai' ? 18 : 12;
+
+    if (itemRect.top < listRect.top + padding || itemRect.bottom > listRect.bottom - padding) {
+      item.scrollIntoView({
+        block: 'nearest',
+        inline: 'nearest',
+        behavior: 'smooth'
+      });
+    }
+  }
+
+  function syncActiveTocItem(headerId) {
+    if (!tocList) return;
+
+    let nextActiveItem = null;
+    tocList.querySelectorAll('.toc-item').forEach(item => {
+      const link = item.querySelector('a');
+      if (item.dataset.headerId === headerId) {
+        item.classList.add('active');
+        if (link) link.setAttribute('aria-current', 'location');
+        nextActiveItem = item;
+      } else {
+        item.classList.remove('active');
+        if (link) link.removeAttribute('aria-current');
+      }
+    });
+
+    if (nextActiveItem && headerId && headerId !== lastActiveHeaderId) {
+      lastActiveHeaderId = headerId;
+      revealActiveTocItem(nextActiveItem);
+    }
+  }
+
+  function findActiveHeaderByScrollPosition(headers) {
+    if (!headers || headers.length === 0) return null;
+
     let activeHeader = null;
     let minDistance = Infinity;
 
-    headers.forEach(header => {
+    headers.forEach((header) => {
       const rect = header.getBoundingClientRect();
       const distance = Math.abs(rect.top);
 
@@ -794,18 +1261,23 @@
       }
     });
 
+    return activeHeader;
+  }
+
+  function shouldTrackActiveHeaderOnScroll() {
+    return !headingObserver;
+  }
+
+  function updateActiveHeader() {
+    const headers = currentHeaders;
+    if (!headers || headers.length === 0) return;
+
+    const observerHeader = observerActiveHeaderId ? document.getElementById(observerActiveHeaderId) : null;
+    const activeHeader = observerHeader || findActiveHeaderByScrollPosition(headers);
+
     // 更新目录项的高亮状态及 aria-current
     if (activeHeader) {
-      tocList.querySelectorAll('.toc-item').forEach(item => {
-        const link = item.querySelector('a');
-        if (item.dataset.headerId === activeHeader.id) {
-          item.classList.add('active');
-          if (link) link.setAttribute('aria-current', 'location');
-        } else {
-          item.classList.remove('active');
-          if (link) link.removeAttribute('aria-current');
-        }
-      });
+      syncActiveTocItem(activeHeader.id);
     }
   }
 
@@ -824,6 +1296,9 @@
     if (tocContainer) {
       tocContainer.style.display = shouldShowToc() ? 'flex' : 'none';
     }
+    if (scrollTopButton) {
+      scrollTopButton.style.display = shouldShowToc() ? 'inline-flex' : 'none';
+    }
   }
 
   window.addEventListener('scroll', () => {
@@ -834,10 +1309,12 @@
     scrollTimeout = window.requestAnimationFrame(() => {
       measurePerformance('scrollPerformance', () => {
         updateVisibility();
-        updateActiveHeader();
+        if (shouldTrackActiveHeaderOnScroll()) {
+          updateActiveHeader();
+        }
       });
     });
-  });
+  }, { passive: true });
 
   function scheduleReinitialize(delay = 100) {
     if (reinitializeTimer) {
@@ -869,6 +1346,13 @@
         const changedNodes = [...mutation.addedNodes, ...mutation.removedNodes];
         const affectsHeadings = changedNodes.some((node) => {
           if (!(node instanceof Element)) {
+            return false;
+          }
+          if (
+            node.id === 'github-toc' ||
+            node.id === 'github-sst' ||
+            node.closest('#github-toc, #github-sst')
+          ) {
             return false;
           }
           return (
@@ -903,6 +1387,17 @@
     document.addEventListener('pjax:end', () => scheduleReinitialize(120));
     document.addEventListener('turbo:load', () => scheduleReinitialize(120));
     document.addEventListener('ajaxComplete', () => scheduleReinitialize(120));
+  }
+
+  function setupNavigationLifecycleListeners() {
+    document.addEventListener('astro:after-swap', () => scheduleReinitialize(80));
+    document.addEventListener('astro:page-load', () => scheduleReinitialize(80));
+    window.addEventListener('pageshow', () => scheduleReinitialize(80));
+    document.addEventListener('visibilitychange', () => {
+      if (document.visibilityState === 'visible') {
+        scheduleReinitialize(100);
+      }
+    });
   }
 
   function setupHistoryListener() {
@@ -941,6 +1436,7 @@
     setupObserver();
     setupHistoryListener();
     setupGitHubListener();
+    setupNavigationLifecycleListeners();
     setupPerformanceStats();
   }
 
@@ -1023,9 +1519,37 @@
     scrollTo(holder, 0, 348);
   }
 
-  function setupInteractions() {
-    if (!tocContainer) return;
+  function setupSspaiInteractions() {
+    tocContainer.addEventListener('mouseenter', scheduleHoverOpen);
+    tocContainer.addEventListener('mouseleave', scheduleHoverClose);
+    tocContainer.addEventListener('focusin', () => toggleExpanded(true));
+    tocContainer.addEventListener('focusout', (e) => {
+      if (!tocContainer.contains(e.relatedTarget)) {
+        scheduleHoverClose();
+      }
+    });
 
+    if (scrollTopButton) {
+      scrollTopButton.addEventListener('click', (e) => {
+        e.preventDefault();
+        scrollToTop();
+      });
+    }
+
+    document.addEventListener('pointerdown', (e) => {
+      if (!tocContainer.classList.contains('expanded')) return;
+      if (tocContainer.contains(e.target)) return;
+      closePanel();
+    });
+
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && tocContainer.classList.contains('expanded')) {
+        closePanel();
+      }
+    });
+  }
+
+  function setupDefaultInteractions() {
     if (settings.expandMode === 'hover') {
       tocContainer.addEventListener('mouseenter', scheduleHoverOpen);
       tocContainer.addEventListener('mouseleave', scheduleHoverClose);
@@ -1130,6 +1654,17 @@
     });
   }
 
+  function setupInteractions() {
+    if (!tocContainer) return;
+
+    if (isSspaiPreset()) {
+      setupSspaiInteractions();
+      return;
+    }
+
+    setupDefaultInteractions();
+  }
+
   function scrollTo(element, to, duration) {
     if (duration <= 0) return;
     const difference = to - element.scrollTop;
@@ -1147,10 +1682,19 @@
     if (legacyScrollTopButton) {
       legacyScrollTopButton.remove();
     }
+    recordSkipDecision(null);
     if (isDomainDisabled()) {
       return;
     }
-    if (shouldSkipInjection()) {
+    const skipDecision = getSkipInjectionDecision();
+    if (skipDecision) {
+      recordSkipDecision(skipDecision);
+      console.info('[Smart TOC & Scroll] Skip injection because existing widget was detected.', {
+        type: skipDecision.type,
+        source: skipDecision.source,
+        details: skipDecision.details,
+        element: skipDecision.element
+      });
       return;
     }
     createUI();

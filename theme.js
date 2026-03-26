@@ -1,6 +1,12 @@
 'use strict';
 
 (function() {
+  const defaultSettings = {
+    themePreset: 'default'
+  };
+
+  let currentThemePreset = defaultSettings.themePreset;
+
   // 将RGB字符串解析为HSL对象
   // 参数格式：'rgb(r, g, b)' 或 'rgba(r, g, b, a)'
   function rgbToHsl(rgb) {
@@ -90,24 +96,29 @@
     return lightness > 60 ? 'theme-dark' : 'theme-light';
   }
 
-  const themeClassNames = ['theme-dark', 'theme-light', 'theme-blue', 'theme-green', 'theme-purple', 'theme-auto'];
+  const toneClassNames = ['theme-dark', 'theme-light', 'theme-blue', 'theme-green', 'theme-purple', 'theme-auto'];
+  const presetClassNames = ['theme-preset-default', 'theme-preset-sspai'];
   let themeApplyTimer = null;
   let lastAppliedTheme = null;
+  let lastAppliedPreset = null;
 
   function applyThemeClass(element, theme) {
     if (!element) return;
-    element.classList.remove(...themeClassNames);
+    element.classList.remove(...toneClassNames, ...presetClassNames);
     element.classList.add(theme);
+    element.classList.add(currentThemePreset === 'sspai' ? 'theme-preset-sspai' : 'theme-preset-default');
   }
 
   // 应用主题到扩展注入的浮层元素
   function applyTheme() {
     const theme = selectTheme();
-    if (theme === lastAppliedTheme && document.getElementById('github-toc')) {
+    if (theme === lastAppliedTheme && currentThemePreset === lastAppliedPreset && document.getElementById('github-toc')) {
       return;
     }
     lastAppliedTheme = theme;
+    lastAppliedPreset = currentThemePreset;
     applyThemeClass(document.getElementById('github-toc'), theme);
+    applyThemeClass(document.getElementById('github-sst'), theme);
   }
 
   function scheduleApplyTheme() {
@@ -151,9 +162,41 @@
     applyTheme();
   }
 
-  if (document.body) {
-    startThemeObserver();
-  } else {
-    document.addEventListener('DOMContentLoaded', startThemeObserver, { once: true });
+  function loadSettings() {
+    return new Promise((resolve) => {
+      if (typeof chrome === 'undefined' || !chrome.storage || !chrome.storage.sync) {
+        resolve({ ...defaultSettings });
+        return;
+      }
+      chrome.storage.sync.get(defaultSettings, (items) => {
+        resolve(items || { ...defaultSettings });
+      });
+    });
   }
+
+  function watchSettingsChanges() {
+    if (typeof chrome === 'undefined' || !chrome.storage || !chrome.storage.onChanged) {
+      return;
+    }
+
+    chrome.storage.onChanged.addListener((changes, areaName) => {
+      if (areaName !== 'sync' || !changes.themePreset) {
+        return;
+      }
+
+      currentThemePreset = changes.themePreset.newValue || defaultSettings.themePreset;
+      scheduleApplyTheme();
+    });
+  }
+
+  loadSettings().then((items) => {
+    currentThemePreset = items.themePreset || defaultSettings.themePreset;
+    watchSettingsChanges();
+
+    if (document.body) {
+      startThemeObserver();
+    } else {
+      document.addEventListener('DOMContentLoaded', startThemeObserver, { once: true });
+    }
+  });
 })();

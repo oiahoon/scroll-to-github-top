@@ -91,3 +91,9 @@ export CWS_SERVICE_ACCOUNT_JSON="$(cat service-account.json)"
 - 如果以后要做大用户量灰度，可以再补 `setPublishedDeployPercentage` 链路
 - 如果你在 Chrome Web Store 里启用了 verified uploads，后续需要把当前 ZIP 上传流程升级成已签名 CRX 上传流程
 - 当前工作流默认会先上传 artifact，便于回查每次实际发布的 ZIP
+
+## 商店文案与截图
+
+仓库里也已经准备了商店侧素材草稿，可在正式发布前一起整理：
+
+- 文案、定位与截图脚本：`CHROME_STORE_LISTING.md`

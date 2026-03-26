@@ -25,6 +25,17 @@
   --elevation-1: 0 2px 1px -1px rgba(0,0,0,0.2), 0 1px 1px 0 rgba(0,0,0,0.14), 0 1px 3px 0 rgba(0,0,0,0.12);
   --elevation-2: 0 3px 3px -2px rgba(0,0,0,0.2), 0 3px 4px 0 rgba(0,0,0,0.14), 0 1px 8px 0 rgba(0,0,0,0.12);
   --elevation-3: 0 3px 5px -1px rgba(0,0,0,0.2), 0 6px 10px 0 rgba(0,0,0,0.14), 0 1px 18px 0 rgba(0,0,0,0.12);
+
+  /* 主题预设：default / sspai */
+  --toc-rail-line: rgba(255, 255, 255, 0.24);
+  --toc-rail-line-hover: rgba(255, 255, 255, 0.48);
+  --toc-rail-line-active: rgba(255, 255, 255, 0.92);
+  --toc-rail-label: rgba(255, 255, 255, 0.58);
+  --toc-rail-label-active: rgba(255, 255, 255, 0.98);
+  --toc-rail-hover-surface: rgba(255, 255, 255, 0.04);
+  --toc-rail-top-bg: rgba(255, 255, 255, 0.08);
+  --toc-rail-top-bg-hover: rgba(255, 255, 255, 0.14);
+  --toc-rail-top-border: rgba(255, 255, 255, 0.08);
 }
 
 /* =============================================
@@ -105,6 +116,56 @@
   --toc-elevation-hover:    0 4px 12px rgba(0,0,0,0.45), 0 2px 4px rgba(0,0,0,0.25);
   --toc-elevation-press:    0 1px 2px rgba(0,0,0,0.25);
   --toc-elevation-expanded: 0 8px 32px rgba(0,0,0,0.55), 0 4px 8px rgba(0,0,0,0.30);
+}
+
+.theme-preset-default {
+  --toc-rail-line: rgba(255, 255, 255, 0.24);
+}
+
+.theme-light.theme-preset-sspai {
+  --toc-bg: transparent;
+  --toc-bg-expanded: transparent;
+  --toc-backdrop-filter: none;
+  --toc-border: transparent;
+  --toc-border-hover: transparent;
+  --toc-divider: transparent;
+  --toc-elevation-rest: none;
+  --toc-elevation-hover: none;
+  --toc-elevation-expanded: none;
+  --toc-highlight: transparent;
+  --toc-highlight-active: transparent;
+  --toc-rail-line: rgba(255, 255, 255, 0.22);
+  --toc-rail-line-hover: rgba(255, 255, 255, 0.44);
+  --toc-rail-line-active: rgba(255, 255, 255, 0.96);
+  --toc-rail-label: rgba(255, 255, 255, 0.58);
+  --toc-rail-label-active: rgba(255, 255, 255, 0.98);
+  --toc-rail-hover-surface: rgba(255, 255, 255, 0.05);
+  --toc-rail-top-bg: rgba(255, 255, 255, 0.06);
+  --toc-rail-top-bg-hover: rgba(255, 255, 255, 0.14);
+  --toc-rail-top-border: rgba(255, 255, 255, 0.10);
+}
+
+.theme-dark.theme-preset-sspai {
+  --toc-bg: transparent;
+  --toc-bg-expanded: transparent;
+  --toc-backdrop-filter: none;
+  --toc-border: transparent;
+  --toc-border-hover: transparent;
+  --toc-divider: transparent;
+  --toc-elevation-rest: none;
+  --toc-elevation-hover: none;
+  --toc-elevation-expanded: none;
+  --toc-highlight: transparent;
+  --toc-highlight-active: transparent;
+  --toc-rail-line: rgba(15, 23, 42, 0.18);
+  --toc-rail-line-hover: rgba(15, 23, 42, 0.36);
+  --toc-rail-line-active: rgba(15, 23, 42, 0.78);
+  --toc-rail-label: rgba(15, 23, 42, 0.58);
+  --toc-rail-label-active: rgba(15, 23, 42, 0.92);
+  --toc-rail-hover-surface: rgba(15, 23, 42, 0.05);
+  --toc-rail-top-bg: rgba(15, 23, 42, 0.06);
+  --toc-rail-top-bg-hover: rgba(15, 23, 42, 0.14);
+  --toc-rail-top-border: rgba(15, 23, 42, 0.10);
 }
 
 /* =============================================

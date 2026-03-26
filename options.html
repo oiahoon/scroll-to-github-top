@@ -26,6 +26,28 @@
         <div class="card-header">
           <div class="card-icon card-icon--interaction" aria-hidden="true">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+              <path d="M4 7h16M4 12h16M4 17h10" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+            </svg>
+          </div>
+          <h2>阅读导航样式</h2>
+        </div>
+        <div class="card-body">
+          <div class="field">
+            <label for="themePreset">主题预设</label>
+            <select id="themePreset">
+              <option value="default">标准目录面板</option>
+              <option value="sspai">阅读进度目录（SSPAI）</option>
+            </select>
+            <span id="themePresetHint" class="field-hint">标准目录面板适合文档站、博客和技术内容页面。</span>
+          </div>
+        </div>
+      </section>
+
+      <!-- 交互方式 -->
+      <section class="card">
+        <div class="card-header">
+          <div class="card-icon card-icon--interaction" aria-hidden="true">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
               <path d="M9 3H5a2 2 0 00-2 2v4m6-6h10a2 2 0 012 2v4M9 3v18m0 0h10a2 2 0 002-2V9M9 21H5a2 2 0 01-2-2V9m0 0h18" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
             </svg>
           </div>
@@ -35,11 +57,11 @@
           <div class="field">
             <label for="expandMode">目录展开方式</label>
             <select id="expandMode">
-              <option value="hover">悬停预览（默认）</option>
-              <option value="press">短按回顶 / 长按展开</option>
+              <option value="hover">推荐：悬停预览</option>
               <option value="click">点击开关</option>
+              <option value="press">高级：短按回顶 / 长按展开</option>
             </select>
-            <span id="expandModeHint" class="field-hint">悬停可预览目录，点击浮标可固定展开；移开后自动收起。</span>
+            <span id="expandModeHint" class="field-hint">适合桌面端长文阅读；悬停可预览目录，点击浮标可固定展开。</span>
           </div>
         </div>
       </section>
@@ -83,7 +105,7 @@
               <path d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" stroke="currentColor" stroke-width="2"/>
             </svg>
           </div>
-          <h2>位置与禁用</h2>
+          <h2>兼容策略</h2>
         </div>
         <div class="card-body">
           <div class="field">
