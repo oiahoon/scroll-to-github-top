@@ -5,6 +5,26 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.4] - 2026-03-27
+
+### Added
+- 新增 `阅读进度目录（SSPAI）` 样式，支持低侵扰短横线目录、悬停展开标题与独立回顶按钮
+- 新增兼容性诊断入口，包括 `data-smart-toc-skip-reason`、`window.__SMART_TOC_LAST_SKIP__`、`window.__SMART_TOC_WIDGET_DIAGNOSTICS__`
+- 新增产品路线图、Chrome Web Store 商店文案草稿与发布说明文档
+
+### Changed
+- 产品定位从“回顶按钮”收敛为“轻量阅读导航扩展”
+- 设置页从“主题预设”语义收敛为“阅读导航样式”，明确标准目录面板与阅读进度目录的差异
+- 当前章节高亮改为 `IntersectionObserver` 优先驱动，标题结构不变时不再重建整棵 TOC 或重复创建观察器
+- 已有控件避让升级为“通用规则 + 站点特征规则”的双层检测，并补充正文内联目录排除
+- 扩展描述、商店文案和截图脚本统一围绕“低侵扰阅读导航”展开
+
+### Fixed
+- 修复 hover 模式闪烁、展开不稳定和双按钮并存等交互问题
+- 修复 `SSPAI` 模式左右位置的镜像对齐，确保短横线始终靠近正文、标题始终位于外侧
+- 修复 Astro / View Transitions 站点在客户端跳转、页面恢复或 `body` 内容替换后 TOC 需要刷新才恢复的问题
+- 修复扩展自身 DOM 变化触发无意义重建的问题，降低长文与动态页面上的运行负担
+
 ## [2.3.2] - 2026-03-27
 
 ### Fixed
