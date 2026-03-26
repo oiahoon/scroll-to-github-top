@@ -5,6 +5,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.3.2] - 2026-03-27
+
+### Fixed
+- 修复部分 Astro 站点在客户端切页时会替换 `body` 内节点，导致 TOC DOM 脱离文档后不再显示的问题
+- 当宿主页面替换 `body` 内容时，现有 TOC 与独立回顶按钮会自动重新挂载到新的页面文档
+
 ## [2.3.1] - 2026-03-27
 
 ### Changed

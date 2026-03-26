@@ -759,6 +759,22 @@
     observerActiveHeaderId = null;
   }
 
+  function ensureUiMounted() {
+    if (!document.body) {
+      return false;
+    }
+
+    if (tocContainer && !tocContainer.isConnected) {
+      document.body.appendChild(tocContainer);
+    }
+
+    if (isSspaiPreset() && scrollTopButton && !scrollTopButton.isConnected) {
+      document.body.appendChild(scrollTopButton);
+    }
+
+    return true;
+  }
+
   function debounce(func, wait) {
     let timeout;
     return function executedFunction(...args) {
@@ -1293,6 +1309,7 @@
   }
 
   function updateVisibility() {
+    ensureUiMounted();
     if (tocContainer) {
       tocContainer.style.display = shouldShowToc() ? 'flex' : 'none';
     }
@@ -1419,6 +1436,7 @@
 
   function reinitializeTOC() {
     return measurePerformance('tocGeneration', () => {
+      ensureUiMounted();
       const nextContainer = findContentContainer();
       const containerChanged = nextContainer !== contentContainer;
       contentContainer = nextContainer;
