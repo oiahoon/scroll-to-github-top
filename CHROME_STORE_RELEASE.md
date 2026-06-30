@@ -99,3 +99,4 @@ export CWS_SERVICE_ACCOUNT_JSON="$(cat service-account.json)"
 仓库里也已经准备了商店侧素材草稿，可在正式发布前一起整理：
 
 - 文案、定位与截图脚本：`CHROME_STORE_LISTING.md`
+- 商店效果图与可复用生成脚本：`output/chrome-store/`

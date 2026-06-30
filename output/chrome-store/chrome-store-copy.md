@@ -1,16 +1,6 @@
 # Chrome Web Store Listing Copy
 
-> Updated: 2026-06-30
-> Use for Chrome Web Store title, short description, long description, screenshot captions, and release notes.
-
-## Positioning
-
-Smart TOC & Scroll is a lightweight reading navigation extension for long articles, blogs, and documentation pages.
-
-It provides two complementary navigation styles:
-
-- `Standard TOC Panel`: full outline, active-section highlighting, quick heading jumps, and a compact Top action.
-- `Reading Progress Outline`: transparent progress rail, subtle hover wave, title preview outside the rail, and low-intrusion scroll-to-top.
+Updated: 2026-06-30
 
 ## Short Description
 
@@ -38,7 +28,19 @@ Key features:
 
 Built for readers who want a clear sense of place without adding clutter to every page.
 
-## 中文文案
+## Screenshot Captions
+
+1. Full outline panel for documentation and technical pages.
+2. Hover preview and progress wave for long-form reading.
+3. Left-side progress outline with mirrored preview placement.
+4. Adaptive contrast on light pages without adding a panel background.
+5. Simple settings for style, placement, compatibility, and appearance.
+
+## Privacy Note
+
+Smart TOC & Scroll does not upload page content or collect browsing history. Outline detection and interactions run locally, and preferences are stored in the browser.
+
+## Chinese Listing Copy
 
 ### 简短描述
 
@@ -65,26 +67,6 @@ Smart TOC & Scroll 为长文、博客和文档站点提供轻量阅读导航。
 - 页面分析在浏览器本地完成
 
 适合希望在不打断阅读的前提下，快速掌握长文结构和当前位置的用户。
-
-## Screenshot Captions
-
-1. Full outline panel for documentation and technical pages.
-2. Hover preview and progress wave for long-form reading.
-3. Left-side progress outline with mirrored preview placement.
-4. Adaptive contrast on light pages without adding a panel background.
-5. Simple settings for style, placement, compatibility, and appearance.
-
-## Screenshot Files
-
-- `output/chrome-store/01-standard-toc-panel.png`
-- `output/chrome-store/02-right-rail-hover-preview.png`
-- `output/chrome-store/03-left-rail-hover-preview.png`
-- `output/chrome-store/04-light-page-adaptive-rail.png`
-- `output/chrome-store/05-options-reading-navigation.png`
-
-## Privacy Note
-
-Smart TOC & Scroll does not upload page content or collect browsing history. Outline detection and interactions run locally, and preferences are stored in the browser.
 
 ## Release Note
 
