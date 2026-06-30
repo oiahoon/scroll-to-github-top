@@ -44,6 +44,13 @@
   let railWaveLayout = [];
   let railPreviewItem = null;
   const railWaveAffectedItems = new Set();
+  const railWaveMaxDistance = 88;
+  const railWaveMaxWidth = 24;
+  const railWaveMaxShift = 2;
+  const railPreviewGap = 8;
+  let adaptiveThemeFrame = null;
+  let lastAdaptiveThemeApplied = '';
+  let lastAdaptiveThemeSampleAt = 0;
   let performancePanelVisible = false;
   let performanceStatsTimer = null;
   let performanceStatsContainer = null;
@@ -545,9 +552,9 @@
     tocContainer.appendChild(tocTree);
 
     tocRailPreview = document.createElement('div');
-    tocRailPreview.className = 'toc-rail-preview';
+    tocRailPreview.className = 'toc-rail-preview theme-light theme-preset-sspai';
     tocRailPreview.setAttribute('aria-hidden', 'true');
-    tocContainer.appendChild(tocRailPreview);
+    document.body.appendChild(tocRailPreview);
 
     scrollTopButton = document.createElement('button');
     scrollTopButton.id = 'github-sst';
@@ -766,6 +773,10 @@
       clearTimeout(reinitializeTimer);
       reinitializeTimer = null;
     }
+    if (adaptiveThemeFrame) {
+      window.cancelAnimationFrame(adaptiveThemeFrame);
+      adaptiveThemeFrame = null;
+    }
     lastProcessedHeaders.clear();
     lastObservedHeadersSignature = '';
     observerActiveHeaderId = null;
@@ -784,6 +795,10 @@
       document.body.appendChild(scrollTopButton);
     }
 
+    if (isSspaiPreset() && tocRailPreview && !tocRailPreview.isConnected) {
+      document.body.appendChild(tocRailPreview);
+    }
+
     return true;
   }
 
@@ -797,6 +812,222 @@
       clearTimeout(timeout);
       timeout = setTimeout(later, wait);
     };
+  }
+
+  function clampNumber(value, min, max) {
+    return Math.min(max, Math.max(min, value));
+  }
+
+  function parseCssColor(color) {
+    if (!color || color === 'transparent') return null;
+    const match = color.match(/rgba?\(\s*([\d.]+)\s*,\s*([\d.]+)\s*,\s*([\d.]+)(?:\s*,\s*([\d.]+))?\s*\)/);
+    if (!match) return null;
+    return {
+      r: clampNumber(Number(match[1]), 0, 255),
+      g: clampNumber(Number(match[2]), 0, 255),
+      b: clampNumber(Number(match[3]), 0, 255),
+      a: match[4] === undefined ? 1 : clampNumber(Number(match[4]), 0, 1)
+    };
+  }
+
+  function mixColor(foreground, background) {
+    const alpha = foreground.a;
+    return {
+      r: Math.round(foreground.r * alpha + background.r * (1 - alpha)),
+      g: Math.round(foreground.g * alpha + background.g * (1 - alpha)),
+      b: Math.round(foreground.b * alpha + background.b * (1 - alpha)),
+      a: 1
+    };
+  }
+
+  function getRelativeLuminance(color) {
+    const channel = (value) => {
+      const normalized = value / 255;
+      return normalized <= 0.03928
+        ? normalized / 12.92
+        : Math.pow((normalized + 0.055) / 1.055, 2.4);
+    };
+
+    return 0.2126 * channel(color.r) + 0.7152 * channel(color.g) + 0.0722 * channel(color.b);
+  }
+
+  function getFallbackPageBackground() {
+    const bodyColor = parseCssColor(window.getComputedStyle(document.body).backgroundColor);
+    if (bodyColor && bodyColor.a > 0.05) {
+      return bodyColor.a < 1 ? mixColor(bodyColor, { r: 255, g: 255, b: 255, a: 1 }) : bodyColor;
+    }
+
+    const htmlColor = parseCssColor(window.getComputedStyle(document.documentElement).backgroundColor);
+    if (htmlColor && htmlColor.a > 0.05) {
+      return htmlColor.a < 1 ? mixColor(htmlColor, { r: 255, g: 255, b: 255, a: 1 }) : htmlColor;
+    }
+
+    const colorScheme = window.getComputedStyle(document.documentElement).colorScheme || '';
+    return colorScheme.includes('dark')
+      ? { r: 18, g: 24, b: 32, a: 1 }
+      : { r: 255, g: 255, b: 255, a: 1 };
+  }
+
+  function resolveElementBackground(element) {
+    const fallback = getFallbackPageBackground();
+    const layers = [];
+    let current = element;
+
+    while (current && current.nodeType === Node.ELEMENT_NODE) {
+      const color = parseCssColor(window.getComputedStyle(current).backgroundColor);
+      if (color && color.a > 0.05) {
+        layers.push(color);
+      }
+      current = current.parentElement;
+    }
+
+    return layers.reverse().reduce((background, layer) => {
+      return layer.a >= 1 ? layer : mixColor(layer, background);
+    }, fallback);
+  }
+
+  function getElementBehindTocAtPoint(x, y) {
+    const elements = typeof document.elementsFromPoint === 'function'
+      ? document.elementsFromPoint(x, y)
+      : [document.elementFromPoint(x, y)].filter(Boolean);
+
+    const candidates = elements.filter((element) => {
+      if (!(element instanceof Element)) return false;
+      return !element.closest('#github-toc, #github-sst');
+    });
+
+    return candidates.find((element) => {
+      const color = parseCssColor(window.getComputedStyle(element).backgroundColor);
+      return color && color.a > 0.05;
+    }) || candidates[0] || document.body;
+  }
+
+  function getAdaptiveThemeSamplePoints() {
+    if (!tocContainer) return [];
+    const rect = tocContainer.getBoundingClientRect();
+    if (rect.width === 0 || rect.height === 0) return [];
+
+    const isLeft = tocContainer.classList.contains('position-left');
+    const x = isLeft
+      ? clampNumber(rect.right + 8, 0, window.innerWidth - 1)
+      : clampNumber(rect.left - 8, 0, window.innerWidth - 1);
+    const yPositions = [0.18, 0.5, 0.82].map((ratio) => (
+      clampNumber(rect.top + rect.height * ratio, 0, window.innerHeight - 1)
+    ));
+
+    return yPositions.map((y) => ({ x, y }));
+  }
+
+  function averageColors(colors) {
+    if (colors.length === 0) return getFallbackPageBackground();
+    const total = colors.reduce((sum, color) => ({
+      r: sum.r + color.r,
+      g: sum.g + color.g,
+      b: sum.b + color.b,
+      a: 1
+    }), { r: 0, g: 0, b: 0, a: 1 });
+
+    return {
+      r: Math.round(total.r / colors.length),
+      g: Math.round(total.g / colors.length),
+      b: Math.round(total.b / colors.length),
+      a: 1
+    };
+  }
+
+  function buildAdaptiveRailPalette(background) {
+    const luminance = getRelativeLuminance(background);
+    const isLightSurface = luminance > 0.58;
+
+    if (isLightSurface) {
+      return {
+        tone: 'light-surface',
+        luminance,
+        vars: {
+          '--toc-rail-line': 'rgba(15, 23, 42, 0.22)',
+          '--toc-rail-line-hover': 'rgba(15, 23, 42, 0.38)',
+          '--toc-rail-line-active': 'rgba(15, 23, 42, 0.74)',
+          '--toc-rail-label': 'rgba(15, 23, 42, 0.54)',
+          '--toc-rail-label-active': 'rgba(15, 23, 42, 0.88)',
+          '--toc-rail-hover-surface': 'rgba(15, 23, 42, 0.055)',
+          '--toc-rail-top-bg': 'rgba(15, 23, 42, 0.065)',
+          '--toc-rail-top-bg-hover': 'rgba(15, 23, 42, 0.12)',
+          '--toc-rail-top-border': 'rgba(15, 23, 42, 0.10)',
+          '--toc-rail-preview-bg': 'rgba(255, 255, 255, 0.90)',
+          '--toc-rail-preview-border': 'rgba(15, 23, 42, 0.12)',
+          '--toc-rail-preview-shadow': '0 10px 24px rgba(15, 23, 42, 0.14)'
+        }
+      };
+    }
+
+    return {
+      tone: 'dark-surface',
+      luminance,
+      vars: {
+        '--toc-rail-line': 'rgba(255, 255, 255, 0.22)',
+        '--toc-rail-line-hover': 'rgba(255, 255, 255, 0.42)',
+        '--toc-rail-line-active': 'rgba(255, 255, 255, 0.88)',
+        '--toc-rail-label': 'rgba(255, 255, 255, 0.56)',
+        '--toc-rail-label-active': 'rgba(255, 255, 255, 0.94)',
+        '--toc-rail-hover-surface': 'rgba(255, 255, 255, 0.05)',
+        '--toc-rail-top-bg': 'rgba(255, 255, 255, 0.06)',
+        '--toc-rail-top-bg-hover': 'rgba(255, 255, 255, 0.13)',
+        '--toc-rail-top-border': 'rgba(255, 255, 255, 0.10)',
+        '--toc-rail-preview-bg': 'rgba(17, 24, 39, 0.84)',
+        '--toc-rail-preview-border': 'rgba(255, 255, 255, 0.18)',
+        '--toc-rail-preview-shadow': '0 10px 24px rgba(0, 0, 0, 0.24)'
+      }
+    };
+  }
+
+  function applyAdaptiveRailPalette(palette, sample) {
+    const nextSignature = `${palette.tone}:${Math.round(palette.luminance * 100)}`;
+    if (nextSignature === lastAdaptiveThemeApplied) return;
+
+    [tocContainer, scrollTopButton, tocRailPreview].forEach((element) => {
+      if (!element) return;
+      Object.entries(palette.vars).forEach(([name, value]) => {
+        element.style.setProperty(name, value);
+      });
+      element.dataset.adaptiveTone = palette.tone;
+    });
+
+    lastAdaptiveThemeApplied = nextSignature;
+    window.__SMART_TOC_ADAPTIVE_THEME__ = {
+      tone: palette.tone,
+      luminance: Number(palette.luminance.toFixed(3)),
+      sample
+    };
+  }
+
+  function updateAdaptiveRailTheme() {
+    if (!isSspaiPreset() || !tocContainer || !tocContainer.isConnected) return;
+    const points = getAdaptiveThemeSamplePoints();
+    const colors = points.map((point) => (
+      resolveElementBackground(getElementBehindTocAtPoint(point.x, point.y))
+    ));
+    const background = averageColors(colors);
+    const palette = buildAdaptiveRailPalette(background);
+
+    applyAdaptiveRailPalette(palette, {
+      r: background.r,
+      g: background.g,
+      b: background.b,
+      points: points.length
+    });
+  }
+
+  function scheduleAdaptiveRailThemeUpdate(force = false) {
+    if (!isSspaiPreset()) return;
+    const now = Date.now();
+    if (!force && now - lastAdaptiveThemeSampleAt < 180) return;
+    if (adaptiveThemeFrame) return;
+
+    adaptiveThemeFrame = window.requestAnimationFrame(() => {
+      adaptiveThemeFrame = null;
+      lastAdaptiveThemeSampleAt = Date.now();
+      updateAdaptiveRailTheme();
+    });
   }
 
   function isGitHubPage() {
@@ -1140,6 +1371,9 @@
     tocList.innerHTML = '';
     railWaveItems = [];
     railWaveLayout = [];
+    if (tocRailPreview) {
+      tocRailPreview.classList.remove('is-visible');
+    }
     railPreviewItem = null;
     headers.forEach((header) => {
       const item = createTocItem(header);
@@ -1336,6 +1570,7 @@
     if (scrollTopButton) {
       scrollTopButton.style.display = shouldShowToc() ? 'inline-flex' : 'none';
     }
+    scheduleAdaptiveRailThemeUpdate();
   }
 
   window.addEventListener('scroll', () => {
@@ -1349,6 +1584,7 @@
         if (shouldTrackActiveHeaderOnScroll()) {
           updateActiveHeader();
         }
+        scheduleAdaptiveRailThemeUpdate();
       });
     });
   }, { passive: true });
@@ -1571,13 +1807,31 @@
     }
 
     function refreshRailWaveLayout() {
-      railWaveLayout = getRailWaveItems().map(({ item, target }) => {
-        const rect = target.getBoundingClientRect();
-        return {
-          item,
-          centerY: rect.top + rect.height / 2
-        };
-      });
+      if (!tocContainer) {
+        railWaveLayout = [];
+        return;
+      }
+
+      const railRect = tocContainer.getBoundingClientRect();
+      const minY = railRect.top - railWaveMaxDistance;
+      const maxY = railRect.bottom + railWaveMaxDistance;
+      const isLeft = tocContainer.classList.contains('position-left');
+
+      railWaveLayout = getRailWaveItems()
+        .map(({ item, target }) => {
+          const rect = target.getBoundingClientRect();
+          const previewEdge = isLeft
+            ? rect.right + railWaveMaxWidth + railWaveMaxShift
+            : rect.left - railWaveMaxWidth - railWaveMaxShift;
+          return {
+            item,
+            centerY: rect.top + rect.height / 2,
+            baseWidth: getRailBaseWidth(item),
+            previewEdge,
+            visible: rect.bottom >= minY && rect.top <= maxY
+          };
+        })
+        .filter(({ visible }) => visible);
     }
 
     function getRailBaseWidth(item) {
@@ -1588,28 +1842,43 @@
       return 12;
     }
 
-    function positionRailPreview(item) {
-      if (!tocRailPreview || !item) return;
+    function getRailPreviewLayout(item) {
+      const cached = railWaveLayout.find((entry) => entry.item === item);
+      if (cached) return cached;
 
       const bar = item.querySelector('.toc-rail-bar');
-      const label = item.querySelector('.toc-rail-label');
-      if (!bar || !label) return;
+      if (!bar) return null;
 
       const rect = bar.getBoundingClientRect();
       const isLeft = tocContainer.classList.contains('position-left');
-      const offset = 18;
+      return {
+        item,
+        centerY: rect.top + rect.height / 2,
+        previewEdge: isLeft
+          ? rect.right + railWaveMaxWidth + railWaveMaxShift
+          : rect.left - railWaveMaxWidth - railWaveMaxShift
+      };
+    }
+
+    function positionRailPreview(item, layout = getRailPreviewLayout(item)) {
+      if (!tocRailPreview || !item) return;
+
+      const label = item.querySelector('.toc-rail-label');
+      if (!label || !layout) return;
+
+      const isLeft = tocContainer.classList.contains('position-left');
 
       tocRailPreview.textContent = label.textContent || '';
       tocRailPreview.classList.toggle('position-left', isLeft);
       tocRailPreview.classList.toggle('position-right', !isLeft);
-      tocRailPreview.style.top = `${rect.top + rect.height / 2}px`;
+      tocRailPreview.style.top = `${layout.centerY}px`;
 
       if (isLeft) {
-        tocRailPreview.style.left = `${rect.right + offset}px`;
+        tocRailPreview.style.left = `${layout.previewEdge + railPreviewGap}px`;
         tocRailPreview.style.right = 'auto';
       } else {
         tocRailPreview.style.left = 'auto';
-        tocRailPreview.style.right = `${window.innerWidth - rect.left + offset}px`;
+        tocRailPreview.style.right = `${window.innerWidth - layout.previewEdge + railPreviewGap}px`;
       }
     }
 
@@ -1621,7 +1890,6 @@
       railPreviewItem = nextItem;
       if (railPreviewItem) {
         railPreviewItem.classList.add('is-previewed');
-        positionRailPreview(railPreviewItem);
         if (tocRailPreview) {
           tocRailPreview.classList.add('is-visible');
         }
@@ -1657,21 +1925,24 @@
       }
 
       const items = railWaveLayout;
-      const maxDistance = 88;
       let nearestItem = null;
+      let nearestEntry = null;
       let nearestDistance = Infinity;
+      const shiftDirection = tocContainer.classList.contains('position-left') ? 1 : -1;
+      const touchedItems = new Set();
 
-      items.forEach(({ item, centerY }) => {
+      items.forEach((entry) => {
+        const { item, centerY, baseWidth } = entry;
+        touchedItems.add(item);
         const distance = Math.abs(pointerY - centerY);
-        const rawStrength = Math.max(0, 1 - distance / maxDistance);
+        const rawStrength = Math.max(0, 1 - distance / railWaveMaxDistance);
         const strength = rawStrength * rawStrength * (3 - 2 * rawStrength);
-        const shiftDirection = tocContainer.classList.contains('position-left') ? 1 : -1;
-        const baseWidth = getRailBaseWidth(item);
-        const waveWidth = strength * 24;
+        const waveWidth = strength * railWaveMaxWidth;
 
         if (distance < nearestDistance) {
           nearestDistance = distance;
           nearestItem = item;
+          nearestEntry = entry;
         }
 
         if (strength > 0) {
@@ -1691,14 +1962,52 @@
         }
       });
 
-      setRailPreviewItem(nearestDistance <= maxDistance ? nearestItem : null);
-      if (railPreviewItem) {
-        positionRailPreview(railPreviewItem);
+      railWaveAffectedItems.forEach((item) => {
+        if (touchedItems.has(item)) return;
+        item.style.removeProperty('--toc-rail-wave-width');
+        item.style.removeProperty('--toc-rail-wave-opacity');
+        item.style.removeProperty('--toc-rail-wave-shift');
+        item.style.removeProperty('--toc-rail-wave-scale-x');
+        item.style.removeProperty('--toc-rail-wave-scale');
+        railWaveAffectedItems.delete(item);
+      });
+
+      const nextPreviewItem = nearestDistance <= railWaveMaxDistance ? nearestItem : null;
+      const previewItemChanged = railPreviewItem !== nextPreviewItem;
+      setRailPreviewItem(nextPreviewItem);
+      if (railPreviewItem && previewItemChanged) {
+        positionRailPreview(railPreviewItem, nearestEntry);
+      }
+    }
+
+    function updateReducedMotionRailPreview(pointerY) {
+      if (!tocList) return;
+
+      if (railWaveLayout.length === 0) {
+        refreshRailWaveLayout();
+      }
+
+      let nearestEntry = null;
+      let nearestDistance = Infinity;
+
+      railWaveLayout.forEach((entry) => {
+        const distance = Math.abs(pointerY - entry.centerY);
+        if (distance < nearestDistance) {
+          nearestDistance = distance;
+          nearestEntry = entry;
+        }
+      });
+
+      const nextPreviewItem = nearestDistance <= railWaveMaxDistance ? nearestEntry?.item || null : null;
+      const previewItemChanged = railPreviewItem !== nextPreviewItem;
+      setRailPreviewItem(nextPreviewItem);
+      if (railPreviewItem && previewItemChanged) {
+        positionRailPreview(railPreviewItem, nearestEntry);
       }
     }
 
     function scheduleRailWave(e) {
-      if (!tocList || window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+      if (!tocList) return;
 
       lastRailPointerY = e.clientY;
       if (railWaveFrame) return;
@@ -1706,13 +2015,18 @@
       railWaveFrame = window.requestAnimationFrame(() => {
         railWaveFrame = null;
         if (lastRailPointerY !== null) {
-          updateRailWave(lastRailPointerY);
+          if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+            updateReducedMotionRailPreview(lastRailPointerY);
+          } else {
+            updateRailWave(lastRailPointerY);
+          }
         }
       });
     }
 
     tocContainer.addEventListener('mouseenter', () => {
       refreshRailWaveLayout();
+      scheduleAdaptiveRailThemeUpdate(true);
       scheduleHoverOpen();
     });
     tocContainer.addEventListener('pointermove', scheduleRailWave);
@@ -1736,6 +2050,8 @@
 
     window.addEventListener('resize', () => {
       railWaveLayout = [];
+      lastAdaptiveThemeApplied = '';
+      scheduleAdaptiveRailThemeUpdate(true);
     }, { passive: true });
 
     if (scrollTopButton) {
@@ -1910,6 +2226,7 @@
     setupInteractions();
     initialize();
     updateVisibility();
+    scheduleAdaptiveRailThemeUpdate(true);
     window.addEventListener('unload', cleanup);
   }
 

@@ -4,11 +4,15 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Smart TOC SSPAI Hover Performance Sample</title>
-  <link rel="stylesheet" href="../toc.css">
-  <link rel="stylesheet" href="../themes.css">
+  <link rel="stylesheet" href="../toc.css?sample=sspai-hover-performance">
+  <link rel="stylesheet" href="../themes.css?sample=sspai-hover-performance">
   <style>
     :root {
       color-scheme: dark;
+    }
+
+    :root[data-surface="light"] {
+      color-scheme: light;
     }
 
     body {
@@ -19,10 +23,70 @@
       line-height: 1.7;
     }
 
+    :root[data-surface="light"] body {
+      background: #f6f8fb;
+      color: #151922;
+    }
+
+    :root[data-surface="color"] body {
+      background:
+        linear-gradient(135deg, rgba(67, 92, 139, 0.32), transparent 40%),
+        #202833;
+      color: #f6f8fb;
+    }
+
+    :root[data-surface="lightstrip"] body {
+      background: #181a1f;
+      color: #f5f7fa;
+    }
+
+    .sample-surface-strip {
+      display: none;
+    }
+
+    :root[data-surface="lightstrip"] .sample-surface-strip {
+      display: block;
+      position: fixed;
+      inset: 0 auto 0 0;
+      width: 128px;
+      z-index: 2;
+    }
+
+    :root[data-surface="lightstrip"][data-position="right"] .sample-surface-strip {
+      inset: 0 0 0 auto;
+    }
+
+    .sample-surface-strip span {
+      position: absolute;
+      left: 0;
+      width: 128px;
+      height: 150px;
+      border-radius: 0 10px 10px 0;
+      background: #f6f8fb;
+    }
+
+    :root[data-surface="lightstrip"][data-position="right"] .sample-surface-strip span {
+      border-radius: 10px 0 0 10px;
+    }
+
+    .sample-surface-strip span:nth-child(1) {
+      top: 14%;
+    }
+
+    .sample-surface-strip span:nth-child(2) {
+      top: 44%;
+    }
+
+    .sample-surface-strip span:nth-child(3) {
+      top: 74%;
+    }
+
     main {
+      position: relative;
       max-width: 760px;
       margin: 0 auto;
       padding: 72px 28px 48vh;
+      z-index: 1;
     }
 
     h1 {
@@ -51,16 +115,49 @@
       color: #aab2c0;
     }
 
+    :root[data-surface="light"] p {
+      color: #4b5565;
+    }
+
     .sample-note {
       border: 1px solid rgba(255, 255, 255, 0.12);
       border-radius: 8px;
       background: rgba(255, 255, 255, 0.05);
       padding: 14px 16px;
     }
+
+    :root[data-surface="light"] .sample-note {
+      border-color: rgba(15, 23, 42, 0.12);
+      background: rgba(15, 23, 42, 0.04);
+    }
   </style>
   <script>
     const sampleParams = new URLSearchParams(window.location.search);
     const samplePosition = sampleParams.get('position') === 'left' ? 'left' : 'right';
+    const sampleSurface = ['light', 'dark', 'color', 'lightstrip'].includes(sampleParams.get('surface'))
+      ? sampleParams.get('surface')
+      : 'dark';
+    const sampleReducedMotion = sampleParams.get('motion') === 'reduce';
+    document.documentElement.dataset.surface = sampleSurface;
+    document.documentElement.dataset.position = samplePosition;
+
+    if (sampleReducedMotion && typeof window.matchMedia === 'function') {
+      const nativeMatchMedia = window.matchMedia.bind(window);
+      window.matchMedia = (query) => {
+        const result = nativeMatchMedia(query);
+        if (!String(query).includes('prefers-reduced-motion')) return result;
+        return {
+          matches: true,
+          media: result.media,
+          onchange: result.onchange,
+          addListener: result.addListener ? result.addListener.bind(result) : () => {},
+          removeListener: result.removeListener ? result.removeListener.bind(result) : () => {},
+          addEventListener: result.addEventListener ? result.addEventListener.bind(result) : () => {},
+          removeEventListener: result.removeEventListener ? result.removeEventListener.bind(result) : () => {},
+          dispatchEvent: result.dispatchEvent ? result.dispatchEvent.bind(result) : () => false
+        };
+      };
+    }
 
     window.chrome = {
       storage: {
@@ -89,6 +186,11 @@
   </script>
 </head>
 <body>
+  <div class="sample-surface-strip" aria-hidden="true">
+    <span></span>
+    <span></span>
+    <span></span>
+  </div>
   <main id="sample-content">
     <h1>SSPAI Hover Preview Performance Sample</h1>
     <p class="sample-note">
@@ -109,8 +211,12 @@
       main.appendChild(heading);
       main.appendChild(paragraph);
     }
+
+    document.querySelectorAll('#github-toc, #github-sst, .toc-rail-preview').forEach((node) => {
+      node.remove();
+    });
   </script>
-  <script src="../catalog.js"></script>
-  <script src="../theme.js"></script>
+  <script src="../catalog.js?sample=sspai-hover-performance"></script>
+  <script src="../theme.js?sample=sspai-hover-performance"></script>
 </body>
 </html>

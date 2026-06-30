@@ -5,6 +5,28 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.5] - 2026-06-30
+
+### Added
+- `阅读进度目录（SSPAI）` 新增 Codex-style hover wave：悬停时只有短横线向外延展，不再推动整条 rail 左右位移
+- 新增 body-level 标题预览气泡，左右位置会随 TOC rail 镜像：左侧 rail 向右展开并在右侧显示预览，右侧 rail 反向显示
+- 新增 SSPAI rail 局部背景感知配色，基于 rail 贴近区域的页面 surface 选择轻量 token，避免在浅色条带或深色页面上失去对比
+- 新增 `test-pages/sspai-hover-performance.html` 的 `position` 与 `surface` 测试参数，用于复现 left/right、dark/light/lightstrip 等场景
+
+### Changed
+- SSPAI rail 保持透明背景，hover 高亮条和预览模块各自承担可读性，不给 rail 本体增加面板底色
+- SSPAI hover 预览改为 `position: fixed` 的 body 子节点，避免被 transform 祖先改变定位参照导致错位
+- Hover wave 布局只缓存可视区域附近的 rail item，并预计算基础宽度，减少 pointer move 过程中的布局读取与写入
+- 自适应配色的调节幅度保持克制，只调整 rail、回顶按钮和预览气泡的局部 CSS 变量，不覆盖宿主页面风格
+
+### Fixed
+- 修复 SSPAI 预览模块与高亮条垂直错位的问题
+- 修复同一 rail item 内 hover wave 伸缩时标题预览锚点漂移的问题
+- 修复 `prefers-reduced-motion: reduce` 下 SSPAI hover 标题预览不可见的问题
+- 修复右侧 rail hover 后高亮条左端被裁切成平角的问题
+- 修复 `showAfterScrollScreens: 0` 与强制显示测试页中首屏不显示的问题
+- 修复 hover 离开或重新渲染后旧的 `.is-previewed` 状态残留问题
+
 ## [2.4] - 2026-03-27
 
 ### Added

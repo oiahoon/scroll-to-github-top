@@ -667,6 +667,7 @@
    ============================================= */
 
 .github-toc.theme-preset-sspai {
+  --toc-rail-wave-bleed: 32px;
   width: 68px;
   height: auto;
   min-height: 120px;
@@ -762,6 +763,7 @@
   padding: 6px 10px;
   border-radius: 999px;
   position: relative;
+  overflow: visible;
   transition: background 0.16s ease;
 }
 
@@ -806,7 +808,8 @@
   display: none !important;
 }
 
-.github-toc.theme-preset-sspai .toc-rail-preview {
+.github-toc.theme-preset-sspai .toc-rail-preview,
+.toc-rail-preview.theme-preset-sspai {
   position: fixed;
   top: 0;
   z-index: 10000;
@@ -833,15 +836,18 @@
   white-space: nowrap;
 }
 
-.github-toc.theme-preset-sspai .toc-rail-preview.position-left {
+.github-toc.theme-preset-sspai .toc-rail-preview.position-left,
+.toc-rail-preview.theme-preset-sspai.position-left {
   transform: translateY(-50%) translateX(-6px) scale(0.96);
 }
 
-.github-toc.theme-preset-sspai .toc-rail-preview.position-right {
+.github-toc.theme-preset-sspai .toc-rail-preview.position-right,
+.toc-rail-preview.theme-preset-sspai.position-right {
   transform: translateY(-50%) translateX(6px) scale(0.96);
 }
 
-.github-toc.theme-preset-sspai .toc-rail-preview.is-visible {
+.github-toc.theme-preset-sspai .toc-rail-preview.is-visible,
+.toc-rail-preview.theme-preset-sspai.is-visible {
   opacity: 1;
   transform: translateY(-50%) translateX(0) scale(1);
 }
@@ -860,7 +866,11 @@
 }
 
 .github-toc.theme-preset-sspai.position-right .toc-list {
+  box-sizing: border-box;
+  margin-left: calc(-1 * var(--toc-rail-wave-bleed));
+  padding-left: var(--toc-rail-wave-bleed);
   text-align: left;
+  width: calc(100% + var(--toc-rail-wave-bleed));
 }
 
 .github-toc.theme-preset-sspai.position-right .toc-rail-link {
@@ -883,7 +893,11 @@
 }
 
 .github-toc.theme-preset-sspai.position-left .toc-list {
+  box-sizing: border-box;
+  margin-right: calc(-1 * var(--toc-rail-wave-bleed));
+  padding-right: var(--toc-rail-wave-bleed);
   text-align: right;
+  width: calc(100% + var(--toc-rail-wave-bleed));
 }
 
 .github-toc.theme-preset-sspai.position-left .toc-rail-link {

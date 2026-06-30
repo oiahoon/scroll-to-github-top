@@ -4,7 +4,8 @@
 - Chrome extension, Manifest v3, injects into all pages
 - Key files: `catalog.js`, `theme.js`, `toc.css`, `themes.css`, `options.html`, `options.css`
 - Design spec: `UI_DESIGN_SPEC.md`; Feature inventory: `FEATURE_INVENTORY.md`
-- Current refactor branch: v2.3
+- Current release line: v2.5
+- Active branch context: `codex/toc-rail-preview-hover`
 
 ## Architecture Notes
 - `themes.css` defines CSS custom properties per `.theme-*` class on `#github-toc`
@@ -13,11 +14,24 @@
 - `--toc-backdrop-filter` variable defined in theme classes, applied by `.github-toc` in `toc.css`
 - 独立回顶按钮 `#github-sst` 现在由 `catalog.js` 创建并参与主注入流程
 - 独立回顶按钮历史上曾拆分为 `button.js`，现已并回 `catalog.js`
+- `阅读进度目录（SSPAI）` 使用透明 rail，不给 `#github-toc.theme-preset-sspai` 本体增加面板背景
+- `.toc-rail-preview` 是 `document.body` 下的 fixed layer，不是 `#github-toc` 子节点；这是为了避开 transform ancestor 改变 fixed 定位参照导致的错位
+- SSPAI 局部自适应配色在 `catalog.js` 中采样 rail 附近 surface，并将轻量 CSS 变量应用到 `tocContainer`、`scrollTopButton` 和 `tocRailPreview`
+- SSPAI hover wave 只更新可视区域附近 item，预计算基础宽度，避免 pointer move 时全量布局读写
+- `.toc-rail-link` 必须保持 `overflow: visible`，否则右侧 rail 向左延展时圆角端会被裁切成平角
+- 本地视觉/性能测试页：`test-pages/sspai-hover-performance.html?position=right&surface=lightstrip`
+  - `position=left/right` 用于检查镜像展开和预览方向
+  - `surface=light/dark/color/lightstrip` 用于检查局部自适应配色
+  - 测试页会清理旧注入 DOM，并对本地 CSS/JS 加 cache busting，避免浏览器残留影响判断
 
-## v2.3 Refactor — In Progress (2026-03-16)
-- 主体 UI、主题系统与 options 页面已重构
-- 独立回顶按钮已重新整合到主注入流程
-- 仍需收口版本号、manifest 与遗留文件整理
+## v2.5 SSPAI Rail Polish — Completed (2026-06-30)
+- Manifest version bumped to `2.5`
+- SSPAI hover behavior mirrors Codex-style rail: hover extends the active bar outward without moving the rail container
+- Left rail expands/previews to the right; right rail expands/previews to the left
+- Preview bubble is body-level fixed positioning and stays aligned to the hover item center
+- Local adaptive tokens keep rail/preview readable on dark, light, colored, and lightstrip surfaces without over-adjusting the page
+- Hover cleanup hides previews and removes stale `.is-previewed` state on rerender
+- The flat-cap bug was fixed by allowing rail link overflow to remain visible
 
 ## Task #4 (themes.css + theme.js refactor) — COMPLETED
 - theme.js: replaced text-color-frequency detection with direct background-color read

@@ -1,8 +1,8 @@
 # Smart TOC & Scroll — 功能清单（Feature Inventory）
 
-> **版本**：2.3
-> **用途**：本文档是重构前的功能基线，涵盖扩展全部行为、交互、配置项与边界情况。重构完成后须逐条核对，确保零功能回归。
-> **生成日期**：2026-03-16
+> **版本**：2.5
+> **用途**：本文档记录扩展主要行为、交互、配置项与边界情况，作为后续重构和回归验证的功能基线。
+> **更新日期**：2026-06-30
 
 ---
 
@@ -128,6 +128,30 @@
 - Given 用户点击某个目录链接，When click 事件触发，Then 调用 `header.scrollIntoView({ behavior: 'smooth' })`，页面平滑滚动至目标标题。
 - Given 用户点击目录链接，When click 事件触发，Then 浏览器默认锚点跳转行为（`e.preventDefault()`）被阻止。
 - Given 点击后平滑滚动开始，When 滚动进行中，Then 被点击条目立即获得 active 高亮，并调用 `updateActiveHeader` 刷新状态。
+
+---
+
+### 1.7 阅读进度目录（SSPAI）rail 与标题预览
+
+**功能描述**：在 `阅读进度目录（SSPAI）` 样式下，TOC 以透明边缘 rail 展示章节短横线；hover 时短横线向外产生 wave 延展，并在 rail 外侧显示当前标题预览。
+
+**用户故事**：作为沉浸式阅读长文的用户，我希望页面边缘只保留低侵扰的位置感知，但在我主动悬停时能快速看清对应章节标题。
+
+**验收标准**：
+
+- Given TOC 位置为右侧，When 用户悬停某个 rail item，Then 高亮短横线向左侧正文方向延展，预览气泡显示在高亮条左侧且不遮挡 rail。
+- Given TOC 位置为左侧，When 用户悬停某个 rail item，Then 高亮短横线向右侧正文方向延展，预览气泡显示在高亮条右侧且不遮挡 rail。
+- Given 用户在 rail 上移动鼠标，When hover wave 更新，Then `#github-toc` 本体不发生左右位移，只更新相关短横线的 transform 与宽度表现。
+- Given 预览气泡已显示，When 检查 DOM，Then `.toc-rail-preview` 作为 `document.body` 子节点使用 `position: fixed` 定位，避免被 transform 祖先影响。
+- Given rail 附近页面背景为浅色条带或深色 surface，When 自适应主题执行，Then rail、独立回顶按钮与预览气泡使用克制的局部 CSS 变量保持可读，rail 本体仍为透明背景。
+- Given 用户离开 rail 或 TOC 重绘，When 预览关闭，Then 旧的 `.is-previewed` 状态被清理，不应残留高亮。
+- Given 用户启用 `prefers-reduced-motion: reduce`，When 悬停 SSPAI rail，Then wave 动画可以停用，但标题预览仍应显示。
+
+**边界情况**：
+
+- Hover wave 布局只缓存可视区域附近 item，并预计算基础宽度，避免长目录在 pointer move 中频繁全量读写布局。
+- 预览气泡需限制在视口内，并与 hover 高亮条保持同一垂直中心。
+- `.toc-rail-link` 允许 overflow visible，避免右侧 rail 向左延展时圆角端被父级裁切成平角。
 
 ---
 
@@ -835,7 +859,7 @@
 
 - **Manifest 版本**：3
 - **扩展名称**：Smart TOC & Scroll
-- **版本号**：2.3
+- **版本号**：2.5
 - **所需权限**：`activeTab`、`storage`
 - **主机权限**：`<all_urls>`（所有 HTTP/HTTPS 页面）
 - **Options 页面**：`options.html`
@@ -846,4 +870,4 @@
 
 ---
 
-*本文档由 Claude Code 基于源码分析自动生成，生成日期：2026-03-16。*
+*本文档基于源码分析整理，并已按 v2.5 当前行为更新，日期：2026-06-30。*

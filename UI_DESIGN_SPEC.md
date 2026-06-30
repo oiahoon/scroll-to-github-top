@@ -1,7 +1,7 @@
 # Smart TOC & Scroll — UI/UX 优化设计规范
 
-> **版本**：v2.3 已落地整理版
-> **生成日期**：2026-03-16
+> **版本**：v2.5 已落地整理版
+> **更新日期**：2026-06-30
 > **适用文件**：toc.css、themes.css、options.html、options.css
 
 ---
@@ -92,7 +92,33 @@
 └── svg                                ← 向上箭头图标
 ```
 
-### 2.3 设置页面结构
+### 2.3 SSPAI 阅读进度目录结构
+
+`阅读进度目录（SSPAI）` 不使用标准展开面板，而是由透明 rail、短横线 item、独立回顶按钮和 body-level 标题预览组成：
+
+```
+#github-toc.github-toc.theme-preset-sspai
+└── .toc-tree.toc-tree-sspai
+    └── ul.toc-list.toc-list-sspai
+        ├── li.toc-item.level-1
+        │   └── a.toc-rail-link
+        │       └── span.toc-rail-bar
+        └── li.toc-item.level-2 / level-3 / ...
+
+body
+└── .toc-rail-preview                  ← fixed 预览层，避免受 rail transform 影响
+```
+
+设计约束：
+
+- `#github-toc.theme-preset-sspai` 本体保持透明背景，不使用面板底色。
+- Hover 时 rail 本体不左右移动，只让相关 `.toc-rail-bar` 向页面正文方向延展。
+- 右侧 rail 向左展开，预览在高亮条左侧；左侧 rail 向右展开，预览在高亮条右侧。
+- `.toc-rail-link` 允许 `overflow: visible`，保证延展条两端圆角不会被裁切。
+- `.toc-rail-preview` 使用独立 fixed 层，垂直中心与当前 hover item 对齐，并限制在视口内。
+- 局部自适应配色只调整 rail、回顶按钮和预览的 CSS 变量，避免大面积改变宿主页面视觉。
+
+### 2.4 设置页面结构
 
 ```
 body
@@ -1384,4 +1410,4 @@ max-height：min(480px, calc(100vh - 64px))
 
 ---
 
-*本规范基于 Smart TOC & Scroll v2.2 基线问题分析形成，并已按 v2.3 当前落地状态整理，日期：2026-03-16。*
+*本规范基于 Smart TOC & Scroll v2.2 基线问题分析形成，并已按 v2.5 当前落地状态整理，日期：2026-06-30。*
