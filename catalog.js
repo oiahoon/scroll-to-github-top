@@ -31,12 +31,19 @@
   let tocTopButton = null;
   let tocCountBadge = null;
   let scrollTopButton = null;
+  let tocRailPreview = null;
 
   let longPressTimer = null;
   let longPressTriggered = false;
   let hoverOpenTimer = null;
   let hoverCloseTimer = null;
   let isPinnedOpen = false;
+  let railWaveFrame = null;
+  let lastRailPointerY = null;
+  let railWaveItems = [];
+  let railWaveLayout = [];
+  let railPreviewItem = null;
+  const railWaveAffectedItems = new Set();
   let performancePanelVisible = false;
   let performanceStatsTimer = null;
   let performanceStatsContainer = null;
@@ -536,6 +543,11 @@
     tocList.setAttribute('aria-label', '文章目录');
     tocTree.appendChild(tocList);
     tocContainer.appendChild(tocTree);
+
+    tocRailPreview = document.createElement('div');
+    tocRailPreview.className = 'toc-rail-preview';
+    tocRailPreview.setAttribute('aria-hidden', 'true');
+    tocContainer.appendChild(tocRailPreview);
 
     scrollTopButton = document.createElement('button');
     scrollTopButton.id = 'github-sst';
@@ -1126,6 +1138,9 @@
     if (!tocList) return;
 
     tocList.innerHTML = '';
+    railWaveItems = [];
+    railWaveLayout = [];
+    railPreviewItem = null;
     headers.forEach((header) => {
       const item = createTocItem(header);
       if (item) {
@@ -1304,8 +1319,13 @@
   }
 
   function shouldShowToc() {
+    if (settings.forceShow) {
+      return headerCount >= settings.minHeaders;
+    }
     const threshold = window.innerHeight * settings.showAfterScrollScreens;
-    return headerCount >= settings.minHeaders && getScrollTop() > threshold;
+    return headerCount >= settings.minHeaders && (
+      settings.showAfterScrollScreens <= 0 || getScrollTop() > threshold
+    );
   }
 
   function updateVisibility() {
@@ -1538,14 +1558,185 @@
   }
 
   function setupSspaiInteractions() {
-    tocContainer.addEventListener('mouseenter', scheduleHoverOpen);
-    tocContainer.addEventListener('mouseleave', scheduleHoverClose);
+    function getRailWaveItems() {
+      if (!tocList) return [];
+      if (railWaveItems.length === 0) {
+        railWaveItems = Array.from(tocList.querySelectorAll('.toc-item:not(.no-headers)'))
+          .map((item) => ({
+            item,
+            target: item.querySelector('.toc-rail-bar') || item
+          }));
+      }
+      return railWaveItems;
+    }
+
+    function refreshRailWaveLayout() {
+      railWaveLayout = getRailWaveItems().map(({ item, target }) => {
+        const rect = target.getBoundingClientRect();
+        return {
+          item,
+          centerY: rect.top + rect.height / 2
+        };
+      });
+    }
+
+    function getRailBaseWidth(item) {
+      const level = item.dataset.level;
+      if (level === '1') return 26;
+      if (level === '2') return 20;
+      if (level === '3') return 16;
+      return 12;
+    }
+
+    function positionRailPreview(item) {
+      if (!tocRailPreview || !item) return;
+
+      const bar = item.querySelector('.toc-rail-bar');
+      const label = item.querySelector('.toc-rail-label');
+      if (!bar || !label) return;
+
+      const rect = bar.getBoundingClientRect();
+      const isLeft = tocContainer.classList.contains('position-left');
+      const offset = 18;
+
+      tocRailPreview.textContent = label.textContent || '';
+      tocRailPreview.classList.toggle('position-left', isLeft);
+      tocRailPreview.classList.toggle('position-right', !isLeft);
+      tocRailPreview.style.top = `${rect.top + rect.height / 2}px`;
+
+      if (isLeft) {
+        tocRailPreview.style.left = `${rect.right + offset}px`;
+        tocRailPreview.style.right = 'auto';
+      } else {
+        tocRailPreview.style.left = 'auto';
+        tocRailPreview.style.right = `${window.innerWidth - rect.left + offset}px`;
+      }
+    }
+
+    function setRailPreviewItem(nextItem) {
+      if (railPreviewItem === nextItem) return;
+      if (railPreviewItem) {
+        railPreviewItem.classList.remove('is-previewed');
+      }
+      railPreviewItem = nextItem;
+      if (railPreviewItem) {
+        railPreviewItem.classList.add('is-previewed');
+        positionRailPreview(railPreviewItem);
+        if (tocRailPreview) {
+          tocRailPreview.classList.add('is-visible');
+        }
+      } else if (tocRailPreview) {
+        tocRailPreview.classList.remove('is-visible');
+      }
+    }
+
+    function resetRailWave() {
+      if (!tocList) return;
+      if (railWaveFrame) {
+        window.cancelAnimationFrame(railWaveFrame);
+        railWaveFrame = null;
+      }
+      lastRailPointerY = null;
+      setRailPreviewItem(null);
+      getRailWaveItems().forEach(({ item }) => {
+        item.style.removeProperty('--toc-rail-wave-width');
+        item.style.removeProperty('--toc-rail-wave-opacity');
+        item.style.removeProperty('--toc-rail-wave-shift');
+        item.style.removeProperty('--toc-rail-wave-scale-x');
+        item.style.removeProperty('--toc-rail-wave-scale');
+      });
+      railWaveAffectedItems.clear();
+      railWaveLayout = [];
+    }
+
+    function updateRailWave(pointerY) {
+      if (!tocList) return;
+
+      if (railWaveLayout.length === 0) {
+        refreshRailWaveLayout();
+      }
+
+      const items = railWaveLayout;
+      const maxDistance = 88;
+      let nearestItem = null;
+      let nearestDistance = Infinity;
+
+      items.forEach(({ item, centerY }) => {
+        const distance = Math.abs(pointerY - centerY);
+        const rawStrength = Math.max(0, 1 - distance / maxDistance);
+        const strength = rawStrength * rawStrength * (3 - 2 * rawStrength);
+        const shiftDirection = tocContainer.classList.contains('position-left') ? 1 : -1;
+        const baseWidth = getRailBaseWidth(item);
+        const waveWidth = strength * 24;
+
+        if (distance < nearestDistance) {
+          nearestDistance = distance;
+          nearestItem = item;
+        }
+
+        if (strength > 0) {
+          item.style.setProperty('--toc-rail-wave-width', `${waveWidth.toFixed(2)}px`);
+          item.style.setProperty('--toc-rail-wave-opacity', (0.62 + strength * 0.38).toFixed(3));
+          item.style.setProperty('--toc-rail-wave-shift', `${(strength * 2 * shiftDirection).toFixed(2)}px`);
+          item.style.setProperty('--toc-rail-wave-scale-x', ((baseWidth + waveWidth) / baseWidth).toFixed(3));
+          item.style.setProperty('--toc-rail-wave-scale', (1 + strength * 0.24).toFixed(3));
+          railWaveAffectedItems.add(item);
+        } else if (railWaveAffectedItems.has(item)) {
+          item.style.removeProperty('--toc-rail-wave-width');
+          item.style.removeProperty('--toc-rail-wave-opacity');
+          item.style.removeProperty('--toc-rail-wave-shift');
+          item.style.removeProperty('--toc-rail-wave-scale-x');
+          item.style.removeProperty('--toc-rail-wave-scale');
+          railWaveAffectedItems.delete(item);
+        }
+      });
+
+      setRailPreviewItem(nearestDistance <= maxDistance ? nearestItem : null);
+      if (railPreviewItem) {
+        positionRailPreview(railPreviewItem);
+      }
+    }
+
+    function scheduleRailWave(e) {
+      if (!tocList || window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+
+      lastRailPointerY = e.clientY;
+      if (railWaveFrame) return;
+
+      railWaveFrame = window.requestAnimationFrame(() => {
+        railWaveFrame = null;
+        if (lastRailPointerY !== null) {
+          updateRailWave(lastRailPointerY);
+        }
+      });
+    }
+
+    tocContainer.addEventListener('mouseenter', () => {
+      refreshRailWaveLayout();
+      scheduleHoverOpen();
+    });
+    tocContainer.addEventListener('pointermove', scheduleRailWave);
+    tocContainer.addEventListener('mouseleave', () => {
+      resetRailWave();
+      scheduleHoverClose();
+    });
     tocContainer.addEventListener('focusin', () => toggleExpanded(true));
     tocContainer.addEventListener('focusout', (e) => {
       if (!tocContainer.contains(e.relatedTarget)) {
+        resetRailWave();
         scheduleHoverClose();
       }
     });
+
+    if (tocList) {
+      tocList.addEventListener('scroll', () => {
+        railWaveLayout = [];
+      }, { passive: true });
+    }
+
+    window.addEventListener('resize', () => {
+      railWaveLayout = [];
+    }, { passive: true });
 
     if (scrollTopButton) {
       scrollTopButton.addEventListener('click', (e) => {
