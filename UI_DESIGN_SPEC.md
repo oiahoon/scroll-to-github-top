@@ -123,20 +123,22 @@ body
 ```
 body
 └── main.page
-    ├── header.page-header
-    │   ├── .page-header-icon          ← 新增：扩展图标
-    │   ├── h1
-    │   └── p.page-subtitle
-    ├── section.card  (交互方式)
-    │   ├── .card-header
-    │   │   ├── .card-icon             ← 新增：区块图标
-    │   │   └── h2
-    │   └── .field
-    ├── section.card  (显示条件)
-    ├── section.card  (位置与禁用)
-    └── .actions
-        ├── button#save
-        └── span#status
+    └── section.settings-panel
+        ├── header.page-header
+        │   ├── h1
+        │   └── p.page-subtitle
+        ├── .settings-list
+        │   ├── section.setting-row  (阅读导航样式)
+        │   ├── section.setting-row  (交互方式)
+        │   ├── section.setting-row  (显示条件)
+        │   ├── section.setting-row  (位置)
+        │   ├── section.setting-row  (兼容策略)
+        │   └── section.setting-row  (禁用域名)
+        └── footer.settings-footer
+            ├── 隐私说明
+            └── .actions
+                ├── span#status
+                └── button#save
 ```
 
 ---
@@ -782,176 +784,134 @@ SVG 外层容器：宽高 18px
 
 ## 9. Options 设置页面现代化
 
-### 9.1 当前问题分析
+### 9.1 设计目标
 
-- 页面头部过于简单，无扩展标识
-- 各卡片无图标区分，视觉扫描效率低
-- 表单控件（input/select/textarea）缺少 focus ring 细化
-- `button#save` hover/active/focus 状态未定义
-- `#status` 文字仅颜色变化，无动效反馈
-- 页面无暗色模式支持
+- 与 Chrome Store 素材里的设置页保持一致，避免商店介绍和真实配置页面割裂。
+- 从竖向多卡片表单改为单一宽面板，降低页面碎片感。
+- 重要选择项使用分段按钮，减少下拉框带来的隐藏信息。
+- 兼容策略使用 pill toggle，表达“低干扰 / 强制显示”的互斥倾向。
+- 保留所有高级配置：展开方式、显示条件、位置、禁用域名、已有控件避让和强制显示。
 
-### 9.2 页面整体布局调整
-
-```
-最大宽度：640px（从 720px 缩小，内容更聚焦）
-外边距：40px auto 80px（顶部留白增大）
-横向内边距：24px（移动端适配，见第 10 节）
-```
-
-### 9.3 页面头部（.page-header）
+### 9.2 页面整体布局
 
 ```
-布局：flex, align-items: flex-start, gap: 14px
-内边距：0 0 32px 0
-分隔线：底部 1px solid var(--border) 分隔头部与内容
+.page
+  width: min(1116px, calc(100vw - 48px))
+  margin: 58px auto
 
-扩展图标区块：
-  - 尺寸：44px × 44px
-  - 圆角：10px
-  - 背景：linear-gradient(135deg, #0969da 0%, #218bff 100%)
-  - 内含白色 SVG 图标（书签/列表类型）
-  - 阴影：0 2px 8px rgba(9, 105, 218, 0.30)
-
-标题文字：
-  - h1: font-size: 22px, font-weight: 700, color: var(--text), margin: 0 0 4px
-  - 副标题: font-size: 13px, color: var(--muted), line-height: 1.5
+.settings-panel
+  background: var(--panel-bg)
+  border-radius: 16px
+  border: 1px solid var(--border-soft)
+  box-shadow: 0 16px 44px rgba(15, 23, 42, 0.08)
 ```
 
-### 9.4 卡片（.card）细化
+移动端小于 560px 时，面板铺满视口，去掉圆角和阴影，形成系统设置页式体验。
+
+### 9.3 页面头部
+
+```
+.page-header
+  margin: 0 44px
+  padding: 32px 0 34px
+  border-bottom: 1px solid var(--border)
+
+h1
+  font-size: 32px
+  font-weight: 700
+
+.page-subtitle
+  font-size: 16px
+  color: var(--muted)
+```
+
+头部不再使用独立图标卡片，减少装饰噪音，把视觉焦点留给设置内容。
+
+### 9.4 设置行（.setting-row）
+
+每一行左侧是说明，右侧是具体控件：
 
 ```css
-.card {
-  background: var(--card);
-  border: 1px solid var(--border);
-  border-radius: 12px;
-  padding: 0;              /* 移除外层 padding，改为内部分区控制 */
-  margin-bottom: 12px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
-  overflow: hidden;        /* 确保圆角裁剪子元素 */
-}
-
-.card-header {
-  display: flex;
+.setting-row {
+  display: grid;
+  grid-template-columns: minmax(260px, 1fr) minmax(340px, auto);
   align-items: center;
-  gap: 10px;
-  padding: 16px 20px;
-  border-bottom: 1px solid var(--border);
-}
-
-.card-icon {
-  width: 32px;
-  height: 32px;
-  border-radius: 8px;
-  background: var(--icon-bg);    /* 每个卡片不同 */
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.card-body {
-  padding: 16px 20px;
+  gap: 28px;
+  min-height: 104px;
+  padding: 20px 28px;
+  background: var(--row-bg);
+  border-radius: 10px;
 }
 ```
 
-各卡片图标颜色建议：
-- 交互方式：蓝色系，`--icon-bg: rgba(9, 105, 218, 0.10)`，图标色 `#0969da`
-- 显示条件：橙色系，`--icon-bg: rgba(227, 119, 12, 0.10)`，图标色 `#e3770c`
-- 位置与禁用：灰色系，`--icon-bg: rgba(100, 110, 120, 0.10)`，图标色 `#6b7280`
+设置行包括：
+- 阅读导航样式
+- 交互方式
+- 显示条件
+- 位置
+- 兼容策略
+- 禁用域名
 
-### 9.5 表单控件视觉状态
+### 9.5 控件规范
 
-#### Select / Input / Textarea
+#### 分段按钮
 
-```css
-.field input,
-.field select,
-.field textarea {
-  border: 1.5px solid var(--border);
-  border-radius: 8px;
-  padding: 9px 12px;
-  font-size: 14px;
-  background: var(--input-bg);
-  color: var(--text);
-  transition: border-color 0.15s ease, box-shadow 0.15s ease;
-  outline: none;
-  width: 100%;
-}
-```
+- 用于 `themePreset`、`expandMode` 和 `position`。
+- 真实状态由隐藏的原生 `select` 保存，按钮负责可见交互。
+- 每个按钮使用 `aria-pressed`，点击后同步 select value 并触发 `change`。
+- 选中态使用深色实心 pill；次要推荐项可使用浅蓝 pill。
 
-各状态规范：
+#### 数字输入
 
-| 状态 | border-color | box-shadow | background |
-|---|---|---|---|
-| default | var(--border) `#e5e7eb` | none | #ffffff |
-| hover | `#d1d5db` | none | #ffffff |
-| focus | var(--accent) `#1f6feb` | 0 0 0 3px rgba(31, 111, 235, 0.15) | #ffffff |
-| disabled | `#f3f4f6` | none | `#f9fafb` |
-| error（如输入非法域名） | `#dc2626` | 0 0 0 3px rgba(220, 38, 38, 0.12) | #fff5f5 |
+- `showAfterScrollScreens` 和 `minHeaders` 放在紧凑 pill 容器中。
+- 输入框固定宽度，避免数值变动造成布局跳动。
 
-#### Checkbox 样式升级
+#### 兼容策略开关
 
-用自定义 CSS 替代原生 checkbox 外观（保留原生 checkbox 功能，通过 `appearance: none` 隐藏默认样式）：
+- `avoidExistingWidgets` 与 `forceShow` 使用 pill toggle。
+- `forceShow` 打开时自动取消并禁用 `avoidExistingWidgets`。
+- 禁用态通过 `:has(input:disabled)` 降低整体透明度。
 
-```
-尺寸：18px × 18px
-圆角：5px
-未勾选：background: #fff, border: 1.5px solid var(--border)
-已勾选：background: var(--accent), border-color: var(--accent)
-       内有白色勾号 SVG（通过 background-image 或 ::after 实现）
-focus-visible：box-shadow: 0 0 0 3px rgba(31, 111, 235, 0.20)
-disabled：opacity: 0.45, cursor: not-allowed
-```
+#### 禁用域名
 
-**Checkbox 禁用状态**（对应 `avoidExistingWidgets` 在 `forceShow` 勾选后禁用）：
-```
-整个 .field 添加 .is-disabled class
-.is-disabled label { opacity: 0.45; cursor: not-allowed; }
-.is-disabled label 添加 title="已由「始终显示」选项接管"
-```
+- 使用右侧 textarea，宽度不超过 420px。
+- 背景与其他 pill 控件一致，保持设置行整体感。
 
 ### 9.6 保存按钮（#save）完整状态规范
 
 ```css
 button#save {
-  background: var(--accent);     /* #1f6feb */
-  color: #ffffff;
-  border: none;
-  border-radius: 8px;            /* 从 999px 改为 8px，更现代 */
-  padding: 10px 20px;
-  font-size: 14px;
-  font-weight: 500;
-  cursor: pointer;
-  transition: background-color 0.15s ease,
-              box-shadow 0.15s ease,
-              transform 0.10s ease;
+  min-height: 38px;
+  padding: 0 18px;
+  border-radius: 999px;
+  background: var(--accent-strong);
+  color: var(--panel-bg);
+  font-size: 13px;
+  font-weight: 650;
 }
 ```
 
 各状态：
 
-| 状态 | background | box-shadow | transform |
-|---|---|---|---|
-| default | `#1f6feb` | 0 1px 3px rgba(31,111,235,0.30) | none |
-| hover | `#1b63d3`（加深 5%） | 0 3px 8px rgba(31,111,235,0.35) | translateY(-1px) |
-| active | `#1859bf`（加深 10%） | 0 1px 2px rgba(31,111,235,0.20) | translateY(0) |
-| focus-visible | `#1f6feb` | 0 0 0 3px rgba(31,111,235,0.35) | none |
-| disabled | `#93b4f5` | none | none |
-| loading（保存中） | `#1f6feb` | — | 按钮内显示旋转圆圈图标 |
+| 状态 | 样式 |
+|---|---|
+| default | 深色实心 pill |
+| hover | opacity 0.92 |
+| active | translateY(1px) |
+| focus-visible | var(--focus-ring) |
+| disabled | opacity 降低并禁止点击 |
 
 ### 9.7 状态提示（#status）动效
 
-当前文字直接出现/消失，建议增加 fade + slide 动效：
+保存状态使用轻量 fade + slide，不额外占用布局：
 
 ```css
 #status {
+  min-width: 44px;
   font-size: 13px;
-  color: #16a34a;            /* 成功绿色（从灰色 --muted 改为语义色） */
-  display: flex;
-  align-items: center;
-  gap: 4px;
+  color: var(--success);
   opacity: 0;
-  transform: translateX(-4px);
+  transform: translateX(4px);
   transition: opacity 0.20s ease, transform 0.20s ease;
 }
 
@@ -961,31 +921,26 @@ button#save {
 }
 ```
 
-"已保存"状态应在文字前加一个绿色勾选图标（SVG inline，16px）。
-
 ### 9.8 暗色模式（options 页面）
 
-在 `options.css` 中增加暗色变量覆盖：
+暗色模式延续同一套面板结构，只替换 token：
 
 ```css
 @media (prefers-color-scheme: dark) {
   :root {
-    color-scheme: dark;
-    --bg:     #0d1117;
-    --card:   #161b22;
-    --text:   #e6edf3;
-    --muted:  #7d8590;
-    --accent: #58a6ff;
-    --border: #30363d;
-    --input-bg: #0d1117;
-  }
-
-  button#save {
-    background: #238636;     /* GitHub 暗色模式绿色保存按钮 */
-  }
-
-  button#save:hover {
-    background: #2ea043;
+    --page-bg: #0f141d;
+    --panel-bg: #151b26;
+    --row-bg: #1b2330;
+    --row-bg-hover: #202a39;
+    --text: #edf2f8;
+    --muted: #a7b2c3;
+    --border: #2f3a4a;
+    --border-soft: #263142;
+    --control-bg: #111722;
+    --accent: #74b7ff;
+    --accent-soft: rgba(116, 183, 255, 0.14);
+    --accent-strong: #e7f2ff;
+    --success: #51d481;
   }
 }
 ```
@@ -1052,24 +1007,32 @@ max-height：min(480px, calc(100vh - 64px))
 
 ```css
 .page {
-  max-width: 640px;
-  margin: 40px auto 80px;
-  padding: 0 24px;
+  width: min(1116px, calc(100vw - 48px));
+  margin: 58px auto;
 }
 
-/* 移动端：减少外边距 */
-@media (max-width: 640px) {
+@media (max-width: 920px) {
   .page {
-    margin: 16px auto 40px;
-    padding: 0 16px;
+    width: min(760px, calc(100vw - 32px));
+    margin: 28px auto;
   }
 
-  .card-header {
-    padding: 14px 16px;
+  .setting-row {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 560px) {
+  .page {
+    width: 100%;
+    margin: 0;
   }
 
-  .card-body {
-    padding: 14px 16px;
+  .settings-panel {
+    min-height: 100vh;
+    border-width: 0;
+    border-radius: 0;
+    box-shadow: none;
   }
 }
 ```

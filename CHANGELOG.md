@@ -14,6 +14,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - 新增 `test-pages/rail-hover-performance.html` 的 `position` 与 `surface` 测试参数，用于复现 left/right、dark/light/lightstrip 等场景
 
 ### Changed
+- Options 页面改为与商店素材一致的宽面板设置界面，使用横向设置行、分段按钮和更低干扰的兼容策略开关
 - 阅读进度 rail 保持透明背景，hover 高亮条和预览模块各自承担可读性，不给 rail 本体增加面板底色
 - 阅读进度 hover 预览改为 `position: fixed` 的 body 子节点，避免被 transform 祖先改变定位参照导致错位
 - Hover wave 布局只缓存可视区域附近的 rail item，并预计算基础宽度，减少 pointer move 过程中的布局读取与写入

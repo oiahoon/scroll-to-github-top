@@ -26,6 +26,8 @@ const elements = {
   status: document.getElementById('status')
 };
 
+const segmentedControls = Array.from(document.querySelectorAll('[data-control-for]'));
+
 const expandModeDescriptions = {
   hover: '推荐给桌面端阅读场景。悬停可预览目录，点击浮标可固定展开；移开后自动收起。',
   click: '适合希望目录稳定停留的场景。点击浮标打开或关闭目录。',
@@ -54,6 +56,45 @@ function renderStatus(message) {
       elements.status.textContent = '';
     }, 200);
   }, 1500);
+}
+
+function getControlElement(controlId) {
+  return elements[controlId] || document.getElementById(controlId);
+}
+
+function syncSegmentedControl(controlId) {
+  const source = getControlElement(controlId);
+  const control = segmentedControls.find((item) => item.dataset.controlFor === controlId);
+  if (!source || !control) return;
+
+  const buttons = Array.from(control.querySelectorAll('button[data-value]'));
+  buttons.forEach((button) => {
+    const isActive = button.dataset.value === source.value;
+    button.classList.toggle('is-active', isActive);
+    button.classList.toggle('is-secondary-active', !isActive && controlId === 'themePreset');
+    button.disabled = source.disabled;
+    button.setAttribute('aria-pressed', isActive ? 'true' : 'false');
+  });
+}
+
+function syncSegmentedControls() {
+  segmentedControls.forEach((control) => syncSegmentedControl(control.dataset.controlFor));
+}
+
+function setupSegmentedControls() {
+  segmentedControls.forEach((control) => {
+    const source = getControlElement(control.dataset.controlFor);
+    if (!source) return;
+
+    control.querySelectorAll('button[data-value]').forEach((button) => {
+      button.addEventListener('click', () => {
+        if (source.disabled) return;
+        source.value = button.dataset.value;
+        source.dispatchEvent(new Event('change', { bubbles: true }));
+        syncSegmentedControl(control.dataset.controlFor);
+      });
+    });
+  });
 }
 
 function loadSettings() {
@@ -89,6 +130,7 @@ function bindForm(settings) {
   syncThemePreset();
   syncExpandModeHint();
   syncForceShow();
+  syncSegmentedControls();
 }
 
 function syncExpandModeHint() {
@@ -104,6 +146,8 @@ function syncThemePreset() {
   elements.themePresetHint.textContent = themePresetDescriptions[elements.themePreset.value] || themePresetDescriptions.default;
   elements.expandMode.disabled = isSspai;
   syncExpandModeHint();
+  syncSegmentedControl('themePreset');
+  syncSegmentedControl('expandMode');
 }
 
 function syncForceShow() {
@@ -133,6 +177,12 @@ elements.save.addEventListener('click', async () => {
 
 elements.forceShow.addEventListener('change', syncForceShow);
 elements.themePreset.addEventListener('change', syncThemePreset);
-elements.expandMode.addEventListener('change', syncExpandModeHint);
+elements.expandMode.addEventListener('change', () => {
+  syncExpandModeHint();
+  syncSegmentedControl('expandMode');
+});
+elements.position.addEventListener('change', () => syncSegmentedControl('position'));
+
+setupSegmentedControls();
 
 loadSettings().then(bindForm);

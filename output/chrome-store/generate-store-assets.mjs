@@ -174,27 +174,39 @@ function optionsPage() {
   body += text(126, 150, 'Reading navigation settings', 16, '#667085', 500);
   body += rect(126, 190, 1004, 1, 0, '#e4e9f2');
 
-  const cards = [
-    ['Reading navigation style', 'Choose the outline that best matches the page.', 'Standard TOC Panel', 'Reading Progress Outline'],
-    ['Display and placement', 'Keep controls close, but away from content.', 'Right side', 'Left side'],
-    ['Compatibility', 'Avoid duplicate page widgets automatically.', 'Auto avoid existing TOC', 'Force show when needed'],
-    ['Adaptive appearance', 'Adjust gently for light and dark page surfaces.', 'Auto contrast', 'Local progress styling']
+  const rows = [
+    ['阅读导航样式', '选择适合当前页面的目录呈现方式。', '标准目录面板', '阅读进度目录'],
+    ['交互方式', '悬停预览、点击开关，或短按回顶 / 长按展开。', '悬停预览', '点击开关'],
+    ['显示条件', '控制目录出现的时机，避免短页面被打扰。', '滚动屏数 1', '最少标题 3'],
+    ['位置', '让浮层靠近阅读边缘，同时避开正文主要内容。', '右侧', '左侧'],
+    ['兼容策略', '页面已有目录或回顶控件时，减少重复干扰。', '自动避让已有控件', '始终显示'],
+    ['禁用域名', '用逗号分隔多个域名。', 'example.com, docs.example.org', '']
   ];
 
   let y = 230;
-  cards.forEach((card, index) => {
-    body += rect(126, y, 1004, 104, 10, '#f8fafc', '#e1e7f0');
-    body += text(154, y + 36, card[0], 19, '#182033', 720);
-    body += text(154, y + 65, card[1], 14, '#667085');
-    body += pill(772, y + 30, 160, 34, index === 0 ? '#172033' : '#ffffff', index === 0 ? '#172033' : '#cfd8e6');
-    body += text(794, y + 52, card[2], 13, index === 0 ? '#ffffff' : '#263244', 700);
-    body += pill(948, y + 30, 154, 34, index === 0 ? '#e9f4ff' : '#ffffff', index === 0 ? '#99caff' : '#cfd8e6');
-    body += text(970, y + 52, card[3], 13, index === 0 ? '#125a9c' : '#263244', 700);
-    y += 128;
+  rows.forEach((row, index) => {
+    const rowHeight = index === 5 ? 74 : 64;
+    body += rect(126, y, 1004, rowHeight, 10, '#f8fafc', '#e1e7f0');
+    body += text(154, y + 27, row[0], 17, '#182033', 720);
+    body += text(154, y + 49, row[1], 12, '#667085');
+    if (index === 5) {
+      body += rect(760, y + 15, 340, 44, 14, '#ffffff', '#e1e7f0');
+      body += text(780, y + 43, row[2], 13, '#667085', 500);
+    } else {
+      const firstWidth = index === 4 ? 180 : 154;
+      const secondWidth = index === 4 ? 126 : 132;
+      const firstX = 772 - (index === 4 ? 54 : 0);
+      const secondX = firstX + firstWidth + 16;
+      body += pill(firstX, y + 15, firstWidth, 34, index === 0 || index === 1 || index === 3 || index === 4 ? '#172033' : '#ffffff', index === 0 || index === 1 || index === 3 || index === 4 ? '#172033' : '#cfd8e6');
+      body += text(firstX + 22, y + 37, row[2], 13, index === 0 || index === 1 || index === 3 || index === 4 ? '#ffffff' : '#263244', 700);
+      body += pill(secondX, y + 15, secondWidth, 34, index === 0 ? '#e9f4ff' : '#ffffff', index === 0 ? '#99caff' : '#cfd8e6');
+      body += text(secondX + 22, y + 37, row[3], 13, index === 0 ? '#125a9c' : '#263244', 700);
+    }
+    y += rowHeight + 12;
   });
 
-  body += rect(126, 686, 1004, 1, 0, '#e4e9f2');
-  body += text(126, 716, 'Local-only page analysis. Preferences stay in your browser.', 14, '#667085', 500);
+  body += rect(126, 700, 1004, 1, 0, '#e4e9f2');
+  body += text(126, 728, 'Local-only page analysis. Preferences stay in your browser.', 14, '#667085', 500);
   return svg(body);
 }
 
