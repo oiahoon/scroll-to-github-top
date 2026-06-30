@@ -1860,6 +1860,21 @@
       };
     }
 
+    function getClampedRailPreviewY(centerY) {
+      if (!tocRailPreview) return centerY;
+
+      const viewportPadding = 12;
+      const previewHeight = tocRailPreview.offsetHeight || 28;
+      const minY = viewportPadding + previewHeight / 2;
+      const maxY = window.innerHeight - viewportPadding - previewHeight / 2;
+
+      if (maxY < minY) {
+        return window.innerHeight / 2;
+      }
+
+      return clampNumber(centerY, minY, maxY);
+    }
+
     function positionRailPreview(item, layout = getRailPreviewLayout(item)) {
       if (!tocRailPreview || !item) return;
 
@@ -1871,7 +1886,7 @@
       tocRailPreview.textContent = label.textContent || '';
       tocRailPreview.classList.toggle('position-left', isLeft);
       tocRailPreview.classList.toggle('position-right', !isLeft);
-      tocRailPreview.style.top = `${layout.centerY}px`;
+      tocRailPreview.style.top = `${getClampedRailPreviewY(layout.centerY)}px`;
 
       if (isLeft) {
         tocRailPreview.style.left = `${layout.previewEdge + railPreviewGap}px`;

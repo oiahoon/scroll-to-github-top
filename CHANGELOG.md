@@ -24,6 +24,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - 修复同一 rail item 内 hover wave 伸缩时标题预览锚点漂移的问题
 - 修复 `prefers-reduced-motion: reduce` 下阅读进度 hover 标题预览不可见的问题
 - 修复右侧 rail hover 后高亮条左端被裁切成平角的问题
+- 修复 hover 标题预览靠近视口顶部或底部时可能被裁切的问题
 - 修复 `showAfterScrollScreens: 0` 与强制显示测试页中首屏不显示的问题
 - 修复 hover 离开或重新渲染后旧的 `.is-previewed` 状态残留问题
 
