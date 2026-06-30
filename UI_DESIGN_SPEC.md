@@ -92,14 +92,14 @@
 └── svg                                ← 向上箭头图标
 ```
 
-### 2.3 SSPAI 阅读进度目录结构
+### 2.3 阅读进度目录结构
 
-`阅读进度目录（SSPAI）` 不使用标准展开面板，而是由透明 rail、短横线 item、独立回顶按钮和 body-level 标题预览组成：
+`阅读进度目录` 不使用标准展开面板，而是由透明 rail、短横线 item、独立回顶按钮和 body-level 标题预览组成：
 
 ```
-#github-toc.github-toc.theme-preset-sspai
-└── .toc-tree.toc-tree-sspai
-    └── ul.toc-list.toc-list-sspai
+#github-toc.github-toc.[progress-preset-class]
+└── .toc-tree.[progress-tree-class]
+    └── ul.toc-list.[progress-list-class]
         ├── li.toc-item.level-1
         │   └── a.toc-rail-link
         │       └── span.toc-rail-bar
@@ -111,7 +111,7 @@ body
 
 设计约束：
 
-- `#github-toc.theme-preset-sspai` 本体保持透明背景，不使用面板底色。
+- 阅读进度目录容器本体保持透明背景，不使用面板底色。
 - Hover 时 rail 本体不左右移动，只让相关 `.toc-rail-bar` 向页面正文方向延展。
 - 右侧 rail 向左展开，预览在高亮条左侧；左侧 rail 向右展开，预览在高亮条右侧。
 - `.toc-rail-link` 允许 `overflow: visible`，保证延展条两端圆角不会被裁切。
@@ -545,7 +545,7 @@ body
 
 ### 6.5 页面滚动过渡改进建议
 
-当前自定义 `scrollTo` 函数使用线性递归（`perTick = difference / duration * 10`），等速滚动。建议改用浏览器原生 `scrollIntoView({ behavior: 'smooth' })` 或 `window.scrollTo({ top: 0, behavior: 'smooth' })`，利用浏览器内置的 easing 曲线（通常为 ease-in-out），滚动手感更自然。这是 JS 层建议，不在 CSS 范畴内，供开发者参考。
+当前自定义 `scrollTo` 函数使用线性递归（`perTick = difference / duration * 10`），等速滚动。建议改用浏览器原生 `scrollIntoView({ behavior: 'smooth' })` 或 `window.scrollTo({ top: 0, behavior: 'smooth' })`，利用浏览器内置的 easing 曲线（通常为 ease-in-out），滚动手感更自然。这是 JS 层建议，不在 CSS 范畴内，供开发者评估。
 
 ---
 

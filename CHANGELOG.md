@@ -8,21 +8,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [2.5] - 2026-06-30
 
 ### Added
-- `阅读进度目录（SSPAI）` 新增 Codex-style hover wave：悬停时只有短横线向外延展，不再推动整条 rail 左右位移
+- `阅读进度目录` 新增原创 hover wave：悬停时只有短横线向外延展，不再推动整条 rail 左右位移
 - 新增 body-level 标题预览气泡，左右位置会随 TOC rail 镜像：左侧 rail 向右展开并在右侧显示预览，右侧 rail 反向显示
-- 新增 SSPAI rail 局部背景感知配色，基于 rail 贴近区域的页面 surface 选择轻量 token，避免在浅色条带或深色页面上失去对比
-- 新增 `test-pages/sspai-hover-performance.html` 的 `position` 与 `surface` 测试参数，用于复现 left/right、dark/light/lightstrip 等场景
+- 新增阅读进度 rail 局部背景感知配色，基于 rail 贴近区域的页面 surface 选择轻量 token，避免在浅色条带或深色页面上失去对比
+- 新增 `test-pages/rail-hover-performance.html` 的 `position` 与 `surface` 测试参数，用于复现 left/right、dark/light/lightstrip 等场景
 
 ### Changed
-- SSPAI rail 保持透明背景，hover 高亮条和预览模块各自承担可读性，不给 rail 本体增加面板底色
-- SSPAI hover 预览改为 `position: fixed` 的 body 子节点，避免被 transform 祖先改变定位参照导致错位
+- 阅读进度 rail 保持透明背景，hover 高亮条和预览模块各自承担可读性，不给 rail 本体增加面板底色
+- 阅读进度 hover 预览改为 `position: fixed` 的 body 子节点，避免被 transform 祖先改变定位参照导致错位
 - Hover wave 布局只缓存可视区域附近的 rail item，并预计算基础宽度，减少 pointer move 过程中的布局读取与写入
 - 自适应配色的调节幅度保持克制，只调整 rail、回顶按钮和预览气泡的局部 CSS 变量，不覆盖宿主页面风格
 
 ### Fixed
-- 修复 SSPAI 预览模块与高亮条垂直错位的问题
+- 修复阅读进度预览模块与高亮条垂直错位的问题
 - 修复同一 rail item 内 hover wave 伸缩时标题预览锚点漂移的问题
-- 修复 `prefers-reduced-motion: reduce` 下 SSPAI hover 标题预览不可见的问题
+- 修复 `prefers-reduced-motion: reduce` 下阅读进度 hover 标题预览不可见的问题
 - 修复右侧 rail hover 后高亮条左端被裁切成平角的问题
 - 修复 `showAfterScrollScreens: 0` 与强制显示测试页中首屏不显示的问题
 - 修复 hover 离开或重新渲染后旧的 `.is-previewed` 状态残留问题
@@ -30,7 +30,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [2.4] - 2026-03-27
 
 ### Added
-- 新增 `阅读进度目录（SSPAI）` 样式，支持低侵扰短横线目录、悬停展开标题与独立回顶按钮
+- 新增 `阅读进度目录` 样式，支持低侵扰短横线目录、悬停展开标题与独立回顶按钮
 - 新增兼容性诊断入口，包括 `data-smart-toc-skip-reason`、`window.__SMART_TOC_LAST_SKIP__`、`window.__SMART_TOC_WIDGET_DIAGNOSTICS__`
 - 新增产品路线图、Chrome Web Store 商店文案草稿与发布说明文档
 
@@ -43,7 +43,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 - 修复 hover 模式闪烁、展开不稳定和双按钮并存等交互问题
-- 修复 `SSPAI` 模式左右位置的镜像对齐，确保短横线始终靠近正文、标题始终位于外侧
+- 修复 `阅读进度目录` 模式左右位置的镜像对齐，确保短横线始终靠近正文、标题始终位于外侧
 - 修复 Astro / View Transitions 站点在客户端跳转、页面恢复或 `body` 内容替换后 TOC 需要刷新才恢复的问题
 - 修复扩展自身 DOM 变化触发无意义重建的问题，降低长文与动态页面上的运行负担
 
@@ -70,7 +70,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - TOC 浮标与展开面板补充键盘可达性与 ARIA 属性
 - Chrome Web Store 打包与自动发布脚本
 - GitHub Actions 发布工作流与发布说明文档
-- 新增 `sspai` 主题预设，支持线状目录与独立回顶按钮
+- 新增阅读进度主题预设，支持线状目录与独立回顶按钮
 - 新增 Chrome Web Store 商店文案草稿，整理产品定位、截图脚本与隐私说明
 
 ### Changed
@@ -79,7 +79,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Options 页面改为 v2.3 视觉样式
 - 性能统计改为按需启用，默认不再持续采样和刷新
 - TOC 更新链路收敛为更保守的重建策略，减少整页频繁扫描
-- 设置页新增主题预设切换，并在 `sspai` 主题下固定为悬停展开
+- 设置页新增主题预设切换，并在阅读进度主题下固定为悬停展开
 - 设置页文案从“换皮肤”收敛为“阅读导航样式”，明确标准目录面板与阅读进度目录的区别
 - 扩展描述同步收敛为“轻量阅读导航”定位，减少与普通回顶插件的同质化表达
 
@@ -90,16 +90,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - 修复 hover 模式下浮标闪烁与 TOC 面板展开不稳定的问题
 - 将 hover 模式打磨为“悬停预览、点击固定”，并优化 click / press 模式语义
 - 将 TOC 入口提示收敛为首次使用阶段提示，避免长期打扰
-- 强化对边缘浮动目录的结构识别，减少在少数派这类页面上的重复注入
+- 强化对边缘浮动目录的结构识别，减少在同类页面上的重复注入
 - 长目录中当前高亮章节会自动滚入可视区域，减少阅读时的定位成本
 - 点击目录项时会立即同步当前高亮并保持该项可见
 - 避让已有控件时会记录命中原因，为兼容性诊断提供基础
 - 已有控件检测开始拆分为通用规则与站点特征规则，便于持续扩展兼容性
 - 正文主内容里的内联目录会优先排除，减少误把正文小目录当成侧栏 TOC 的情况
 - 新增对语义化侧栏导航的通用 TOC 检测，并提供主动刷新诊断快照的方法
-- `标准目录面板` 与 `SSPAI` 阅读目录已开始拆分为独立 UI / interaction 路径，降低后续维护复杂度
+- `标准目录面板` 与 `阅读进度目录` 已开始拆分为独立 UI / interaction 路径，降低后续维护复杂度
 - 目录项渲染已开始抽离，标题结构不变时不再重建整棵 TOC
-- 修正 `SSPAI` 模式在左侧位置时的对齐，标题位于短横线外侧且整体右对齐
+- 修正 `阅读进度目录` 模式在左侧位置时的对齐，标题位于短横线外侧且整体右对齐
 - 当前章节高亮改为 `IntersectionObserver` 优先驱动，滚动监听仅在需要时回退到位置遍历
 - 标题结构不变时不再重复重建标题观察器，并忽略扩展自身节点触发的无意义重建
 

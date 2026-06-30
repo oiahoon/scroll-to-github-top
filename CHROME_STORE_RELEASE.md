@@ -22,7 +22,7 @@
 
 ### 1. 在 Chrome Developer Dashboard 创建 service account
 
-参考官方文档，为 Chrome Web Store API 创建一个 service account，并把它加入开发者后台可发布该扩展的账号范围。
+按照官方文档，为 Chrome Web Store API 创建一个 service account，并把它加入开发者后台可发布该扩展的账号范围。
 
 你需要拿到：
 
@@ -72,7 +72,7 @@
 
 输出文件会放在 `dist/`。
 
-发布前建议确认 `manifest.json`、`CHANGELOG.md` 和商店文案里的版本说明已经同步；当前 SSPAI hover preview 与局部自适应配色对应 `2.5`。
+发布前建议确认 `manifest.json`、`CHANGELOG.md` 和商店文案里的版本说明已经同步；当前阅读进度 hover preview 与局部自适应配色对应 `2.5`。
 
 ## 本地发布
 

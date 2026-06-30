@@ -131,9 +131,9 @@
 
 ---
 
-### 1.7 阅读进度目录（SSPAI）rail 与标题预览
+### 1.7 阅读进度目录 rail 与标题预览
 
-**功能描述**：在 `阅读进度目录（SSPAI）` 样式下，TOC 以透明边缘 rail 展示章节短横线；hover 时短横线向外产生 wave 延展，并在 rail 外侧显示当前标题预览。
+**功能描述**：在 `阅读进度目录` 样式下，TOC 以透明边缘 rail 展示章节短横线；hover 时短横线向外产生 wave 延展，并在 rail 外侧显示当前标题预览。
 
 **用户故事**：作为沉浸式阅读长文的用户，我希望页面边缘只保留低侵扰的位置感知，但在我主动悬停时能快速看清对应章节标题。
 
@@ -145,7 +145,7 @@
 - Given 预览气泡已显示，When 检查 DOM，Then `.toc-rail-preview` 作为 `document.body` 子节点使用 `position: fixed` 定位，避免被 transform 祖先影响。
 - Given rail 附近页面背景为浅色条带或深色 surface，When 自适应主题执行，Then rail、独立回顶按钮与预览气泡使用克制的局部 CSS 变量保持可读，rail 本体仍为透明背景。
 - Given 用户离开 rail 或 TOC 重绘，When 预览关闭，Then 旧的 `.is-previewed` 状态被清理，不应残留高亮。
-- Given 用户启用 `prefers-reduced-motion: reduce`，When 悬停 SSPAI rail，Then wave 动画可以停用，但标题预览仍应显示。
+- Given 用户启用 `prefers-reduced-motion: reduce`，When 悬停阅读进度 rail，Then wave 动画可以停用，但标题预览仍应显示。
 
 **边界情况**：
 
