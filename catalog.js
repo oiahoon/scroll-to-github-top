@@ -45,11 +45,17 @@
   let railWaveItems = [];
   let railWaveLayout = [];
   let railPreviewItem = null;
+  let railPreviewRenderedItem = null;
+  let railPreviewRenderedMeta = { rowCount: 0, currentRowIndex: 0 };
   const railWaveAffectedItems = new Set();
   const railWaveMaxDistance = 88;
   const railWaveMaxWidth = 24;
   const railWaveMaxShift = 2;
   const railPreviewGap = 8;
+  const railPreviewContextRadius = 2;
+  const railPreviewRowHeight = 30;
+  const railPreviewRowGap = 4;
+  const railPreviewPaddingY = 4;
   const scrollTopProximityRadius = 116;
   const scrollTopHoverRadius = 44;
   let adaptiveThemeFrame = null;
@@ -1384,6 +1390,8 @@
       tocRailPreview.classList.remove('is-visible');
     }
     railPreviewItem = null;
+    railPreviewRenderedItem = null;
+    railPreviewRenderedMeta = { rowCount: 0, currentRowIndex: 0 };
     headers.forEach((header) => {
       const item = createTocItem(header);
       if (item) {
@@ -1875,33 +1883,159 @@
       };
     }
 
-    function getClampedRailPreviewY(centerY) {
+    function getClampedRailPreviewTop(centerY, currentRowIndex, rowCount) {
       if (!tocRailPreview) return centerY;
 
       const viewportPadding = 12;
-      const previewHeight = tocRailPreview.offsetHeight || 28;
-      const minY = viewportPadding + previewHeight / 2;
-      const maxY = window.innerHeight - viewportPadding - previewHeight / 2;
+      const previewHeight =
+        railPreviewPaddingY * 2 +
+        rowCount * railPreviewRowHeight +
+        Math.max(0, rowCount - 1) * railPreviewRowGap;
+      const currentRowCenter =
+        railPreviewPaddingY +
+        currentRowIndex * (railPreviewRowHeight + railPreviewRowGap) +
+        railPreviewRowHeight / 2;
+      const minTop = viewportPadding;
+      const maxTop = window.innerHeight - viewportPadding - previewHeight;
 
-      if (maxY < minY) {
-        return window.innerHeight / 2;
+      if (maxTop < minTop) {
+        return viewportPadding;
       }
 
-      return clampNumber(centerY, minY, maxY);
+      return clampNumber(centerY - currentRowCenter, minTop, maxTop);
+    }
+
+    function getRailItemText(item) {
+      const label = item?.querySelector('.toc-rail-label');
+      return label?.textContent?.trim() || '';
+    }
+
+    function getRailPreviewContext(item) {
+      const items = getRailWaveItems().map(({ item: railItem }) => railItem);
+      const index = items.indexOf(item);
+      if (index === -1) {
+        return { rows: [], currentRowIndex: 0, currentIndex: -1, visibleRowCount: 0 };
+      }
+
+      const centerSlot = Math.min(railPreviewContextRadius, Math.max(0, items.length - 1));
+      const visibleRowCount = Math.min(items.length, railPreviewContextRadius * 2 + 1);
+      const rows = items.map((railItem, rowIndex) => ({
+        item: railItem,
+        text: getRailItemText(railItem),
+        distance: Math.abs(rowIndex - index),
+        isCurrent: railItem === item,
+        isBefore: rowIndex < index
+      })).filter((row) => row.text);
+
+      return {
+        rows,
+        currentRowIndex: centerSlot,
+        currentIndex: index,
+        visibleRowCount
+      };
+    }
+
+    function renderRailPreviewContext(item) {
+      if (!tocRailPreview) return { rowCount: 0, currentRowIndex: 0 };
+      if (
+        railPreviewRenderedItem === item &&
+        tocRailPreview.querySelector('.toc-rail-preview-row')
+      ) {
+        return railPreviewRenderedMeta;
+      }
+
+      const { rows, currentRowIndex, currentIndex, visibleRowCount } = getRailPreviewContext(item);
+      let list = tocRailPreview.querySelector('.toc-rail-preview-list');
+      let track = tocRailPreview.querySelector('.toc-rail-preview-track');
+      let focus = tocRailPreview.querySelector('.toc-rail-preview-focus');
+
+      if (!list) {
+        tocRailPreview.textContent = '';
+        list = document.createElement('div');
+        list.className = 'toc-rail-preview-list';
+        tocRailPreview.appendChild(list);
+      }
+
+      if (!track) {
+        track = document.createElement('div');
+        track.className = 'toc-rail-preview-track';
+        list.appendChild(track);
+      }
+
+      if (!focus) {
+        focus = document.createElement('div');
+        focus.className = 'toc-rail-preview-focus';
+        focus.setAttribute('aria-hidden', 'true');
+        list.appendChild(focus);
+      }
+
+      const existingRows = track.querySelectorAll('.toc-rail-preview-row');
+      const shouldRebuildRows = existingRows.length !== rows.length;
+
+      if (shouldRebuildRows) {
+        track.textContent = '';
+      }
+
+      const previewRows = Array.from(track.querySelectorAll('.toc-rail-preview-row'));
+      rows.forEach((row, rowIndex) => {
+        let previewRow = previewRows[rowIndex];
+        if (!previewRow) {
+          previewRow = document.createElement('div');
+          previewRow.dataset.previewIndex = String(rowIndex);
+
+          const text = document.createElement('span');
+          text.className = 'toc-rail-preview-text';
+          previewRow.appendChild(text);
+          track.appendChild(previewRow);
+        }
+
+        const distanceClass = row.distance <= railPreviewContextRadius ? `distance-${row.distance}` : 'distance-far';
+        previewRow.className = [
+          'toc-rail-preview-row',
+          distanceClass,
+          row.isCurrent ? 'is-current' : '',
+          row.isCurrent ? '' : row.isBefore ? 'is-before' : 'is-after'
+        ].filter(Boolean).join(' ');
+        previewRow.dataset.distance = String(row.distance);
+        previewRow.dataset.level = row.item.dataset.level || '1';
+        previewRow.querySelector('.toc-rail-preview-text').textContent = row.text;
+      });
+
+      const focusY = currentRowIndex * (railPreviewRowHeight + railPreviewRowGap);
+      const trackY = focusY - currentIndex * (railPreviewRowHeight + railPreviewRowGap);
+      tocRailPreview.style.setProperty('--toc-rail-focus-y', `${focusY}px`);
+      tocRailPreview.style.setProperty('--toc-rail-track-y', `${trackY}px`);
+      tocRailPreview.style.setProperty('--toc-rail-focus-opacity', rows.length > 0 ? '1' : '0');
+      focus.classList.remove('is-bouncing');
+      focus.offsetWidth;
+      focus.classList.add('is-bouncing');
+
+      railPreviewRenderedItem = item;
+      railPreviewRenderedMeta = {
+        rowCount: visibleRowCount,
+        currentRowIndex: Math.min(currentRowIndex, Math.max(0, rows.length - 1))
+      };
+      return railPreviewRenderedMeta;
     }
 
     function positionRailPreview(item, layout = getRailPreviewLayout(item)) {
       if (!tocRailPreview || !item) return;
 
-      const label = item.querySelector('.toc-rail-label');
-      if (!label || !layout) return;
+      if (!getRailItemText(item) || !layout) return;
 
       const isLeft = tocContainer.classList.contains('position-left');
+      const { rowCount, currentRowIndex } = renderRailPreviewContext(item);
+      if (rowCount === 0) return;
+      const railRect = tocContainer.getBoundingClientRect();
+      const previewAnchorY = railRect.top + railRect.height / 2;
 
-      tocRailPreview.textContent = label.textContent || '';
       tocRailPreview.classList.toggle('position-left', isLeft);
       tocRailPreview.classList.toggle('position-right', !isLeft);
-      tocRailPreview.style.top = `${getClampedRailPreviewY(layout.centerY)}px`;
+      tocRailPreview.style.top = '0';
+      tocRailPreview.style.setProperty(
+        '--toc-rail-preview-y',
+        `${getClampedRailPreviewTop(previewAnchorY, currentRowIndex, rowCount)}px`
+      );
 
       if (isLeft) {
         tocRailPreview.style.left = `${layout.previewEdge + railPreviewGap}px`;
@@ -1925,6 +2059,8 @@
         }
       } else if (tocRailPreview) {
         tocRailPreview.classList.remove('is-visible');
+        railPreviewRenderedItem = null;
+        railPreviewRenderedMeta = { rowCount: 0, currentRowIndex: 0 };
       }
     }
 
@@ -2003,9 +2139,8 @@
       });
 
       const nextPreviewItem = nearestDistance <= railWaveMaxDistance ? nearestItem : null;
-      const previewItemChanged = railPreviewItem !== nextPreviewItem;
       setRailPreviewItem(nextPreviewItem);
-      if (railPreviewItem && previewItemChanged) {
+      if (railPreviewItem) {
         positionRailPreview(railPreviewItem, nearestEntry);
       }
     }
@@ -2029,9 +2164,8 @@
       });
 
       const nextPreviewItem = nearestDistance <= railWaveMaxDistance ? nearestEntry?.item || null : null;
-      const previewItemChanged = railPreviewItem !== nextPreviewItem;
       setRailPreviewItem(nextPreviewItem);
-      if (railPreviewItem && previewItemChanged) {
+      if (railPreviewItem) {
         positionRailPreview(railPreviewItem, nearestEntry);
       }
     }

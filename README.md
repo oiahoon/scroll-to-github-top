@@ -83,7 +83,7 @@
    - 点击面板外部区域或按 `Esc` 可收起固定展开的面板
    - 可用 `Esc` 折叠面板，方向键在目录项间移动
    - 当前阅读位置会在目录中高亮
-   - `阅读进度目录` 默认以低侵扰短横线显示，悬停后只向外延展当前区域并显示标题预览，点击标题跳转；独立回顶按钮会在指针靠近时显形，避免长期遮挡正文
+   - `阅读进度目录` 默认以低侵扰短横线显示，悬停后只向外延展当前区域，并以聚光灯式上下文预览显示当前标题及邻近标题；独立回顶按钮会在指针靠近时显形，避免长期遮挡正文
 
 3. 性能监控
    - 使用 Ctrl + Shift + P 快捷键显示/隐藏性能统计面板
@@ -123,7 +123,7 @@
   - `window.__SMART_TOC_LAST_SKIP__`
   - `window.__SMART_TOC_WIDGET_DIAGNOSTICS__`
   - `window.__SMART_TOC_INSPECT_WIDGETS__()`
-- 阅读进度 rail 视觉调试可使用 `test-pages/rail-hover-performance.html?position=right&surface=lightstrip`，并切换 `position=left/right`、`surface=light/dark/color/lightstrip`、`motion=reduce` 复核镜像方向、预览位置、局部配色与减少动态效果。
+- 阅读进度 rail 视觉调试可使用 `test-pages/rail-hover-performance.html?position=right&surface=lightstrip`，并切换 `position=left/right`、`surface=light/dark/color/lightstrip`、`motion=reduce` 复核镜像方向、预览位置、局部配色与减少动态效果。扫动 toc bar 时，rail wave 应连续响应；预览外框应固定在 rail 纵向中间，内部标题 track 像日期窗口一样滚动，不能出现固定 5 行分片换页感；focus ring 固定在观察窗中心并只在命中新标题时轻微 bounce。
 - 兼容性检测会优先区分“侧栏导航”和“正文内小目录”，减少误跳过
 
 ## 更新日志

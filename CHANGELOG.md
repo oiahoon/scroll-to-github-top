@@ -5,6 +5,18 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.6] - 2026-07-01
+
+### Added
+- 阅读进度目录 hover 预览新增上下文聚光灯：当前标题上下最多各显示 2 个邻近标题，帮助用户快速判断当前位置附近的文章结构
+
+### Changed
+- Hover 预览从单标题气泡升级为透明容器内的多行 surface，邻近行的背景和文字随距离整体渐隐，形成更自然的横向扫光效果
+- 预览外框固定在 TOC rail 的纵向中心，内部标题 track 通过 transform 滚动，形成类似机械手表星期/日期窗口的扫动效果
+- Hover 预览边框收敛为当前标题专属的独立 focus ring，普通邻近标题不再显示边框；focus ring 固定在观察窗中心，并只在命中新标题时做轻微 bounce/pulse
+- Hover 扫动时只有 rail wave 按 pointer 连续响应；preview 外框不跟随 item 或 pointer 微动，避免追赶式抖动
+- 取消固定 5 行分片窗口缓存，改为一次性构建标题 track 并滚动，避免扫动过程中出现换页式断续感
+
 ## [2.5] - 2026-06-30
 
 ### Added

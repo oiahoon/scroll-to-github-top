@@ -106,7 +106,15 @@
         └── li.toc-item.level-2 / level-3 / ...
 
 body
-└── .toc-rail-preview                  ← fixed 预览层，避免受 rail transform 影响
+└── .toc-rail-preview                  ← fixed 上下文预览层，避免受 rail transform 影响
+    └── .toc-rail-preview-list
+        ├── .toc-rail-preview-focus    ← 当前项专属 focus ring，新 item 命中时 bounce/pulse
+        └── .toc-rail-preview-track    ← 全量标题 track，像日期窗口一样上下滚动
+            ├── .toc-rail-preview-row.distance-2
+            ├── .toc-rail-preview-row.distance-1
+            ├── .toc-rail-preview-row.is-current
+            ├── .toc-rail-preview-row.distance-1
+            └── .toc-rail-preview-row.distance-2
 ```
 
 设计约束：
@@ -115,8 +123,32 @@ body
 - Hover 时 rail 本体不左右移动，只让相关 `.toc-rail-bar` 向页面正文方向延展。
 - 右侧 rail 向左展开，预览在高亮条左侧；左侧 rail 向右展开，预览在高亮条右侧。
 - `.toc-rail-link` 允许 `overflow: visible`，保证延展条两端圆角不会被裁切。
-- `.toc-rail-preview` 使用独立 fixed 层，垂直中心与当前 hover item 对齐，并限制在视口内。
+- `.toc-rail-preview` 使用独立 fixed 层，外框固定在 TOC rail 的纵向中心，并限制在视口内。
+- Hover 预览使用固定观察窗 + 全量标题 track：当前项滑入固定 focus ring，视觉类似机械手表星期/日期窗口；观察窗内通常可见当前项上下各 2 个邻近标题。
+- 只有当前项显示清晰边框；边框由 `.toc-rail-preview-focus` 独立绘制，并在命中新 item 时用 `transform` 做克制 bounce/pulse，普通邻近标题不显示边框。
+- Preview 容器不跟随命中 item 或同一 item 内的 pointer 微动；`.toc-rail-preview-track` 只在命中新 item 时通过 transform 滚动。
+- 预览不能使用固定 5 行分片窗口缓存；标题 track 应一次性按当前 TOC 项构建，扫动时只移动 track 并更新当前项 class，避免“每几项换页”的断续感。
 - 局部自适应配色只调整 rail、回顶按钮和预览的 CSS 变量，避免大面积改变宿主页面视觉。
+
+#### 2.3.1 Hover 联动契约
+
+阅读进度目录的 hover 体验由三层协作完成，后续开发必须保持职责分离：
+
+| 层级 | 触发频率 | 职责 | 禁止事项 |
+|---|---|---|---|
+| Rail wave | 每个 `requestAnimationFrame` / pointer move | 根据 pointer Y 连续调整可视区域附近短横线的延展宽度、透明度和轻微位移 | 不移动 `.github-toc` 容器本体；不全量读写所有目录项 |
+| Preview window | 创建后固定 | body-level `.toc-rail-preview` 固定在 rail 纵向中心，作为透明观察窗 | 不跟随命中 item 或 pointer 微动；不做 Y 向 transform transition |
+| Preview track | 仅命中新 item | `.toc-rail-preview-track` 承载全量标题，通过 transform 将当前项滚入固定 focus ring | 不使用固定 5 行分片窗口缓存；不重建分片制造换页感；不在 pointer move 的每像素上重排 DOM |
+| Focus ring | 仅命中新 item | 独立 `.toc-rail-preview-focus` 固定在观察窗中心，只给当前项绘制边框，并触发一次克制 bounce/pulse | 不给邻近项画边框；不让 focus ring 跟随 pointer 每像素移动；不通过“窗口内 rowIndex 变化”制造滑动 |
+
+实现细节：
+
+- `catalog.js` 中的 `updateRailWave(pointerY)` 可以连续读取 pointer Y，但 `positionRailPreview()` 应以 `tocContainer` 的纵向中心作为 preview anchor。
+- `.toc-rail-preview` 是 body 子节点，使用 fixed positioning，避免被 rail 或宿主页面 transform 影响定位。
+- `.toc-rail-preview` 的 transition 只保留 opacity；Y 位置固定在 rail 中心，避免“追赶式”抖动。
+- `.toc-rail-preview-track` 可以用 transform transition 表达机械窗口滚动；track DOM 应在预览首次显示时一次性构建，后续命中新 item 时复用。
+- `.toc-rail-preview-row` 普通邻近项使用透明 border，仅保留背景和文字渐隐；当前项边框由 `.toc-rail-preview-focus` 单独绘制。
+- `prefers-reduced-motion: reduce` 下 preview、row、focus ring 的 transition / animation 必须关闭。
 
 ### 2.4 设置页面结构
 

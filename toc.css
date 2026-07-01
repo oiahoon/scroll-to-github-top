@@ -653,7 +653,9 @@
   .toc-icon,
   .toc-tree,
   .toc-item,
-  .toc-title {
+  .toc-title,
+  .toc-rail-preview,
+  .toc-rail-preview * {
     transition: none !important;
     animation: none !important;
     transition-delay: 0s !important;
@@ -813,43 +815,194 @@
   position: fixed;
   top: 0;
   z-index: 10000;
-  max-width: min(220px, calc(100vw - 96px));
-  padding: 5px 9px;
-  border: 1px solid var(--toc-rail-preview-border, var(--toc-rail-top-border));
-  border-radius: 8px;
-  background: var(--toc-rail-preview-bg, var(--toc-rail-top-bg-hover));
+  --toc-rail-preview-x: 0px;
+  --toc-rail-preview-y: 0px;
+  --toc-rail-preview-scale: 0.96;
+  --toc-rail-focus-y: 0px;
+  --toc-rail-focus-opacity: 0;
+  --toc-rail-track-y: 0px;
+  box-sizing: border-box;
+  width: min(260px, calc(100vw - 96px));
+  height: 174px;
+  padding: 4px;
+  border: 0;
+  border-radius: 10px;
+  background: transparent;
   color: var(--toc-rail-label-active) !important;
   -webkit-backdrop-filter: blur(12px) saturate(160%);
   backdrop-filter: blur(12px) saturate(160%);
-  box-shadow: var(--toc-rail-preview-shadow, 0 10px 24px rgba(0, 0, 0, 0.12));
+  box-shadow: none;
   font-size: 13px !important;
   font-weight: 500 !important;
-  line-height: 1.25;
+  line-height: 1.2;
   opacity: 0;
   overflow: hidden;
   pointer-events: none;
-  text-overflow: ellipsis;
-  transform: translateY(-50%) scale(0.96);
+  transform: translate3d(var(--toc-rail-preview-x), var(--toc-rail-preview-y), 0) scale(var(--toc-rail-preview-scale));
   transition:
+    opacity 0.16s ease;
+  -webkit-mask-image: linear-gradient(to bottom, transparent 0, #000 14px, #000 calc(100% - 14px), transparent 100%);
+  mask-image: linear-gradient(to bottom, transparent 0, #000 14px, #000 calc(100% - 14px), transparent 100%);
+}
+
+.github-toc.theme-preset-sspai .toc-rail-preview.position-left,
+.toc-rail-preview.theme-preset-sspai.position-left {
+  --toc-rail-preview-x: -6px;
+}
+
+.github-toc.theme-preset-sspai .toc-rail-preview.position-right,
+.toc-rail-preview.theme-preset-sspai.position-right {
+  --toc-rail-preview-x: 6px;
+}
+
+.github-toc.theme-preset-sspai .toc-rail-preview.is-visible,
+.toc-rail-preview.theme-preset-sspai.is-visible {
+  --toc-rail-preview-x: 0px;
+  --toc-rail-preview-scale: 1;
+  opacity: 1;
+}
+
+.toc-rail-preview.theme-preset-sspai .toc-rail-preview-list {
+  box-sizing: border-box;
+  height: 100%;
+  overflow: hidden;
+  position: relative;
+}
+
+.toc-rail-preview.theme-preset-sspai .toc-rail-preview-track {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  position: relative;
+  z-index: 1;
+  transform: translate3d(0, var(--toc-rail-track-y), 0);
+  transition: transform 0.22s cubic-bezier(0.22, 1, 0.36, 1);
+  will-change: transform;
+}
+
+.toc-rail-preview.theme-preset-sspai .toc-rail-preview-focus {
+  position: absolute;
+  z-index: 2;
+  top: 0;
+  right: 0;
+  left: 0;
+  height: 30px;
+  border: 1px solid color-mix(in srgb, var(--toc-accent, #0969da) 42%, var(--toc-rail-preview-border, var(--toc-rail-top-border)));
+  border-radius: 8px;
+  background: transparent;
+  box-shadow:
+    0 10px 24px color-mix(in srgb, var(--toc-accent, #0969da) 10%, transparent),
+    inset 0 0 0 1px color-mix(in srgb, var(--toc-accent, #0969da) 8%, transparent);
+  opacity: var(--toc-rail-focus-opacity);
+  pointer-events: none;
+  transform: translate3d(0, var(--toc-rail-focus-y), 0);
+  transition:
+    opacity 0.14s ease,
+    transform 0.22s cubic-bezier(0.22, 1.18, 0.36, 1),
+    border-color 0.16s ease,
+    box-shadow 0.16s ease;
+}
+
+.toc-rail-preview.theme-preset-sspai .toc-rail-preview-focus.is-bouncing {
+  animation: tocRailFocusBounce 0.24s cubic-bezier(0.22, 1.16, 0.36, 1);
+}
+
+@keyframes tocRailFocusBounce {
+  0% {
+    transform: translate3d(0, var(--toc-rail-focus-y), 0) scale(0.985);
+  }
+  58% {
+    transform: translate3d(0, var(--toc-rail-focus-y), 0) scale(1.018);
+  }
+  100% {
+    transform: translate3d(0, var(--toc-rail-focus-y), 0) scale(1);
+  }
+}
+
+.toc-rail-preview.theme-preset-sspai .toc-rail-preview-row {
+  --preview-row-opacity: 0.34;
+  --preview-row-scale: 0.96;
+  --preview-row-bg: color-mix(in srgb, var(--toc-rail-preview-bg, var(--toc-rail-top-bg-hover)) 72%, transparent);
+
+  box-sizing: border-box;
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  min-height: 30px;
+  padding: 0 10px;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  background:
+    linear-gradient(
+      90deg,
+      color-mix(in srgb, var(--toc-accent, #0969da) 8%, transparent),
+      transparent 42%
+    ),
+    var(--preview-row-bg);
+  color: var(--toc-rail-label-active) !important;
+  opacity: var(--preview-row-opacity);
+  overflow: hidden;
+  transform: scale(var(--preview-row-scale));
+  transform-origin: center;
+  transition:
+    background 0.16s ease,
     opacity 0.16s ease,
     transform 0.16s ease;
   white-space: nowrap;
 }
 
-.github-toc.theme-preset-sspai .toc-rail-preview.position-left,
-.toc-rail-preview.theme-preset-sspai.position-left {
-  transform: translateY(-50%) translateX(-6px) scale(0.96);
+.toc-rail-preview.theme-preset-sspai.position-left .toc-rail-preview-row {
+  transform-origin: left center;
 }
 
-.github-toc.theme-preset-sspai .toc-rail-preview.position-right,
-.toc-rail-preview.theme-preset-sspai.position-right {
-  transform: translateY(-50%) translateX(6px) scale(0.96);
+.toc-rail-preview.theme-preset-sspai.position-right .toc-rail-preview-row {
+  transform-origin: right center;
 }
 
-.github-toc.theme-preset-sspai .toc-rail-preview.is-visible,
-.toc-rail-preview.theme-preset-sspai.is-visible {
-  opacity: 1;
-  transform: translateY(-50%) translateX(0) scale(1);
+.toc-rail-preview.theme-preset-sspai .toc-rail-preview-row::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: linear-gradient(
+    90deg,
+    transparent 0,
+    color-mix(in srgb, var(--toc-accent, #0969da) 14%, transparent) 48%,
+    transparent 100%
+  );
+  opacity: 0.22;
+}
+
+.toc-rail-preview.theme-preset-sspai .toc-rail-preview-row.is-current {
+  --preview-row-opacity: 1;
+  --preview-row-scale: 1;
+  --preview-row-bg: color-mix(in srgb, var(--toc-accent, #0969da) 10%, var(--toc-rail-preview-bg, var(--toc-rail-top-bg-hover)));
+}
+
+.toc-rail-preview.theme-preset-sspai .toc-rail-preview-row.distance-1 {
+  --preview-row-opacity: 0.64;
+  --preview-row-scale: 0.985;
+}
+
+.toc-rail-preview.theme-preset-sspai .toc-rail-preview-row.distance-2 {
+  --preview-row-opacity: 0.36;
+  --preview-row-scale: 0.955;
+}
+
+.toc-rail-preview.theme-preset-sspai .toc-rail-preview-row.distance-far {
+  --preview-row-opacity: 0.2;
+  --preview-row-scale: 0.94;
+}
+
+.toc-rail-preview.theme-preset-sspai .toc-rail-preview-text {
+  position: relative;
+  z-index: 1;
+  display: block;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .github-toc.theme-preset-sspai .toc-item.active .toc-rail-label {
