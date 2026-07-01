@@ -4,7 +4,7 @@
 - Chrome extension, Manifest v3, injects into all pages
 - Key files: `catalog.js`, `theme.js`, `toc.css`, `themes.css`, `options.html`, `options.css`
 - Design spec: `UI_DESIGN_SPEC.md`; Feature inventory: `FEATURE_INVENTORY.md`
-- Current release line: v2.6
+- Current release line: v2.7
 - Active branch context: `codex/toc-rail-preview-hover`
 
 ## Architecture Notes
@@ -24,6 +24,9 @@
 - Chrome Web Store 上传图标单独使用 `output/chrome-store-icons/chrome-store-icon-128.png`：128x128 PNG，Codex 直接生成的 light badge 展示版，不等同于 manifest 的透明 toolbar icon
 - v2.6 阅读进度 hover 预览是固定观察窗 + 标题 track 的 spotlight preview：body-level `.toc-rail-preview` 固定在 rail 纵向中心，`.toc-rail-preview-track` 一次性渲染当前 TOC 的全部标题并通过 transform 滚动，当前项滑入固定 `.toc-rail-preview-focus`；观察窗内通常可见当前项上下各 2 个邻近标题，邻近项渐隐作用在整行 surface（背景、文字），普通邻近项不显示边框。
 - Hover 联动防回归契约：rail wave 可以每帧按 pointer Y 连续响应；preview window 不跟随 item 或 pointer 微动，始终以 tocContainer 纵向中心定位；preview track 只在命中新 item 时滚动；focus ring 固定在观察窗中心，只在命中新 item 时 bounce/pulse。不要恢复固定 5 行分片窗口，不要按每 5 项重建预览，不要让普通邻近行出现可见边框。
+- v2.7 rail polish：常驻 toc bar 更细更紧凑（3px rail bar、较窄容器和较小 item hit row）；hover wave 最大延展同步收敛，保持低侵扰但仍有清楚反馈。
+- v2.7 preview polish：`.toc-rail-preview` 不再使用容器级 `backdrop-filter`，上下 mask 更柔；focus ring shadow 更轻；邻近行有左右淡出；rail preset link 不设置原生 `title`，只用 `aria-label`，避免浏览器 tooltip 遮挡自定义 preview。
+- v2.7 post-click hold 契约：rail link click handler 必须先 prime `railPostClickHoldUntil` / `.is-previewed` / preview visible，再执行 `scrollIntoView()`；click 后短暂保持当前 preview 作为落点确认，pointer 仍在 rail 内则由 hover 接管，pointer 离开则 hold 到期后 cleanup。不要把它改成永久 pin，也不要让 smooth scroll 或 mouseleave 立即隐藏 preview。
 - 本地视觉/性能测试页：`test-pages/rail-hover-performance.html?position=right&surface=lightstrip`
   - `position=left/right` 用于检查镜像展开和预览方向
   - `surface=light/dark/color/lightstrip` 用于检查局部自适应配色

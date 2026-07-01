@@ -5,6 +5,16 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.7] - 2026-07-01
+
+### Changed
+- 阅读进度目录短横线进一步收细、收紧，降低长文页面上的常驻视觉占用，同时保留 hover wave 的可感知延展反馈
+- Hover 上下文预览的遮罩与阴影改为更轻的空气感渐隐：移除容器级 blur，弱化 focus ring 阴影，并为邻近行增加左右淡出，减少浅色页面上的雾面矩形感
+- 点击阅读进度目录跳转后，当前 item 和 preview 会短暂保持可见，给用户确认“已跳转到此处”的反馈；若指针仍停留在 rail 上则继续由 hover 接管，离开后自动淡出
+
+### Fixed
+- 移除阅读进度目录 rail link 的原生 `title` tooltip，避免浏览器黑色提示框遮挡自定义 preview
+
 ## [2.6] - 2026-07-01
 
 ### Added

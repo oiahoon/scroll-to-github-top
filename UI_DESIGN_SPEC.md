@@ -128,6 +128,8 @@ body
 - 只有当前项显示清晰边框；边框由 `.toc-rail-preview-focus` 独立绘制，并在命中新 item 时用 `transform` 做克制 bounce/pulse，普通邻近标题不显示边框。
 - Preview 容器不跟随命中 item 或同一 item 内的 pointer 微动；`.toc-rail-preview-track` 只在命中新 item 时通过 transform 滚动。
 - 预览不能使用固定 5 行分片窗口缓存；标题 track 应一次性按当前 TOC 项构建，扫动时只移动 track 并更新当前项 class，避免“每几项换页”的断续感。
+- 点击 rail item 跳转后，应短暂保持当前 preview / `.is-previewed` 状态作为导航确认；如果指针仍在 rail 上，状态继续交给 hover 接管；如果指针已离开，则 hold 到期后自动淡出，不能变成永久 pin。
+- Rail 常驻状态应保持细、紧凑、低侵扰；hover wave 可以延展当前区域，但不应扩大成面板感或遮挡正文。
 - 局部自适应配色只调整 rail、回顶按钮和预览的 CSS 变量，避免大面积改变宿主页面视觉。
 
 #### 2.3.1 Hover 联动契约
@@ -140,6 +142,7 @@ body
 | Preview window | 创建后固定 | body-level `.toc-rail-preview` 固定在 rail 纵向中心，作为透明观察窗 | 不跟随命中 item 或 pointer 微动；不做 Y 向 transform transition |
 | Preview track | 仅命中新 item | `.toc-rail-preview-track` 承载全量标题，通过 transform 将当前项滚入固定 focus ring | 不使用固定 5 行分片窗口缓存；不重建分片制造换页感；不在 pointer move 的每像素上重排 DOM |
 | Focus ring | 仅命中新 item | 独立 `.toc-rail-preview-focus` 固定在观察窗中心，只给当前项绘制边框，并触发一次克制 bounce/pulse | 不给邻近项画边框；不让 focus ring 跟随 pointer 每像素移动；不通过“窗口内 rowIndex 变化”制造滑动 |
+| Post-click hold | 仅 rail link click 后短暂触发 | 在 smooth scroll 前 prime 当前 item，并保持 preview / `.is-previewed` 约一个落点确认窗口 | 不永久固定；不影响非 rail 模式；不阻止 pointer move 进入新的 hover item |
 
 实现细节：
 
@@ -148,6 +151,9 @@ body
 - `.toc-rail-preview` 的 transition 只保留 opacity；Y 位置固定在 rail 中心，避免“追赶式”抖动。
 - `.toc-rail-preview-track` 可以用 transform transition 表达机械窗口滚动；track DOM 应在预览首次显示时一次性构建，后续命中新 item 时复用。
 - `.toc-rail-preview-row` 普通邻近项使用透明 border，仅保留背景和文字渐隐；当前项边框由 `.toc-rail-preview-focus` 单独绘制。
+- `.toc-rail-link` 在 rail preset 下不设置原生 `title`，避免浏览器 tooltip 遮挡自定义 preview；使用 `aria-label` 保留可访问名称。
+- 点击 rail link 后应在链接 click handler 开始处 prime hold 状态，再执行 `scrollIntoView()`，避免 smooth scroll 或 mouseleave 抢先清理 preview。
+- Post-click hold 到期时，如果 pointer 不在 rail 内，应调用 rail wave cleanup 并按常规 hover close 淡出；如果 pointer 仍在 rail 内，则后续由 pointer move / hover 状态接管。
 - `prefers-reduced-motion: reduce` 下 preview、row、focus ring 的 transition / animation 必须关闭。
 
 ### 2.4 设置页面结构

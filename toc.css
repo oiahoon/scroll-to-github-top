@@ -669,8 +669,8 @@
    ============================================= */
 
 .github-toc.theme-preset-sspai {
-  --toc-rail-wave-bleed: 32px;
-  width: 68px;
+  --toc-rail-wave-bleed: 26px;
+  width: 56px;
   height: auto;
   min-height: 120px;
   max-height: calc(100vh - 160px);
@@ -722,7 +722,7 @@
 }
 
 .github-toc.theme-preset-sspai .toc-list {
-  padding: 8px 0;
+  padding: 6px 0;
   overflow-y: auto;
   overflow-x: visible;
   scrollbar-width: none;
@@ -733,7 +733,7 @@
 }
 
 .github-toc.theme-preset-sspai .toc-item {
-  --toc-rail-base-width: 16px;
+  --toc-rail-base-width: 13px;
   --toc-rail-wave-width: 0px;
   --toc-rail-wave-opacity: 0.72;
   --toc-rail-wave-shift: 0px;
@@ -760,9 +760,9 @@
   display: flex;
   align-items: center;
   justify-content: flex-start;
-  gap: 12px;
-  min-height: 20px;
-  padding: 6px 10px;
+  gap: 10px;
+  min-height: 16px;
+  padding: 4px 8px;
   border-radius: 999px;
   position: relative;
   overflow: visible;
@@ -775,7 +775,7 @@
 
 .github-toc.theme-preset-sspai .toc-rail-bar {
   flex: 0 0 auto;
-  height: 4px;
+  height: 3px;
   border-radius: 999px;
   background: var(--toc-rail-line);
   width: var(--toc-rail-base-width);
@@ -789,14 +789,19 @@
   will-change: opacity, transform;
 }
 
-.github-toc.theme-preset-sspai .toc-item.level-1 { --toc-rail-base-width: 26px; }
-.github-toc.theme-preset-sspai .toc-item.level-2 { --toc-rail-base-width: 20px; }
-.github-toc.theme-preset-sspai .toc-item.level-3 { --toc-rail-base-width: 16px; }
+.github-toc.theme-preset-sspai .toc-item.level-1 { --toc-rail-base-width: 22px; }
+.github-toc.theme-preset-sspai .toc-item.level-2 { --toc-rail-base-width: 17px; }
+.github-toc.theme-preset-sspai .toc-item.level-3 { --toc-rail-base-width: 13px; }
 .github-toc.theme-preset-sspai .toc-item.level-4,
 .github-toc.theme-preset-sspai .toc-item.level-5,
-.github-toc.theme-preset-sspai .toc-item.level-6 { --toc-rail-base-width: 12px; }
+.github-toc.theme-preset-sspai .toc-item.level-6 { --toc-rail-base-width: 10px; }
 
 .github-toc.theme-preset-sspai .toc-item.active .toc-rail-bar {
+  background: var(--toc-rail-line-active);
+  opacity: 1;
+}
+
+.github-toc.theme-preset-sspai .toc-item.is-previewed .toc-rail-bar {
   background: var(--toc-rail-line-active);
   opacity: 1;
 }
@@ -829,8 +834,6 @@
   border-radius: 10px;
   background: transparent;
   color: var(--toc-rail-label-active) !important;
-  -webkit-backdrop-filter: blur(12px) saturate(160%);
-  backdrop-filter: blur(12px) saturate(160%);
   box-shadow: none;
   font-size: 13px !important;
   font-weight: 500 !important;
@@ -841,8 +844,28 @@
   transform: translate3d(var(--toc-rail-preview-x), var(--toc-rail-preview-y), 0) scale(var(--toc-rail-preview-scale));
   transition:
     opacity 0.16s ease;
-  -webkit-mask-image: linear-gradient(to bottom, transparent 0, #000 14px, #000 calc(100% - 14px), transparent 100%);
-  mask-image: linear-gradient(to bottom, transparent 0, #000 14px, #000 calc(100% - 14px), transparent 100%);
+  -webkit-mask-image: linear-gradient(
+    to bottom,
+    transparent 0,
+    rgba(0, 0, 0, 0.24) 10px,
+    rgba(0, 0, 0, 0.72) 24px,
+    #000 42px,
+    #000 calc(100% - 42px),
+    rgba(0, 0, 0, 0.72) calc(100% - 24px),
+    rgba(0, 0, 0, 0.24) calc(100% - 10px),
+    transparent 100%
+  );
+  mask-image: linear-gradient(
+    to bottom,
+    transparent 0,
+    rgba(0, 0, 0, 0.24) 10px,
+    rgba(0, 0, 0, 0.72) 24px,
+    #000 42px,
+    #000 calc(100% - 42px),
+    rgba(0, 0, 0, 0.72) calc(100% - 24px),
+    rgba(0, 0, 0, 0.24) calc(100% - 10px),
+    transparent 100%
+  );
 }
 
 .github-toc.theme-preset-sspai .toc-rail-preview.position-left,
@@ -891,8 +914,8 @@
   border-radius: 8px;
   background: transparent;
   box-shadow:
-    0 10px 24px color-mix(in srgb, var(--toc-accent, #0969da) 10%, transparent),
-    inset 0 0 0 1px color-mix(in srgb, var(--toc-accent, #0969da) 8%, transparent);
+    0 6px 16px color-mix(in srgb, var(--toc-accent, #0969da) 8%, transparent),
+    inset 0 0 0 1px color-mix(in srgb, var(--toc-accent, #0969da) 6%, transparent);
   opacity: var(--toc-rail-focus-opacity);
   pointer-events: none;
   transform: translate3d(0, var(--toc-rail-focus-y), 0);
@@ -922,7 +945,7 @@
 .toc-rail-preview.theme-preset-sspai .toc-rail-preview-row {
   --preview-row-opacity: 0.34;
   --preview-row-scale: 0.96;
-  --preview-row-bg: color-mix(in srgb, var(--toc-rail-preview-bg, var(--toc-rail-top-bg-hover)) 72%, transparent);
+  --preview-row-bg: color-mix(in srgb, var(--toc-rail-preview-bg, var(--toc-rail-top-bg-hover)) 56%, transparent);
 
   box-sizing: border-box;
   position: relative;
@@ -936,7 +959,7 @@
   background:
     linear-gradient(
       90deg,
-      color-mix(in srgb, var(--toc-accent, #0969da) 8%, transparent),
+      color-mix(in srgb, var(--toc-accent, #0969da) 5%, transparent),
       transparent 42%
     ),
     var(--preview-row-bg);
@@ -950,6 +973,27 @@
     opacity 0.16s ease,
     transform 0.16s ease;
   white-space: nowrap;
+}
+
+.toc-rail-preview.theme-preset-sspai .toc-rail-preview-row:not(.is-current) {
+  -webkit-mask-image: linear-gradient(
+    to right,
+    transparent 0,
+    rgba(0, 0, 0, 0.7) 14px,
+    #000 34px,
+    #000 calc(100% - 34px),
+    rgba(0, 0, 0, 0.7) calc(100% - 14px),
+    transparent 100%
+  );
+  mask-image: linear-gradient(
+    to right,
+    transparent 0,
+    rgba(0, 0, 0, 0.7) 14px,
+    #000 34px,
+    #000 calc(100% - 34px),
+    rgba(0, 0, 0, 0.7) calc(100% - 14px),
+    transparent 100%
+  );
 }
 
 .toc-rail-preview.theme-preset-sspai.position-left .toc-rail-preview-row {
@@ -968,16 +1012,16 @@
   background: linear-gradient(
     90deg,
     transparent 0,
-    color-mix(in srgb, var(--toc-accent, #0969da) 14%, transparent) 48%,
+    color-mix(in srgb, var(--toc-accent, #0969da) 9%, transparent) 48%,
     transparent 100%
   );
-  opacity: 0.22;
+  opacity: 0.16;
 }
 
 .toc-rail-preview.theme-preset-sspai .toc-rail-preview-row.is-current {
   --preview-row-opacity: 1;
   --preview-row-scale: 1;
-  --preview-row-bg: color-mix(in srgb, var(--toc-accent, #0969da) 10%, var(--toc-rail-preview-bg, var(--toc-rail-top-bg-hover)));
+  --preview-row-bg: color-mix(in srgb, var(--toc-accent, #0969da) 8%, var(--toc-rail-preview-bg, var(--toc-rail-top-bg-hover)));
 }
 
 .toc-rail-preview.theme-preset-sspai .toc-rail-preview-row.distance-1 {
@@ -1029,8 +1073,8 @@
 .github-toc.theme-preset-sspai.position-right .toc-rail-link {
   justify-content: flex-end;
   flex-direction: row;
-  padding-left: 12px;
-  padding-right: 8px;
+  padding-left: 10px;
+  padding-right: 6px;
 }
 
 .github-toc.theme-preset-sspai.position-right .toc-rail-bar {
@@ -1040,7 +1084,7 @@
 
 .github-toc.theme-preset-sspai.position-right .toc-rail-label {
   order: 1;
-  right: calc(10px + var(--toc-rail-base-width) + var(--toc-rail-wave-width) + 12px);
+  right: calc(8px + var(--toc-rail-base-width) + var(--toc-rail-wave-width) + 10px);
   text-align: right;
   transform: translateY(-50%) translateX(6px) scale(0.96);
 }
@@ -1056,8 +1100,8 @@
 .github-toc.theme-preset-sspai.position-left .toc-rail-link {
   justify-content: flex-start;
   flex-direction: row;
-  padding-left: 8px;
-  padding-right: 12px;
+  padding-left: 6px;
+  padding-right: 10px;
 }
 
 .github-toc.theme-preset-sspai.position-left .toc-rail-bar {
@@ -1067,7 +1111,7 @@
 
 .github-toc.theme-preset-sspai.position-left .toc-rail-label {
   order: 0;
-  left: calc(10px + var(--toc-rail-base-width) + var(--toc-rail-wave-width) + 12px);
+  left: calc(8px + var(--toc-rail-base-width) + var(--toc-rail-wave-width) + 10px);
   text-align: left;
   transform: translateY(-50%) translateX(-6px) scale(0.96);
 }
@@ -1248,7 +1292,7 @@
 @media (max-width: 767px) {
   .github-toc.theme-preset-sspai {
     right: 6px;
-    width: 34px;
+    width: 30px;
     max-height: calc(100vh - 120px);
     opacity: 0.42;
   }

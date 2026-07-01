@@ -47,11 +47,15 @@
   let railPreviewItem = null;
   let railPreviewRenderedItem = null;
   let railPreviewRenderedMeta = { rowCount: 0, currentRowIndex: 0 };
+  let railPointerInside = false;
+  let railPostClickHoldTimer = null;
+  let railPostClickHoldUntil = 0;
   const railWaveAffectedItems = new Set();
-  const railWaveMaxDistance = 88;
-  const railWaveMaxWidth = 24;
+  const railWaveMaxDistance = 78;
+  const railWaveMaxWidth = 20;
   const railWaveMaxShift = 2;
   const railPreviewGap = 8;
+  const railPostClickHoldMs = 1800;
   const railPreviewContextRadius = 2;
   const railPreviewRowHeight = 30;
   const railPreviewRowGap = 4;
@@ -1337,10 +1341,10 @@
     const headerId = ensureHeaderId(header, text);
     const a = document.createElement('a');
     a.href = `#${headerId}`;
-    a.title = text;
 
     if (isSspaiPreset()) {
       a.className = 'toc-rail-link';
+      a.setAttribute('aria-label', text);
 
       const bar = document.createElement('span');
       bar.className = 'toc-rail-bar';
@@ -1353,16 +1357,40 @@
       a.appendChild(bar);
       a.appendChild(label);
     } else {
+      a.title = text;
       a.textContent = text;
     }
 
     a.addEventListener('click', (e) => {
       e.preventDefault();
+      primeRailPostClickHoldFromLink(a);
       header.scrollIntoView({ behavior: 'smooth' });
       syncActiveTocItem(headerId);
     });
 
     return { a, headerId };
+  }
+
+  function primeRailPostClickHoldFromLink(link) {
+    if (!isSspaiPreset() || !link) return;
+
+    if (railPostClickHoldTimer) {
+      window.clearTimeout(railPostClickHoldTimer);
+      railPostClickHoldTimer = null;
+    }
+    railPostClickHoldUntil = Date.now() + railPostClickHoldMs;
+
+    const item = link.closest('.toc-item:not(.no-headers)');
+    if (!item) return;
+
+    if (railPreviewItem && railPreviewItem !== item) {
+      railPreviewItem.classList.remove('is-previewed');
+    }
+    railPreviewItem = item;
+    railPreviewItem.classList.add('is-previewed');
+    if (tocRailPreview) {
+      tocRailPreview.classList.add('is-visible');
+    }
   }
 
   function createTocItem(header) {
@@ -1392,6 +1420,11 @@
     railPreviewItem = null;
     railPreviewRenderedItem = null;
     railPreviewRenderedMeta = { rowCount: 0, currentRowIndex: 0 };
+    if (railPostClickHoldTimer) {
+      window.clearTimeout(railPostClickHoldTimer);
+      railPostClickHoldTimer = null;
+    }
+    railPostClickHoldUntil = 0;
     headers.forEach((header) => {
       const item = createTocItem(header);
       if (item) {
@@ -2064,6 +2097,59 @@
       }
     }
 
+    function isRailPostClickHoldActive() {
+      return railPostClickHoldUntil > Date.now();
+    }
+
+    function clearRailPostClickHold() {
+      if (railPostClickHoldTimer) {
+        window.clearTimeout(railPostClickHoldTimer);
+        railPostClickHoldTimer = null;
+      }
+      railPostClickHoldUntil = 0;
+    }
+
+    function scheduleRailPostClickHoldRelease() {
+      if (railPostClickHoldTimer) {
+        window.clearTimeout(railPostClickHoldTimer);
+      }
+
+      const delay = Math.max(0, railPostClickHoldUntil - Date.now());
+      railPostClickHoldTimer = window.setTimeout(() => {
+        railPostClickHoldTimer = null;
+        railPostClickHoldUntil = 0;
+        if (!railPointerInside) {
+          resetRailWave();
+          scheduleHoverClose();
+        }
+      }, delay);
+    }
+
+    function holdRailPreviewAfterClick(item) {
+      if (!item || !tocList || !tocContainer) return;
+
+      clearRailPostClickHold();
+      railPostClickHoldUntil = Date.now() + railPostClickHoldMs;
+      refreshRailWaveLayout();
+
+      const entry = railWaveLayout.find(({ item: railItem }) => railItem === item);
+      if (entry) {
+        lastRailPointerY = entry.centerY;
+        if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+          updateReducedMotionRailPreview(entry.centerY);
+        } else {
+          updateRailWave(entry.centerY);
+        }
+        positionRailPreview(item, entry);
+      } else {
+        setRailPreviewItem(item);
+        positionRailPreview(item);
+      }
+
+      scheduleHoverOpen();
+      scheduleRailPostClickHoldRelease();
+    }
+
     function resetRailWave() {
       if (!tocList) return;
       if (railWaveFrame) {
@@ -2173,6 +2259,9 @@
     function scheduleRailWave(e) {
       if (!tocList) return;
 
+      if (isRailPostClickHoldActive()) {
+        clearRailPostClickHold();
+      }
       lastRailPointerY = e.clientY;
       if (railWaveFrame) return;
 
@@ -2224,24 +2313,39 @@
     }
 
     tocContainer.addEventListener('mouseenter', () => {
+      railPointerInside = true;
       refreshRailWaveLayout();
       scheduleAdaptiveRailThemeUpdate(true);
       scheduleHoverOpen();
     });
     tocContainer.addEventListener('pointermove', scheduleRailWave);
     tocContainer.addEventListener('mouseleave', () => {
+      railPointerInside = false;
+      if (isRailPostClickHoldActive()) {
+        scheduleRailPostClickHoldRelease();
+        return;
+      }
       resetRailWave();
       scheduleHoverClose();
     });
     tocContainer.addEventListener('focusin', () => toggleExpanded(true));
     tocContainer.addEventListener('focusout', (e) => {
       if (!tocContainer.contains(e.relatedTarget)) {
+        clearRailPostClickHold();
         resetRailWave();
         scheduleHoverClose();
       }
     });
 
     if (tocList) {
+      tocList.addEventListener('click', (e) => {
+        const link = e.target?.closest?.('.toc-rail-link');
+        if (!link || !tocList.contains(link)) return;
+
+        const item = link.closest('.toc-item:not(.no-headers)');
+        holdRailPreviewAfterClick(item);
+      }, true);
+
       tocList.addEventListener('scroll', () => {
         railWaveLayout = [];
       }, { passive: true });
