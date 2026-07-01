@@ -19,6 +19,9 @@
 - 阅读进度 rail 局部自适应配色在 `catalog.js` 中采样 rail 附近 surface，并将轻量 CSS 变量应用到 `tocContainer`、`scrollTopButton` 和 `tocRailPreview`
 - 阅读进度 hover wave 只更新可视区域附近 item，预计算基础宽度，避免 pointer move 时全量布局读写
 - `.toc-rail-link` 必须保持 `overflow: visible`，否则右侧 rail 向左延展时圆角端会被裁切成平角
+- 阅读进度独立回顶按钮使用 `.visible` + `.is-near` + `.is-hovered` 状态：远处几乎透明，桌面 idle 不启用 pointer events 以避免不可见点击遮挡，指针接近时显形并播放轻微水面/箭头回弹，坐标命中/hover/focus-visible 用柔和 accent surface 停止跳动并进入稳定选中态；默认/接近态不显示硬圆形边框
+- 正式 Chrome icon/logo 使用 Codex 生成的符号化 water-rise mark，而不是直接缩放页面/卡片插画；当前选中源为 `output/chrome-store-icons/chrome-compliant-03-1024.png`，同步到 `icons/icon-source.png`、`icons/logo*.png` 和 manifest 引用的 `icons/icon16/32/48/128.png`
+- Chrome Web Store 上传图标单独使用 `output/chrome-store-icons/chrome-store-icon-128.png`：128x128 PNG，Codex 直接生成的 light badge 展示版，不等同于 manifest 的透明 toolbar icon
 - 本地视觉/性能测试页：`test-pages/rail-hover-performance.html?position=right&surface=lightstrip`
   - `position=left/right` 用于检查镜像展开和预览方向
   - `surface=light/dark/color/lightstrip` 用于检查局部自适应配色

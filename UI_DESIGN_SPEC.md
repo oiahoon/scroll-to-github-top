@@ -717,19 +717,16 @@ body
 
 ### 8.2 独立按钮（#github-sst）样式规范
 
-独立按钮与 TOC 浮标现已共享视觉语言，形成"配对"感：
+独立按钮与阅读进度 rail 共享轻量视觉语言，默认像从页面水面中浮起的回顶提示，而不是传统圆形浮动按钮：
 
 ```
-尺寸：40px × 40px（比 TOC 浮标 44px 略小，暗示从属关系）
-形状：圆形（border-radius: 50%）
-定位：position: fixed, bottom: 24px, right: 80px（TOC 浮标右侧左移，避免重叠）
-     注：若 TOC 浮标在左侧时，按钮改为 left: 80px
-背景：与 TOC 浮标共享相同主题变量
-     background: var(--toc-bg)
-     backdrop-filter: var(--toc-backdrop-filter)
-border：1px solid var(--toc-border)
-阴影：var(--toc-elevation-rest)
-opacity：0.45（与 TOC 浮标默认 opacity 一致）
+尺寸：42px × 42px，保持稳定点击热区
+形状：圆形热区（border-radius: 50%），但默认不显示圆形边框
+定位：position: fixed, bottom: 24px, right: 24px；左侧模式为 left: 24px
+背景：默认 transparent；hover / focus-visible 才出现极轻的 accent tint
+border：0，避免硬圆框；键盘态通过 outline 保持可访问性
+阴影：默认 none；hover / focus-visible 使用柔和外发光表达选中
+opacity：idle 0.08，指针接近时 0.78，hover / focus-visible 1
 z-index：9998（比 TOC 的 9999 低一级，让 TOC 始终在前）
 ```
 
@@ -737,11 +734,11 @@ z-index：9998（比 TOC 的 9999 低一级，让 TOC 始终在前）
 
 | 状态 | opacity | box-shadow | transform |
 |---|---|---|---|
-| default | 0.45 | --toc-elevation-rest | none |
-| hover | 0.85 | --toc-elevation-hover | translateY(-2px)（轻微上浮） |
-| active（点击） | 0.95 | --toc-elevation-press | translateY(0)（弹回） |
-| 隐藏中 | 0 | none | scale(0.8) |
-| 显示中 | 0.45 | --toc-elevation-rest | scale(1) |
+| hidden | 0 | none | translateY(8px) scale(0.88) |
+| visible / idle | 0.08 | none | translateY(4px) scale(0.92)，桌面端不拦截点击 |
+| near pointer | 0.78 | none | translateY(0) scale(1)，启用点击，箭头轻微回弹，水面缓慢呼吸 |
+| is-hovered / hover / focus-visible | 1 | soft glow | translateY(-2px) scale(1.04)，停止持续跳动，进入稳定选中态 |
+| active（点击） | 0.92 | hover shadow | translateY(0) scale(0.98) |
 
 ### 8.3 显示/隐藏过渡动画
 
@@ -750,6 +747,9 @@ z-index：9998（比 TOC 的 9999 低一级，让 TOC 始终在前）
 ```css
 .github-sst {
   opacity: 0;
+  border: 0;
+  background: transparent;
+  box-shadow: none;
   transform: scale(0.8) translateY(8px);
   pointer-events: none;
   transition:
@@ -758,18 +758,35 @@ z-index：9998（比 TOC 的 9999 低一级，让 TOC 始终在前）
 }
 
 .github-sst.visible {
-  opacity: 0.45;
-  transform: scale(1) translateY(0);
-  pointer-events: auto;
+  opacity: 0.08;
+  transform: scale(0.92) translateY(4px);
+  pointer-events: none;
 }
 
-.github-sst.visible:hover {
-  opacity: 0.85;
+.github-sst.visible.is-near {
+  opacity: 0.78;
+  background: transparent;
+  box-shadow: none;
+  pointer-events: auto;
+  transform: scale(1) translateY(0);
+}
+
+.github-sst.visible.is-hovered,
+.github-sst.visible:hover,
+.github-sst.visible:focus-visible {
+  opacity: 1;
+  background: color-mix(in srgb, var(--toc-accent, #0969da) 10%, transparent);
+  box-shadow:
+    0 10px 26px rgba(0, 0, 0, 0.10),
+    0 0 0 8px color-mix(in srgb, var(--toc-accent, #0969da) 5%, transparent);
   transform: scale(1) translateY(-2px);
 }
 ```
 
-当前实现：由 `catalog.js` 统一创建 `#github-sst`，并通过切换 `.visible` class 控制显隐。
+当前实现：由 `catalog.js` 统一创建 `#github-sst`，通过 `.visible` 控制滚动条件显隐，通过 `.is-near` 响应 pointer/mouse 接近，通过 `.is-hovered` 作为按钮中心小半径内的稳定选中态；hover / focus-visible 也会停止持续跳动，保持稳定选中态。
+桌面端 idle 状态不启用 pointer events，避免在不同网站的右下角形成不可见点击遮挡；触屏端没有 hover proximity，会保留可点击状态。
+按钮内部 `svg` / `path` 使用 `pointer-events: none`，确保命中目标稳定落在 button 上，而不是 SVG 子节点抢走 hover / pointerenter。
+窄视口下阅读进度 rail 使用更低 idle opacity、更窄宽度和更贴边定位，优先减少对正文右侧内容的覆盖。
 
 ### 8.4 图标规格优化
 

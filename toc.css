@@ -925,23 +925,31 @@
   width: 42px;
   height: 42px;
   border-radius: 50%;
-  border: 1px solid var(--toc-rail-top-border);
-  background: var(--toc-rail-top-bg);
+  border: 0;
+  background: transparent;
   color: var(--toc-rail-label-active);
   display: inline-flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  z-index: 9999;
+  z-index: 9998;
   transition:
     background 0.16s ease,
-    border-color 0.16s ease,
     box-shadow 0.16s ease,
-    opacity 0.16s ease,
-    transform 0.16s ease;
-  opacity: 0.64;
-  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.08);
+    opacity 0.22s ease,
+    transform 0.22s var(--ease-expand, cubic-bezier(0.22, 1, 0.36, 1));
+  opacity: 0;
+  pointer-events: none;
+  overflow: visible;
+  transform: translateY(8px) scale(0.88);
+  box-shadow: none;
   will-change: transform, opacity;
+}
+
+.github-sst.visible {
+  opacity: 0.08;
+  pointer-events: none;
+  transform: translateY(4px) scale(0.92);
 }
 
 .github-sst.position-right {
@@ -954,12 +962,102 @@
   right: auto;
 }
 
-.github-sst:hover {
-  background: var(--toc-rail-top-bg-hover);
-  border-color: var(--toc-rail-line-hover);
-  box-shadow: 0 10px 26px rgba(0, 0, 0, 0.12);
+.github-sst::before,
+.github-sst::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  pointer-events: none;
+  opacity: 0;
+  transform: translateX(-50%) scale(0.72);
+  transition:
+    opacity 0.22s ease,
+    transform 0.22s var(--ease-expand, cubic-bezier(0.22, 1, 0.36, 1));
+}
+
+.github-sst::before {
+  bottom: 6px;
+  width: 28px;
+  height: 9px;
+  border: 2px solid color-mix(in srgb, var(--toc-accent, #0969da) 28%, transparent);
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--toc-accent, #0969da) 10%, transparent);
+}
+
+.github-sst::after {
+  bottom: 11px;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--toc-accent, #0969da) 12%, transparent);
+}
+
+.github-sst svg {
+  position: relative;
+  z-index: 1;
+  fill: currentColor;
+  pointer-events: none;
+  transform: translateY(0);
+}
+
+.github-sst svg * {
+  pointer-events: none;
+}
+
+.github-sst.visible.is-near {
+  background: transparent;
+  box-shadow: none;
+  opacity: 0.78;
+  pointer-events: auto;
+  transform: translateY(0) scale(1);
+}
+
+.github-sst.visible.is-near::before {
+  opacity: 0.7;
+  transform: translateX(-50%) scale(1);
+  animation: sstRippleBreathe 1.8s ease-in-out infinite;
+}
+
+.github-sst.visible.is-near::after {
+  opacity: 1;
+  transform: translateX(-50%) scale(1);
+}
+
+.github-sst.visible.is-near svg {
+  animation: sstArrowBob 1.55s ease-in-out infinite;
+}
+
+.github-sst.visible.is-hovered,
+.github-sst.visible:hover,
+.github-sst.visible:focus-visible {
+  background: color-mix(in srgb, var(--toc-accent, #0969da) 10%, transparent);
+  box-shadow:
+    0 10px 26px rgba(0, 0, 0, 0.10),
+    0 0 0 8px color-mix(in srgb, var(--toc-accent, #0969da) 5%, transparent);
   opacity: 1;
   transform: translateY(-2px) scale(1.04);
+}
+
+.github-sst.visible.is-hovered::before,
+.github-sst.visible:hover::before,
+.github-sst.visible:focus-visible::before {
+  opacity: 0.88;
+  transform: translateX(-50%) scale(1.08);
+  animation: none;
+}
+
+.github-sst.visible.is-hovered::after,
+.github-sst.visible:hover::after,
+.github-sst.visible:focus-visible::after {
+  opacity: 1;
+  transform: translateX(-50%) scale(1.08);
+}
+
+.github-sst.visible.is-hovered svg,
+.github-sst.visible:hover svg,
+.github-sst.visible:focus-visible svg {
+  animation: none;
+  transform: translateY(0);
 }
 
 .github-sst:active {
@@ -972,32 +1070,59 @@
   outline-offset: 2px;
 }
 
-.github-sst svg {
-  fill: currentColor;
+@keyframes sstArrowBob {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  48% {
+    transform: translateY(-3px);
+  }
+}
+
+@keyframes sstRippleBreathe {
+  0%,
+  100% {
+    transform: translateX(-50%) scaleX(0.92) scaleY(0.9);
+    opacity: 0.5;
+  }
+  50% {
+    transform: translateX(-50%) scaleX(1.12) scaleY(1);
+    opacity: 0.82;
+  }
 }
 
 @media (max-width: 767px) {
   .github-toc.theme-preset-sspai {
-    right: 12px;
-    width: 42px;
+    right: 6px;
+    width: 34px;
     max-height: calc(100vh - 120px);
+    opacity: 0.42;
   }
 
   .github-toc.theme-preset-sspai.position-left {
-    left: 12px;
+    left: 6px;
   }
 
   .github-toc.theme-preset-sspai:hover,
   .github-toc.theme-preset-sspai.expanded,
   .github-toc.theme-preset-sspai:focus-within {
-    opacity: 1;
+    opacity: 0.82;
   }
 
   .github-sst.position-right {
-    right: 12px;
+    right: 8px;
   }
 
   .github-sst.position-left {
-    left: 12px;
+    left: 8px;
+  }
+}
+
+@media (hover: none), (pointer: coarse) {
+  .github-sst.visible {
+    opacity: 0.72;
+    pointer-events: auto;
+    transform: translateY(0) scale(1);
   }
 }

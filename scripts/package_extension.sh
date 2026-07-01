@@ -28,7 +28,11 @@ cp "$ROOT_DIR/options.js" "$STAGING_DIR/"
 cp "$ROOT_DIR/LICENSE" "$STAGING_DIR/"
 cp "$ROOT_DIR/README.md" "$STAGING_DIR/"
 cp "$ROOT_DIR/CHANGELOG.md" "$STAGING_DIR/"
-cp -R "$ROOT_DIR/icons" "$STAGING_DIR/"
+mkdir -p "$STAGING_DIR/icons"
+cp "$ROOT_DIR/icons/icon16.png" "$STAGING_DIR/icons/"
+cp "$ROOT_DIR/icons/icon32.png" "$STAGING_DIR/icons/"
+cp "$ROOT_DIR/icons/icon48.png" "$STAGING_DIR/icons/"
+cp "$ROOT_DIR/icons/icon128.png" "$STAGING_DIR/icons/"
 
 rm -f "$PACKAGE_PATH"
 (

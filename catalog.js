@@ -40,6 +40,8 @@
   let isPinnedOpen = false;
   let railWaveFrame = null;
   let lastRailPointerY = null;
+  let scrollTopProximityFrame = null;
+  let lastScrollTopPointer = null;
   let railWaveItems = [];
   let railWaveLayout = [];
   let railPreviewItem = null;
@@ -48,6 +50,8 @@
   const railWaveMaxWidth = 24;
   const railWaveMaxShift = 2;
   const railPreviewGap = 8;
+  const scrollTopProximityRadius = 116;
+  const scrollTopHoverRadius = 44;
   let adaptiveThemeFrame = null;
   let lastAdaptiveThemeApplied = '';
   let lastAdaptiveThemeSampleAt = 0;
@@ -777,6 +781,11 @@
       window.cancelAnimationFrame(adaptiveThemeFrame);
       adaptiveThemeFrame = null;
     }
+    if (scrollTopProximityFrame) {
+      window.cancelAnimationFrame(scrollTopProximityFrame);
+      scrollTopProximityFrame = null;
+    }
+    lastScrollTopPointer = null;
     lastProcessedHeaders.clear();
     lastObservedHeadersSignature = '';
     observerActiveHeaderId = null;
@@ -1568,7 +1577,13 @@
       tocContainer.style.display = shouldShowToc() ? 'flex' : 'none';
     }
     if (scrollTopButton) {
-      scrollTopButton.style.display = shouldShowToc() ? 'inline-flex' : 'none';
+      const shouldShow = shouldShowToc();
+      scrollTopButton.classList.toggle('visible', shouldShow);
+      scrollTopButton.tabIndex = shouldShow ? 0 : -1;
+      if (!shouldShow) {
+        scrollTopButton.classList.remove('is-near');
+        scrollTopButton.classList.remove('is-hovered');
+      }
     }
     scheduleAdaptiveRailThemeUpdate();
   }
@@ -2039,6 +2054,41 @@
       });
     }
 
+    function updateScrollTopProximity(pointer) {
+      if (!scrollTopButton || !scrollTopButton.classList.contains('visible')) return;
+
+      const rect = scrollTopButton.getBoundingClientRect();
+      const centerX = rect.left + rect.width / 2;
+      const centerY = rect.top + rect.height / 2;
+      const distanceFromCenter = Math.hypot(pointer.clientX - centerX, pointer.clientY - centerY);
+      const near =
+        pointer.clientX >= rect.left - scrollTopProximityRadius &&
+        pointer.clientX <= rect.right + scrollTopProximityRadius &&
+        pointer.clientY >= rect.top - scrollTopProximityRadius &&
+        pointer.clientY <= rect.bottom + scrollTopProximityRadius;
+      const hovered = distanceFromCenter <= scrollTopHoverRadius;
+
+      scrollTopButton.classList.toggle('is-near', near);
+      scrollTopButton.classList.toggle('is-hovered', hovered);
+    }
+
+    function scheduleScrollTopProximity(e) {
+      if (!scrollTopButton || !scrollTopButton.classList.contains('visible')) return;
+
+      lastScrollTopPointer = {
+        clientX: e.clientX,
+        clientY: e.clientY
+      };
+      if (scrollTopProximityFrame) return;
+
+      scrollTopProximityFrame = window.requestAnimationFrame(() => {
+        scrollTopProximityFrame = null;
+        if (lastScrollTopPointer) {
+          updateScrollTopProximity(lastScrollTopPointer);
+        }
+      });
+    }
+
     tocContainer.addEventListener('mouseenter', () => {
       refreshRailWaveLayout();
       scheduleAdaptiveRailThemeUpdate(true);
@@ -2070,6 +2120,19 @@
     }, { passive: true });
 
     if (scrollTopButton) {
+      document.addEventListener('pointermove', scheduleScrollTopProximity, { passive: true });
+      document.addEventListener('mousemove', scheduleScrollTopProximity, { passive: true });
+      document.addEventListener('pointerleave', () => {
+        scrollTopButton.classList.remove('is-near');
+        scrollTopButton.classList.remove('is-hovered');
+        lastScrollTopPointer = null;
+      });
+      scrollTopButton.addEventListener('pointerenter', () => {
+        scrollTopButton.classList.add('is-hovered');
+      });
+      scrollTopButton.addEventListener('pointerleave', () => {
+        scrollTopButton.classList.remove('is-hovered');
+      });
       scrollTopButton.addEventListener('click', (e) => {
         e.preventDefault();
         scrollToTop();

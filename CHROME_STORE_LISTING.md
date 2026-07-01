@@ -76,6 +76,7 @@ Smart TOC & Scroll 为长文、博客和文档站点提供轻量阅读导航。
 
 ## Screenshot Files
 
+- Store icon: `output/chrome-store-icons/chrome-store-icon-128.png`
 - `output/chrome-store/01-standard-toc-panel.png`
 - `output/chrome-store/02-right-rail-hover-preview.png`
 - `output/chrome-store/03-left-rail-hover-preview.png`
