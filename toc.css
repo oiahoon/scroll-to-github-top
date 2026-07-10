@@ -161,9 +161,12 @@
   margin: 0 !important;
   padding: 0 !important;
   border: none !important;
+  appearance: none !important;
+  -webkit-appearance: none !important;
   background: none !important;
   box-shadow: none !important;
   outline: none !important;
+  cursor: pointer !important;
 }
 
 /* === 展开状态（expanded） === */
@@ -943,9 +946,9 @@
 }
 
 .toc-rail-preview.theme-preset-sspai .toc-rail-preview-row {
-  --preview-row-opacity: 0.34;
+  --preview-row-opacity: 0.42;
   --preview-row-scale: 0.96;
-  --preview-row-bg: color-mix(in srgb, var(--toc-rail-preview-bg, var(--toc-rail-top-bg-hover)) 56%, transparent);
+  --preview-row-bg: color-mix(in srgb, var(--toc-rail-preview-bg, var(--toc-rail-top-bg-hover)) 88%, transparent);
 
   box-sizing: border-box;
   position: relative;
@@ -1022,15 +1025,16 @@
   --preview-row-opacity: 1;
   --preview-row-scale: 1;
   --preview-row-bg: color-mix(in srgb, var(--toc-accent, #0969da) 8%, var(--toc-rail-preview-bg, var(--toc-rail-top-bg-hover)));
+  box-shadow: var(--toc-rail-preview-shadow, 0 10px 24px rgba(15, 23, 42, 0.14));
 }
 
 .toc-rail-preview.theme-preset-sspai .toc-rail-preview-row.distance-1 {
-  --preview-row-opacity: 0.64;
+  --preview-row-opacity: 0.82;
   --preview-row-scale: 0.985;
 }
 
 .toc-rail-preview.theme-preset-sspai .toc-rail-preview-row.distance-2 {
-  --preview-row-opacity: 0.36;
+  --preview-row-opacity: 0.56;
   --preview-row-scale: 0.955;
 }
 

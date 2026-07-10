@@ -5,6 +5,20 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.10] - 2026-07-10
+
+### Changed
+- Options 设置面板改为视口内三段式布局，设置列表独立滚动，保存区从页面首屏开始始终可见
+- 设置保存按钮新增明确的 dirty state：无改动时显示“已保存”并禁用，修改后显示“保存更改”，保存成功后恢复稳定状态
+- 阅读导航样式只保留一个高对比选中态；阅读进度模式锁定的交互方式使用柔和只读态，减少多重选中误解
+- 阅读进度 hover 上下文行提高自包含 surface 的不透明度和邻近项可读性，修复 rail 采样区与正文底色不一致时的跨底色失真
+- 标准目录入口改为原生 `button`，同步 `aria-expanded` / `aria-controls`，并保留显式 Enter、Space 与 Escape 键盘路径
+- 点击目录项后短暂保持被点击章节的 active / `aria-current`，避免平滑滚动期间被下一标题过早抢占反馈
+
+### Fixed
+- 修复 v2.8 所谓 sticky 保存区在未滚动到页面底部前不可见的问题
+- 修复 lightstrip 等混合 surface 场景中阅读进度预览邻近标题几乎不可读的问题
+
 ## [2.9] - 2026-07-10
 
 ### Added

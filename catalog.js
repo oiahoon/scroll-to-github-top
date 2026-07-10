@@ -22,6 +22,9 @@
   let lastRenderedTocSignature = '';
   let lastObservedHeadersSignature = '';
   let observerActiveHeaderId = null;
+  let activeHeaderHoldTimer = null;
+  let activeHeaderHoldUntil = 0;
+  let activeHeaderHoldId = null;
 
   let tocContainer = null;
   let iconContainer = null;
@@ -56,6 +59,7 @@
   const railWaveMaxShift = 2;
   const railPreviewGap = 8;
   const railPostClickHoldMs = 1800;
+  const activeHeaderHoldMs = 900;
   const railPreviewContextRadius = 2;
   const railPreviewRowHeight = 30;
   const railPreviewRowGap = 4;
@@ -581,24 +585,28 @@
 
   function createDefaultPanelUI() {
     const buttonSvg = '<svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M3 5h18v2H3V5zm0 6h18v2H3v-2zm0 6h18v2H3v-2z"/></svg>';
-    iconContainer = document.createElement('div');
+    iconContainer = document.createElement('button');
+    iconContainer.type = 'button';
     iconContainer.className = 'toc-icon';
     iconContainer.innerHTML = buttonSvg;
-    iconContainer.setAttribute('role', 'button');
-    iconContainer.setAttribute('tabindex', '0');
     iconContainer.setAttribute('aria-label', '展开目录');
     iconContainer.setAttribute('aria-haspopup', 'true');
+    iconContainer.setAttribute('aria-expanded', 'false');
+    iconContainer.setAttribute('aria-controls', 'github-toc-tree');
     iconContainer.setAttribute('data-label', shouldShowIconHint ? 'TOC' : '');
     tocContainer.appendChild(iconContainer);
 
+    // 原生按钮保留显式键盘处理，避免宿主页面的全局快捷键拦截 Enter / Space。
     iconContainer.addEventListener('keydown', (e) => {
       if (e.key === 'Enter' || e.key === ' ') {
         e.preventDefault();
+        e.stopPropagation();
         iconContainer.click();
       }
     });
 
     tocTree = document.createElement('div');
+    tocTree.id = 'github-toc-tree';
     tocTree.className = 'toc-tree';
     tocTree.setAttribute('aria-hidden', 'true');
 
@@ -780,6 +788,10 @@
       headingObserver.disconnect();
       headingObserver = null;
     }
+    if (activeHeaderHoldTimer) {
+      clearTimeout(activeHeaderHoldTimer);
+      activeHeaderHoldTimer = null;
+    }
     if (updateTimeout) {
       clearTimeout(updateTimeout);
     }
@@ -799,6 +811,8 @@
     lastProcessedHeaders.clear();
     lastObservedHeadersSignature = '';
     observerActiveHeaderId = null;
+    activeHeaderHoldUntil = 0;
+    activeHeaderHoldId = null;
   }
 
   function ensureUiMounted() {
@@ -1365,7 +1379,7 @@
       e.preventDefault();
       primeRailPostClickHoldFromLink(a);
       header.scrollIntoView({ behavior: 'smooth' });
-      syncActiveTocItem(headerId);
+      holdActiveHeaderAfterNavigation(headerId);
     });
 
     return { a, headerId };
@@ -1451,6 +1465,10 @@
     }
 
     headingObserver = new IntersectionObserver((entries) => {
+      if (activeHeaderHoldUntil > Date.now()) {
+        return;
+      }
+
       const visibleCandidates = entries
         .filter((entry) => entry.isIntersecting)
         .sort((a, b) => Math.abs(a.boundingClientRect.top) - Math.abs(b.boundingClientRect.top));
@@ -1560,6 +1578,26 @@
     }
   }
 
+  function holdActiveHeaderAfterNavigation(headerId) {
+    if (!headerId) return;
+
+    if (activeHeaderHoldTimer) {
+      window.clearTimeout(activeHeaderHoldTimer);
+    }
+
+    activeHeaderHoldId = headerId;
+    activeHeaderHoldUntil = Date.now() + activeHeaderHoldMs;
+    syncActiveTocItem(headerId);
+
+    activeHeaderHoldTimer = window.setTimeout(() => {
+      activeHeaderHoldTimer = null;
+      activeHeaderHoldUntil = 0;
+      activeHeaderHoldId = null;
+      observerActiveHeaderId = null;
+      updateActiveHeader();
+    }, activeHeaderHoldMs);
+  }
+
   function findActiveHeaderByScrollPosition(headers) {
     if (!headers || headers.length === 0) return null;
 
@@ -1587,8 +1625,11 @@
     const headers = currentHeaders;
     if (!headers || headers.length === 0) return;
 
+    const heldHeader = activeHeaderHoldUntil > Date.now() && activeHeaderHoldId
+      ? document.getElementById(activeHeaderHoldId)
+      : null;
     const observerHeader = observerActiveHeaderId ? document.getElementById(observerActiveHeaderId) : null;
-    const activeHeader = observerHeader || findActiveHeaderByScrollPosition(headers);
+    const activeHeader = heldHeader || observerHeader || findActiveHeaderByScrollPosition(headers);
 
     // 更新目录项的高亮状态及 aria-current
     if (activeHeader) {
@@ -1804,6 +1845,7 @@
     }
     if (iconContainer) {
       iconContainer.setAttribute('aria-label', shouldExpand ? '折叠目录' : '展开目录');
+      iconContainer.setAttribute('aria-expanded', shouldExpand ? 'true' : 'false');
     }
   }
 

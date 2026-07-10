@@ -55,7 +55,7 @@
 
 ### Tag 自动发布
 
-推送 `v2.9` 或 `V2.9` 这类 tag 后，工作流会自动：
+推送 `v2.10` 或 `V2.10` 这类 tag 后，工作流会自动：
 
 1. 打包扩展
 2. 上传 ZIP 作为 artifact
@@ -72,7 +72,7 @@
 
 输出文件会放在 `dist/`。
 
-发布前建议确认 `manifest.json`、`CHANGELOG.md` 和商店文案里的版本说明已经同步；当前发布基线为 `2.9`，并保留 v2.8 的阅读进度 hover preview、局部自适应配色和 Options 设置页 UX 收敛。
+发布前建议确认 `manifest.json`、`CHANGELOG.md` 和商店文案里的版本说明已经同步；当前发布基线为 `2.10`，包含跨底色可读的阅读进度 preview、Options 固定保存区与 dirty state，以及标准目录原生按钮语义。
 
 ## 本地发布
 

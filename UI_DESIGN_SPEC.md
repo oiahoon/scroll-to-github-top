@@ -1,8 +1,8 @@
 # Smart TOC & Scroll — UI/UX 优化设计规范
 
-> **版本**：v2.9 当前落地参考版
+> **版本**：v2.10 当前落地参考版
 > **更新日期**：2026-07-10
-> **说明**：本文保留 v2.2 基线问题分析，并汇总 v2.5–v2.9 已落地的 rail、主题和 Options 视觉决策；标注“需补充”的条目仍属于后续 backlog。
+> **说明**：本文保留 v2.2 基线问题分析，并汇总 v2.5–v2.10 已落地的 rail、主题和 Options 视觉决策；标注“需补充”的条目仍属于后续 backlog。
 > **适用文件**：toc.css、themes.css、options.html、options.css
 
 ---
@@ -152,6 +152,7 @@ body
 - `.toc-rail-preview` 的 transition 只保留 opacity；Y 位置固定在 rail 中心，避免“追赶式”抖动。
 - `.toc-rail-preview-track` 可以用 transform transition 表达机械窗口滚动；track DOM 应在预览首次显示时一次性构建，后续命中新 item 时复用。
 - `.toc-rail-preview-row` 普通邻近项使用透明 border，仅保留背景和文字渐隐；当前项边框由 `.toc-rail-preview-focus` 单独绘制。
+- 每个 preview row 必须提供足够不透明的自包含 surface；透明度只用于表达距离层级，不能依赖预览背后的宿主页面底色来保证文字对比度。
 - `.toc-rail-link` 在 rail preset 下不设置原生 `title`，避免浏览器 tooltip 遮挡自定义 preview；使用 `aria-label` 保留可访问名称。
 - 点击 rail link 后应在链接 click handler 开始处 prime hold 状态，再执行 `scrollIntoView()`，避免 smooth scroll 或 mouseleave 抢先清理 preview。
 - Post-click hold 到期时，如果 pointer 不在 rail 内，应调用 rail wave cleanup 并按常规 hover close 淡出；如果 pointer 仍在 rail 内，则后续由 pointer move / hover 状态接管。
@@ -853,16 +854,20 @@ SVG 外层容器：宽高 18px
 ```
 .page
   width: min(1060px, calc(100vw - 48px))
-  margin: 36px auto
+  height: calc(100dvh - 48px)
+  margin: 24px auto
 
 .settings-panel
+  display: grid
+  grid-template-rows: auto minmax(0, 1fr) auto
+  height: 100%
   background: var(--panel-bg)
   border-radius: 16px
   border: 1px solid var(--border-soft)
   box-shadow: 0 16px 44px rgba(15, 23, 42, 0.08)
 ```
 
-移动端小于 560px 时，面板铺满视口，去掉圆角和阴影，形成系统设置页式体验。
+`.settings-list` 是唯一纵向滚动区，header 和 footer 始终保留在面板内。移动端小于 560px 时，面板铺满视口，去掉圆角和阴影，形成系统设置页式体验。
 
 ### 9.3 页面头部
 
@@ -915,7 +920,7 @@ h1
 - 用于 `themePreset`、`expandMode` 和 `position`。
 - 真实状态由隐藏的原生 `select` 保存，按钮负责可见交互。
 - 每个按钮使用 `aria-pressed`，点击后同步 select value 并触发 `change`。
-- 选中态使用 `--active-bg` / `--active-text` 高对比实心 pill；次要推荐项可使用浅蓝 pill。
+- 选中态使用 `--active-bg` / `--active-text` 高对比实心 pill；同一组选项只能有一个强调态，未选中项保持中性。
 
 #### 数字输入
 
@@ -936,13 +941,12 @@ h1
 
 ### 9.6 保存按钮（#save）完整状态规范
 
-保存区使用 sticky footer，用户滚动配置时仍能看到本地保存说明、状态提示和主按钮：
+保存区是 settings panel 的固定第三行，用户尚未滚动设置列表时也能看到本地保存说明、状态提示和主按钮：
 
 ```css
 .settings-footer {
-  position: sticky;
-  bottom: 0;
-  margin: 22px 40px 0;
+  position: relative;
+  margin: 0 40px;
   padding: 14px 0 18px;
   background: color-mix(in srgb, var(--panel-bg) 94%, transparent);
   backdrop-filter: blur(12px);
@@ -965,11 +969,12 @@ button#save {
 
 | 状态 | 样式 |
 |---|---|
-| default | 深色实心 pill |
+| clean | 禁用，显示“已保存”，使用中性描边 pill |
+| dirty | 启用，显示“保存更改”，使用深色实心 pill |
 | hover | opacity 0.92 |
 | active | translateY(1px) |
 | focus-visible | var(--focus-ring) |
-| disabled | opacity 降低并禁止点击 |
+| save success | 恢复 clean，并在 `#status` 短暂显示“设置已保存” |
 
 ### 9.7 状态提示（#status）动效
 
@@ -1126,15 +1131,16 @@ max-height：min(480px, calc(100vh - 64px))
   aria-expanded="false"       <!-- JS 动态更新 -->
 >
   <!-- 浮标图标按钮 -->
-  <div
+  <button
+    type="button"
     class="toc-icon"
-    role="button"
-    tabindex="0"
-    aria-label="展开目录（或按 Tab 直接进入目录列表）"
+    aria-label="展开目录"
     aria-haspopup="true"
+    aria-expanded="false"
+    aria-controls="github-toc-tree"
   >
     <svg aria-hidden="true" focusable="false">...</svg>
-  </div>
+  </button>
 
   <!-- 展开面板 -->
   <div
@@ -1448,4 +1454,4 @@ max-height：min(480px, calc(100vh - 64px))
 
 ---
 
-*本规范基于 Smart TOC & Scroll v2.2 基线问题分析形成，并已按 v2.9 当前落地状态整理，日期：2026-07-10。*
+*本规范基于 Smart TOC & Scroll v2.2 基线问题分析形成，并已按 v2.10 当前落地状态整理，日期：2026-07-10。*

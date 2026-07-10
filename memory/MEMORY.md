@@ -4,7 +4,7 @@
 - Chrome extension, Manifest v3, injects into all pages
 - Key files: `catalog.js`, `theme.js`, `toc.css`, `themes.css`, `options.html`, `options.css`
 - Design spec: `UI_DESIGN_SPEC.md`; Feature inventory: `FEATURE_INVENTORY.md`
-- Current release line: v2.9
+- Current release line: v2.10
 - 不固定记录 active branch；当前分支以每次工作的 `git status --short --branch` 为准，避免复用历史功能分支名
 
 ## Architecture Notes
@@ -28,6 +28,10 @@
 - v2.7 rail polish：常驻 toc bar 更细更紧凑（3px rail bar、较窄容器和较小 item hit row）；hover wave 最大延展同步收敛，保持低侵扰但仍有清楚反馈。
 - v2.7 preview polish：`.toc-rail-preview` 不再使用容器级 `backdrop-filter`，上下 mask 更柔；focus ring shadow 更轻；邻近行有左右淡出；rail preset link 不设置原生 `title`，只用 `aria-label`，避免浏览器 tooltip 遮挡自定义 preview。
 - v2.7 post-click hold 契约：rail link click handler 必须先 prime `railPostClickHoldUntil` / `.is-previewed` / preview visible，再执行 `scrollIntoView()`；click 后短暂保持当前 preview 作为落点确认，pointer 仍在 rail 内则由 hover 接管，pointer 离开则 hold 到期后 cleanup。不要把它改成永久 pin，也不要让 smooth scroll 或 mouseleave 立即隐藏 preview。
+- v2.10 通用目录点击反馈：标准面板和 rail 点击链接后都通过 `holdActiveHeaderAfterNavigation()` 保持目标 active / `aria-current` 900ms；IntersectionObserver 在 hold 窗口内不得抢占目标，计时结束后清空 observer 缓存并重新按滚动位置同步。
+- v2.10 Options 保存区不是 sticky 文档流元素，而是 `.settings-panel` 的固定第三行；`.settings-list` 是唯一滚动区。无改动时按钮禁用并显示“已保存”，输入变化后显示“保存更改”。
+- v2.10 rail preview 可读性契约：继续保持透明 body-level observation window、无容器 backdrop-filter、普通邻近项无边框；但每个 row 的 background surface 必须足够不透明，保证 rail 采样区与 preview 背后的正文底色不一致时仍可读。
+- v2.10 标准目录入口 `.toc-icon` 是原生 `button[type=button]`，同时维护按钮自身和容器的 `aria-expanded`，并通过 `aria-controls="github-toc-tree"` 关联目录；不要退回 role=button 的 div。
 - 本地视觉/性能测试页：`test-pages/rail-hover-performance.html?position=right&surface=lightstrip`
   - `position=left/right` 用于检查镜像展开和预览方向
   - `surface=light/dark/color/lightstrip` 用于检查局部自适应配色
@@ -40,6 +44,13 @@
 - 控制条在 left rail 时自动靠右，在 right rail 时靠左，避免遮挡被测 rail；移动端控制条可换行并增加正文顶部 padding。
 - 该轮不改生产 `catalog.js` / `toc.css` rail 逻辑，只降低后续真实 UI 审阅和截图验证的操作成本。
 
+## v2.10 End-to-End UI/UX Refactor — Completed (2026-07-10)
+- 真实 Browser 审阅覆盖 Options、标准目录和阅读进度目录；关键问题是保存入口未真正持续可见、模式选中层级含混、mixed-surface preview 邻近行不可读、标准入口语义依赖 div 模拟、smooth scroll 中 active 反馈过早跳到相邻标题。
+- Options 改为 header / scrollable settings / footer 三段式面板，并增加 clean / dirty / saved 状态；阅读进度模式锁定的交互方式使用柔和只读态。
+- Preview row 提高自包含 surface 与 distance-1 / distance-2 可见度，不改变固定观察窗、全量 track、focus ring 和 post-click hold 契约。
+- 标准入口改为原生按钮并补齐 ARIA；目录链接统一增加 900ms active hold。
+- 本地回归覆盖 right/left、lightstrip、reduced motion 路径、键盘 Enter/Escape、目标跳转和 Options 保存；Options、Rail、Standard 三个页面 console 均无 warning/error。
+
 ## v2.8 Options UX Polish — Completed (2026-07-10)
 - 第 1 轮 Chrome/Computer UX 审阅聚焦 Options 设置页：首屏暗色模式下白色选中胶囊过亮、底部保存入口需要滚动后确认、英文 footer 与中文设置项混用。
 - Options 页面文案统一为更短的中文说明，保留设置含义但减少解释性负担。
@@ -51,7 +62,7 @@
 - 当前真实入口仍是 `catalog.js` 的 `start()`；已有控件检测使用 `getExistingTocDecision()`、`getExistingScrollToTopDecision()` 和 `getSkipInjectionDecision()`，文档不要恢复旧的 `hasExisting*` / `shouldSkipInjection` 函数名。
 - `#github-sst` 只在 `阅读进度目录` preset 下创建；标准目录面板使用面板内的 `.toc-top-button`。
 - SPA / 动态页面恢复依赖 History API、GitHub 的 PJAX/Turbo/AJAX 事件、Astro 生命周期、`pageshow`、`visibilitychange` 和针对标题节点的 MutationObserver；当前没有 GitHub 每秒轮询。
-- `FEATURE_INVENTORY.md`、`UI_DESIGN_SPEC.md`、Chrome Web Store 文案和发布说明已按当前 v2.9 版本/行为同步；v2.8 Options 变更仍作为历史上下文保留，设计规范中仍标为“需补充”的 A11y 项属于未完成 backlog。
+- 该段记录 v2.9 历史基线；当前文档已在 v2.10 再次同步，v2.8 Options 变更仍作为历史上下文保留，设计规范中仍标为“需补充”的 A11y 项属于未完成 backlog。
 
 ## v2.5 Reading Progress Rail Polish — Completed (2026-06-30)
 - Manifest version bumped to `2.5`

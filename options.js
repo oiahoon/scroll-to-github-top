@@ -27,6 +27,8 @@ const elements = {
 };
 
 const segmentedControls = Array.from(document.querySelectorAll('[data-control-for]'));
+let statusHideTimer = null;
+let statusClearTimer = null;
 
 const expandModeDescriptions = {
   hover: '悬停预览目录，点击浮标可固定展开；移开后自动收起。',
@@ -47,15 +49,30 @@ function normalizeDomains(input) {
 }
 
 function renderStatus(message) {
+  clearTimeout(statusHideTimer);
+  clearTimeout(statusClearTimer);
   elements.status.textContent = message;
   elements.status.classList.add('visible');
-  setTimeout(() => {
+  statusHideTimer = setTimeout(() => {
     elements.status.classList.remove('visible');
     // 等待淡出动画结束后再清空文字（0.2s）
-    setTimeout(() => {
+    statusClearTimer = setTimeout(() => {
       elements.status.textContent = '';
     }, 200);
   }, 1500);
+}
+
+function setDirtyState(isDirty) {
+  elements.save.disabled = !isDirty;
+  elements.save.textContent = isDirty ? '保存更改' : '已保存';
+  document.querySelector('.settings-panel')?.classList.toggle('has-unsaved-changes', isDirty);
+
+  if (isDirty) {
+    clearTimeout(statusHideTimer);
+    clearTimeout(statusClearTimer);
+    elements.status.classList.remove('visible');
+    elements.status.textContent = '';
+  }
 }
 
 function getControlElement(controlId) {
@@ -70,8 +87,8 @@ function syncSegmentedControl(controlId) {
   const buttons = Array.from(control.querySelectorAll('button[data-value]'));
   buttons.forEach((button) => {
     const isActive = button.dataset.value === source.value;
+    button.classList.remove('is-secondary-active');
     button.classList.toggle('is-active', isActive);
-    button.classList.toggle('is-secondary-active', !isActive && controlId === 'themePreset');
     button.disabled = source.disabled;
     button.setAttribute('aria-pressed', isActive ? 'true' : 'false');
   });
@@ -145,6 +162,7 @@ function syncThemePreset() {
   const isSspai = elements.themePreset.value === 'sspai';
   elements.themePresetHint.textContent = themePresetDescriptions[elements.themePreset.value] || themePresetDescriptions.default;
   elements.expandMode.disabled = isSspai;
+  elements.expandMode.closest('.setting-row')?.classList.toggle('is-locked', isSspai);
   syncExpandModeHint();
   syncSegmentedControl('themePreset');
   syncSegmentedControl('expandMode');
@@ -172,7 +190,8 @@ elements.save.addEventListener('click', async () => {
   };
 
   await saveSettings(payload);
-  renderStatus('已保存');
+  setDirtyState(false);
+  renderStatus('设置已保存');
 });
 
 elements.forceShow.addEventListener('change', syncForceShow);
@@ -183,6 +202,26 @@ elements.expandMode.addEventListener('change', () => {
 });
 elements.position.addEventListener('change', () => syncSegmentedControl('position'));
 
+[
+  elements.themePreset,
+  elements.expandMode,
+  elements.minHeaders,
+  elements.showAfterScrollScreens,
+  elements.position,
+  elements.disabledDomains,
+  elements.avoidExistingWidgets,
+  elements.forceShow
+].forEach((element) => {
+  element.addEventListener('change', () => setDirtyState(true));
+});
+
+elements.minHeaders.addEventListener('input', () => setDirtyState(true));
+elements.showAfterScrollScreens.addEventListener('input', () => setDirtyState(true));
+elements.disabledDomains.addEventListener('input', () => setDirtyState(true));
+
 setupSegmentedControls();
 
-loadSettings().then(bindForm);
+loadSettings().then((settings) => {
+  bindForm(settings);
+  setDirtyState(false);
+});

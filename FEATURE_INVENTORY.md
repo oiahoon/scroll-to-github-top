@@ -1,6 +1,6 @@
 # Smart TOC & Scroll — 功能清单（Feature Inventory）
 
-> **版本**：2.9
+> **版本**：2.10
 > **用途**：本文档记录扩展主要行为、交互、配置项与边界情况，作为后续重构和回归验证的功能基线。
 > **更新日期**：2026-07-10
 
@@ -127,7 +127,7 @@
 
 - Given 用户点击某个目录链接，When click 事件触发，Then 调用 `header.scrollIntoView({ behavior: 'smooth' })`，页面平滑滚动至目标标题。
 - Given 用户点击目录链接，When click 事件触发，Then 浏览器默认锚点跳转行为（`e.preventDefault()`）被阻止。
-- Given 点击后平滑滚动开始，When 滚动进行中，Then 被点击条目立即获得 active 高亮，并调用 `updateActiveHeader` 刷新状态。
+- Given 点击后平滑滚动开始，When 滚动进行中，Then 被点击条目立即获得 active / `aria-current`，保持 900ms 后再交回滚动观察器。
 
 ---
 
@@ -144,6 +144,7 @@
 - Given 用户在 rail 上移动鼠标，When hover wave 更新，Then `#github-toc` 本体不发生左右位移，只更新相关短横线的 transform 与宽度表现。
 - Given 预览气泡已显示，When 检查 DOM，Then `.toc-rail-preview` 作为 `document.body` 子节点使用 `position: fixed` 定位，避免被 transform 祖先影响。
 - Given rail 附近页面背景为浅色条带或深色 surface，When 自适应主题执行，Then rail、独立回顶按钮与预览气泡使用克制的局部 CSS 变量保持可读，rail 本体仍为透明背景。
+- Given rail 采样区与 preview 背后的正文底色不同，When 上下文行显示，Then 行级 surface 自身提供足够对比度，当前项与邻近项不依赖宿主底色保持可读。
 - Given 用户离开 rail 或 TOC 重绘，When 预览关闭，Then 旧的 `.is-previewed` 状态被清理，不应残留高亮。
 - Given 用户启用 `prefers-reduced-motion: reduce`，When 悬停阅读进度 rail，Then wave 动画可以停用，但标题预览仍应显示。
 
@@ -370,14 +371,14 @@
 
 ### 5.0 Options 页面布局与保存操作
 
-**功能描述**：Options 页面使用紧凑设置行、分段按钮、开关胶囊和粘性底部保存区组织配置。底部保存区在页面滚动时保持可见，减少配置完成后寻找保存按钮的摩擦。
+**功能描述**：Options 页面使用紧凑设置行、分段按钮、开关胶囊和固定底部保存区组织配置。面板由 header、独立滚动的 settings list、footer 三段组成，保存区从首屏开始持续可见。
 
 **用户故事**：作为调整阅读导航偏好的用户，我希望能快速理解每个设置项，并在滚动到页面任意位置时都能清楚看到保存入口。
 
 **验收标准**：
 
 - Given 用户在普通桌面 Chrome 窗口打开 Options 页面，When 页面处于暗色系统配色，Then 选中的分段按钮应使用高对比主行动色，不应出现过亮白块抢占整页焦点。
-- Given 用户向下滚动设置页，When 底部保存区接近视口底部，Then 保存按钮与“偏好只保存在浏览器中”的说明仍保持可见。
+- Given 用户刚打开设置页或滚动设置列表，When 任意配置行位于视口中，Then 保存按钮与“偏好只保存在浏览器中”的说明始终可见。
 - Given 辅助技术读取“显示条件”数值输入，When 聚焦滚动屏数或最少标题输入框，Then 控件应分别暴露“滚动屏数”和“最少标题”的可理解名称。
 - Given 用户正在浏览设置项，When 阅读每行说明，Then 文案应保持短句，优先解释用户结果而不是实现细节。
 
@@ -389,7 +390,7 @@
 
 **验收标准**：
 
-- Given 用户打开扩展设置页，When 页面加载，Then 展示“阅读导航样式”“交互方式”“显示条件”“位置”“兼容策略”“禁用域名”六个设置行，以及“保存设置”按钮和状态提示区域。
+- Given 用户打开扩展设置页，When 页面加载，Then 展示六个设置行，以及默认禁用并显示“已保存”的按钮和状态提示区域。
 - Given 设置页面加载，When `loadSettings()` 返回数据，Then 所有表单字段（themePreset、expandMode、minHeaders、showAfterScrollScreens、position、disabledDomains、avoidExistingWidgets、forceShow）填充已保存的值。
 - Given `chrome.storage.sync` 不可用（非扩展环境），When 设置页面加载，Then 使用默认值填充表单，不抛出异常。
 
@@ -486,12 +487,13 @@
 
 ### 5.9 保存与状态提示
 
-**功能描述**：点击"保存设置"按钮后将当前表单数据的 8 个字段写入 `chrome.storage.sync`，并在按钮旁显示"已保存"提示 1500ms 后隐藏、再延迟清空文字。
+**功能描述**：页面加载后保存按钮显示“已保存”并禁用；任意配置改变后按钮启用并显示“保存更改”。点击后将 8 个字段写入 `chrome.storage.sync`，按钮恢复 clean state，并在旁边显示“设置已保存”提示。
 
 **验收标准**：
 
-- Given 用户修改任意设置项，When 点击"保存设置"，Then `chrome.storage.sync.set` 被调用，写入所有 8 个字段的最新值。
-- Given 保存操作完成，When `renderStatus('已保存')` 被调用，Then `#status` 元素显示"已保存"文字，1500ms 后文字自动清空。
+- Given 用户修改任意设置项，When change / input 事件触发，Then按钮启用并显示“保存更改”。
+- Given 用户点击“保存更改”，Then `chrome.storage.sync.set` 被调用，写入所有 8 个字段的最新值。
+- Given 保存操作完成，When `renderStatus('设置已保存')` 被调用，Then按钮恢复禁用的“已保存”，`#status` 显示“设置已保存”并在 1500ms 后淡出。
 - Given `chrome.storage.sync` 不可用，When 点击保存，Then `saveSettings` 直接 resolve，不抛出异常，状态提示仍然显示。
 
 ---
@@ -688,12 +690,12 @@
 
 ### 8.6 字体与样式隔离
 
-**功能描述**：TOC 容器内所有元素强制使用 Roboto/Segoe UI/Arial 字体栈，通过 `!important` 防止宿主页面 CSS 污染；图标容器通过 `all: initial` 重置所有继承样式。
+**功能描述**：TOC 容器内所有元素强制使用 Roboto/Segoe UI/Arial 字体栈，通过 `!important` 防止宿主页面 CSS 污染；原生 `.toc-icon` 按钮通过 `all: initial` 重置所有继承样式。
 
 **验收标准**：
 
 - Given 宿主页面为任意样式的网站，When TOC 渲染，Then `.github-toc, .github-toc *` 字体强制为 `'Roboto', 'Segoe UI', 'Arial', 'Helvetica Neue', Arial, sans-serif`。
-- Given 宿主页面对 `div` 有全局样式，When TOC icon 渲染，Then `.github-toc .toc-icon` 通过 `all: initial` 重置，重新声明位置、尺寸、z-index 等必要属性。
+- Given 宿主页面对 `button` 有全局样式，When TOC icon 渲染，Then `.github-toc .toc-icon` 通过 `all: initial` 重置，并重新声明 appearance、位置、尺寸、z-index 等必要属性。
 - Given 宿主页面对 SVG 有 fill/color 等样式，When TOC 图标渲染，Then SVG 的 fill/color/stroke 均通过 `!important` 强制为 `var(--toc-text)`，background/box-shadow/border/outline 强制为 none。
 - Given 图标容器 `.toc-icon::before` 和 `.toc-icon::after` 伪元素，When 宿主页面有全局伪元素样式，Then 两者被强制 `display: none !important; content: none !important`。
 
@@ -888,7 +890,7 @@
 
 - **Manifest 版本**：3
 - **扩展名称**：Smart TOC & Scroll
-- **版本号**：2.9
+- **版本号**：2.10
 - **所需权限**：`activeTab`、`storage`
 - **主机权限**：`<all_urls>`（所有 HTTP/HTTPS 页面）
 - **Options 页面**：`options.html`
@@ -899,4 +901,4 @@
 
 ---
 
-*本文档基于源码分析整理，已按 v2.9 当前行为更新，日期：2026-07-10。*
+*本文档基于源码分析整理，已按 v2.10 当前行为更新，日期：2026-07-10。*
