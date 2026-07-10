@@ -29,14 +29,14 @@ const elements = {
 const segmentedControls = Array.from(document.querySelectorAll('[data-control-for]'));
 
 const expandModeDescriptions = {
-  hover: '推荐给桌面端阅读场景。悬停可预览目录，点击浮标可固定展开；移开后自动收起。',
-  click: '适合希望目录稳定停留的场景。点击浮标打开或关闭目录。',
-  press: '高级模式。短按直接回到顶部，长按浮标后展开目录。'
+  hover: '悬停预览目录，点击浮标可固定展开；移开后自动收起。',
+  click: '点击浮标打开或关闭目录，适合稳定停留。',
+  press: '短按回到顶部，长按展开目录。'
 };
 
 const themePresetDescriptions = {
-  default: '标准目录面板：适合文档站、博客和技术内容页面，信息完整、易理解。',
-  sspai: '阅读进度目录：适合沉浸式长文阅读，使用低侵扰线状目录和独立回顶按钮。'
+  default: '完整目录，适合文档站和技术长文。',
+  sspai: '线状进度目录，适合沉浸式长文阅读。'
 };
 
 function normalizeDomains(input) {
@@ -135,7 +135,7 @@ function bindForm(settings) {
 
 function syncExpandModeHint() {
   if (elements.themePreset.value === 'sspai') {
-    elements.expandModeHint.textContent = '阅读进度目录固定为悬停展开；短横线靠近正文，标题在外侧展开。';
+    elements.expandModeHint.textContent = '阅读进度目录固定为悬停展开，标题在外侧预览。';
     return;
   }
   elements.expandModeHint.textContent = expandModeDescriptions[elements.expandMode.value] || expandModeDescriptions.hover;

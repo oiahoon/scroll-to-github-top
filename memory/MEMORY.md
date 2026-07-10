@@ -4,7 +4,7 @@
 - Chrome extension, Manifest v3, injects into all pages
 - Key files: `catalog.js`, `theme.js`, `toc.css`, `themes.css`, `options.html`, `options.css`
 - Design spec: `UI_DESIGN_SPEC.md`; Feature inventory: `FEATURE_INVENTORY.md`
-- Current release line: v2.7
+- Current release line: v2.8
 - Active branch context: `codex/toc-rail-preview-hover`
 
 ## Architecture Notes
@@ -31,6 +31,13 @@
   - `position=left/right` 用于检查镜像展开和预览方向
   - `surface=light/dark/color/lightstrip` 用于检查局部自适应配色
   - 测试页会清理旧注入 DOM，并对本地 CSS/JS 加 cache busting，避免浏览器残留影响判断
+
+## v2.8 Options UX Polish — Completed (2026-07-10)
+- 第 1 轮 Chrome/Computer UX 审阅聚焦 Options 设置页：首屏暗色模式下白色选中胶囊过亮、底部保存入口需要滚动后确认、英文 footer 与中文设置项混用。
+- Options 页面文案统一为更短的中文说明，保留设置含义但减少解释性负担。
+- 设置页布局收紧 page margin、row gap、row min-height 与分段按钮宽度；底部 `.settings-footer` 改为 sticky，保存按钮与本地保存说明在滚动配置时持续可见。
+- 暗色模式选中态使用 `--active-bg` / `--active-text` 高对比行动色；保存按钮也使用同一行动色，避免浅蓝底白字对比不足。
+- “滚动屏数”和“最少标题”数值输入补充 `aria-label`，后续调整设置页时不要移除这些可访问名称。
 
 ## v2.5 Reading Progress Rail Polish — Completed (2026-06-30)
 - Manifest version bumped to `2.5`

@@ -851,8 +851,8 @@ SVG 外层容器：宽高 18px
 
 ```
 .page
-  width: min(1116px, calc(100vw - 48px))
-  margin: 58px auto
+  width: min(1060px, calc(100vw - 48px))
+  margin: 36px auto
 
 .settings-panel
   background: var(--panel-bg)
@@ -867,8 +867,8 @@ SVG 外层容器：宽高 18px
 
 ```
 .page-header
-  margin: 0 44px
-  padding: 32px 0 34px
+  margin: 0 40px
+  padding: 28px 0 26px
   border-bottom: 1px solid var(--border)
 
 h1
@@ -891,9 +891,9 @@ h1
   display: grid;
   grid-template-columns: minmax(260px, 1fr) minmax(340px, auto);
   align-items: center;
-  gap: 28px;
-  min-height: 104px;
-  padding: 20px 28px;
+  gap: 24px;
+  min-height: 88px;
+  padding: 17px 22px;
   background: var(--row-bg);
   border-radius: 10px;
 }
@@ -914,12 +914,13 @@ h1
 - 用于 `themePreset`、`expandMode` 和 `position`。
 - 真实状态由隐藏的原生 `select` 保存，按钮负责可见交互。
 - 每个按钮使用 `aria-pressed`，点击后同步 select value 并触发 `change`。
-- 选中态使用深色实心 pill；次要推荐项可使用浅蓝 pill。
+- 选中态使用 `--active-bg` / `--active-text` 高对比实心 pill；次要推荐项可使用浅蓝 pill。
 
 #### 数字输入
 
 - `showAfterScrollScreens` 和 `minHeaders` 放在紧凑 pill 容器中。
 - 输入框固定宽度，避免数值变动造成布局跳动。
+- 输入框必须保留明确 `aria-label`，分别暴露“滚动屏数”和“最少标题”。
 
 #### 兼容策略开关
 
@@ -934,13 +935,26 @@ h1
 
 ### 9.6 保存按钮（#save）完整状态规范
 
+保存区使用 sticky footer，用户滚动配置时仍能看到本地保存说明、状态提示和主按钮：
+
+```css
+.settings-footer {
+  position: sticky;
+  bottom: 0;
+  margin: 22px 40px 0;
+  padding: 14px 0 18px;
+  background: color-mix(in srgb, var(--panel-bg) 94%, transparent);
+  backdrop-filter: blur(12px);
+}
+```
+
 ```css
 button#save {
   min-height: 38px;
   padding: 0 18px;
   border-radius: 999px;
-  background: var(--accent-strong);
-  color: var(--panel-bg);
+  background: var(--active-bg);
+  color: var(--active-text);
   font-size: 13px;
   font-weight: 650;
 }
@@ -993,8 +1007,10 @@ button#save {
     --border-soft: #263142;
     --control-bg: #111722;
     --accent: #74b7ff;
-    --accent-soft: rgba(116, 183, 255, 0.14);
-    --accent-strong: #e7f2ff;
+    --accent-soft: rgba(116, 183, 255, 0.16);
+    --accent-strong: #91c8ff;
+    --active-bg: #256fb4;
+    --active-text: #f7fbff;
     --success: #51d481;
   }
 }

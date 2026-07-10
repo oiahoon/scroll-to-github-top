@@ -5,6 +5,17 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.8] - 2026-07-10
+
+### Changed
+- Options 设置页完成第 1 轮 UX 收敛：页面文案统一为中文并缩短说明，降低配置时的阅读负担
+- 设置页布局改为更紧凑的行高、间距与页面宽度，减少普通 Chrome 窗口中底部操作被截断的概率
+- 设置页底部保存区改为粘性操作栏，用户滚动配置时仍能看见保存动作与本地保存说明
+- 暗色模式下分段按钮选中态改为高对比蓝色主行动色，避免白色胶囊在暗色界面中过度抢焦点
+
+### Fixed
+- 数值输入补充明确的 `aria-label`，让“滚动屏数”和“最少标题”的辅助技术读法更直接
+
 ## [2.7] - 2026-07-01
 
 ### Changed

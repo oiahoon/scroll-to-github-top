@@ -12,7 +12,7 @@
         <header class="page-header">
           <div>
             <h1 id="settings-title">Smart TOC &amp; Scroll</h1>
-            <p class="page-subtitle">Reading navigation settings</p>
+            <p class="page-subtitle">低干扰阅读导航设置</p>
           </div>
         </header>
 
@@ -20,7 +20,7 @@
           <section class="setting-row" aria-labelledby="themePreset-label">
             <div class="setting-copy">
               <h2 id="themePreset-label">阅读导航样式</h2>
-              <p id="themePresetHint">标准目录面板：适合文档站、博客和技术内容页面，信息完整、易理解。</p>
+              <p id="themePresetHint">完整目录，适合文档站和技术长文。</p>
             </div>
             <div class="setting-control">
               <select id="themePreset" class="native-select" tabindex="-1" aria-hidden="true">
@@ -37,7 +37,7 @@
           <section class="setting-row" aria-labelledby="expandMode-label">
             <div class="setting-copy">
               <h2 id="expandMode-label">交互方式</h2>
-              <p id="expandModeHint">适合桌面端长文阅读；悬停可预览目录，点击浮标可固定展开。</p>
+              <p id="expandModeHint">悬停预览目录，点击浮标可固定展开。</p>
             </div>
             <div class="setting-control">
               <select id="expandMode" class="native-select" tabindex="-1" aria-hidden="true">
@@ -56,7 +56,7 @@
           <section class="setting-row" aria-labelledby="display-label">
             <div class="setting-copy">
               <h2 id="display-label">显示条件</h2>
-              <p>控制目录出现的时机，避免短页面或首屏内容被打扰。</p>
+              <p>避免短页面或首屏阅读被打扰。</p>
             </div>
             <div class="setting-control compact-grid">
               <label class="compact-field">
@@ -66,13 +66,14 @@
                   type="number"
                   min="0"
                   step="0.5"
+                  aria-label="滚动屏数"
                   aria-describedby="display-label"
                   value="1"
                 />
               </label>
               <label class="compact-field">
                 <span>最少标题</span>
-                <input id="minHeaders" type="number" min="0" step="1" value="3" />
+                <input id="minHeaders" type="number" min="0" step="1" aria-label="最少标题" value="3" />
               </label>
             </div>
           </section>
@@ -80,7 +81,7 @@
           <section class="setting-row" aria-labelledby="position-label">
             <div class="setting-copy">
               <h2 id="position-label">位置</h2>
-              <p>让浮层靠近阅读边缘，同时避开正文主要内容。</p>
+              <p>让浮层贴近阅读边缘，避开正文主体。</p>
             </div>
             <div class="setting-control">
               <select id="position" class="native-select" tabindex="-1" aria-hidden="true">
@@ -97,7 +98,7 @@
           <section class="setting-row" aria-labelledby="compatibility-label">
             <div class="setting-copy">
               <h2 id="compatibility-label">兼容策略</h2>
-              <p>页面已有目录或回顶控件时，减少重复控件带来的干扰。</p>
+              <p>页面已有导航控件时，减少重复打扰。</p>
             </div>
             <div class="setting-control toggle-stack">
               <label class="toggle-pill">
@@ -114,7 +115,7 @@
           <section class="setting-row setting-row--textarea" aria-labelledby="disabledDomains-label">
             <div class="setting-copy">
               <h2 id="disabledDomains-label">禁用域名</h2>
-              <p>用逗号分隔多个域名。适合已经自带完整阅读导航的网站。</p>
+              <p>逗号分隔多个域名，适合自带完整导航的网站。</p>
             </div>
             <div class="setting-control">
               <textarea id="disabledDomains" rows="3" placeholder="example.com, docs.example.org"></textarea>
@@ -123,7 +124,7 @@
         </div>
 
         <footer class="settings-footer">
-          <p>Local-only page analysis. Preferences stay in your browser.</p>
+          <p>本地分析页面结构，偏好只保存在浏览器中。</p>
           <div class="actions">
             <span id="status" role="status" aria-live="polite" aria-atomic="true"></span>
             <button id="save" type="button">保存设置</button>

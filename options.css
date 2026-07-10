@@ -1,5 +1,5 @@
 /* =============================================
-   Smart TOC & Scroll — Options 设置页面样式 v2.6
+   Smart TOC & Scroll — Options 设置页面样式 v2.8
    ============================================= */
 
 :root {
@@ -18,6 +18,8 @@
   --accent: #0b65c2;
   --accent-soft: #e9f4ff;
   --accent-strong: #162033;
+  --active-bg: #162033;
+  --active-text: #ffffff;
   --success: #12833b;
   --shadow: 0 16px 44px rgba(15, 23, 42, 0.08);
   --focus-ring: 0 0 0 3px rgba(11, 101, 194, 0.18);
@@ -37,8 +39,10 @@
     --control-bg: #111722;
     --control-hover: #1d2838;
     --accent: #74b7ff;
-    --accent-soft: rgba(116, 183, 255, 0.14);
-    --accent-strong: #e7f2ff;
+    --accent-soft: rgba(116, 183, 255, 0.16);
+    --accent-strong: #91c8ff;
+    --active-bg: #256fb4;
+    --active-text: #f7fbff;
     --success: #51d481;
     --shadow: 0 18px 48px rgba(0, 0, 0, 0.24);
     --focus-ring: 0 0 0 3px rgba(116, 183, 255, 0.22);
@@ -79,8 +83,8 @@ textarea {
 }
 
 .page {
-  width: min(1116px, calc(100vw - 48px));
-  margin: 58px auto;
+  width: min(1060px, calc(100vw - 48px));
+  margin: 36px auto;
 }
 
 .settings-panel {
@@ -92,8 +96,8 @@ textarea {
 }
 
 .page-header {
-  margin: 0 44px;
-  padding: 32px 0 34px;
+  margin: 0 40px;
+  padding: 28px 0 26px;
   border-bottom: 1px solid var(--border);
 }
 
@@ -114,17 +118,17 @@ textarea {
 
 .settings-list {
   display: grid;
-  gap: 22px;
-  padding: 38px 44px 0;
+  gap: 16px;
+  padding: 28px 40px 0;
 }
 
 .setting-row {
   display: grid;
   grid-template-columns: minmax(260px, 1fr) minmax(340px, auto);
   align-items: center;
-  gap: 28px;
-  min-height: 104px;
-  padding: 20px 28px;
+  gap: 24px;
+  min-height: 88px;
+  padding: 17px 22px;
   background: var(--row-bg);
   border: 1px solid transparent;
   border-radius: 10px;
@@ -143,7 +147,7 @@ textarea {
 }
 
 .setting-copy h2 {
-  margin: 0 0 6px;
+  margin: 0 0 4px;
   color: var(--text);
   font-size: 19px;
   font-weight: 650;
@@ -182,7 +186,7 @@ textarea {
   display: flex;
   align-items: center;
   justify-content: flex-end;
-  gap: 14px;
+  gap: 10px;
   max-width: 100%;
 }
 
@@ -198,8 +202,8 @@ textarea {
 }
 
 .segmented-control button {
-  min-width: 158px;
-  padding: 0 22px;
+  min-width: 146px;
+  padding: 0 18px;
   cursor: pointer;
   white-space: nowrap;
   transition:
@@ -224,15 +228,9 @@ textarea {
 }
 
 .segmented-control button.is-active {
-  background: var(--accent-strong);
-  border-color: var(--accent-strong);
-  color: var(--panel-bg);
-}
-
-@media (prefers-color-scheme: dark) {
-  .segmented-control button.is-active {
-    color: #101722;
-  }
+  background: var(--active-bg);
+  border-color: var(--active-bg);
+  color: var(--active-text);
 }
 
 .segmented-control button.is-secondary-active {
@@ -378,13 +376,19 @@ textarea::placeholder {
 }
 
 .settings-footer {
+  position: sticky;
+  bottom: 0;
+  z-index: 2;
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 24px;
-  margin: 30px 44px 0;
-  padding: 16px 0 24px;
+  margin: 22px 40px 0;
+  padding: 14px 0 18px;
+  background: color-mix(in srgb, var(--panel-bg) 94%, transparent);
   border-top: 1px solid var(--border);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
 }
 
 .settings-footer p {
@@ -404,10 +408,10 @@ textarea::placeholder {
 button#save {
   min-height: 38px;
   padding: 0 18px;
-  border: 1px solid var(--accent-strong);
+  border: 1px solid var(--active-bg);
   border-radius: 999px;
-  background: var(--accent-strong);
-  color: var(--panel-bg);
+  background: var(--active-bg);
+  color: var(--active-text);
   cursor: pointer;
   font-size: 13px;
   font-weight: 650;
@@ -415,12 +419,6 @@ button#save {
     transform 0.12s ease,
     opacity 0.16s ease,
     box-shadow 0.16s ease;
-}
-
-@media (prefers-color-scheme: dark) {
-  button#save {
-    color: #101722;
-  }
 }
 
 button#save:hover {
