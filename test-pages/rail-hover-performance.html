@@ -23,6 +23,108 @@
       line-height: 1.7;
     }
 
+    .sample-toolbar {
+      position: fixed;
+      top: 16px;
+      left: 16px;
+      z-index: 10020;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      max-width: calc(100vw - 32px);
+      padding: 8px;
+      border: 1px solid rgba(255, 255, 255, 0.14);
+      border-radius: 10px;
+      background: rgba(17, 24, 39, 0.84);
+      box-shadow: 0 12px 34px rgba(0, 0, 0, 0.22);
+      color: #f5f7fa;
+      font-size: 12px;
+      line-height: 1;
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+    }
+
+    :root[data-position="left"] .sample-toolbar {
+      right: 16px;
+      left: auto;
+    }
+
+    :root[data-surface="light"] .sample-toolbar {
+      border-color: rgba(15, 23, 42, 0.12);
+      background: rgba(255, 255, 255, 0.88);
+      box-shadow: 0 12px 34px rgba(15, 23, 42, 0.10);
+      color: #151922;
+    }
+
+    .sample-toolbar-title {
+      padding: 0 4px;
+      color: currentColor;
+      font-weight: 700;
+      white-space: nowrap;
+    }
+
+    .sample-control-group {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 3px;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.08);
+    }
+
+    :root[data-surface="light"] .sample-control-group {
+      background: rgba(15, 23, 42, 0.06);
+    }
+
+    .sample-toolbar button,
+    .sample-motion-toggle {
+      min-height: 28px;
+      border: 0;
+      border-radius: 999px;
+      color: currentColor;
+      font: inherit;
+      white-space: nowrap;
+    }
+
+    .sample-toolbar button {
+      padding: 0 10px;
+      background: transparent;
+      cursor: pointer;
+    }
+
+    .sample-toolbar button:hover {
+      background: rgba(255, 255, 255, 0.10);
+    }
+
+    :root[data-surface="light"] .sample-toolbar button:hover {
+      background: rgba(15, 23, 42, 0.08);
+    }
+
+    .sample-toolbar button.is-active {
+      background: #2f7cc4;
+      color: #ffffff;
+    }
+
+    .sample-motion-toggle {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 0 10px;
+      background: rgba(255, 255, 255, 0.08);
+      cursor: pointer;
+    }
+
+    :root[data-surface="light"] .sample-motion-toggle {
+      background: rgba(15, 23, 42, 0.06);
+    }
+
+    .sample-motion-toggle input {
+      width: 14px;
+      height: 14px;
+      margin: 0;
+      accent-color: #2f7cc4;
+    }
+
     :root[data-surface="light"] body {
       background: #f6f8fb;
       color: #151922;
@@ -130,6 +232,24 @@
       border-color: rgba(15, 23, 42, 0.12);
       background: rgba(15, 23, 42, 0.04);
     }
+
+    @media (max-width: 760px) {
+      .sample-toolbar {
+        right: 12px;
+        left: 12px;
+        flex-wrap: wrap;
+        justify-content: flex-start;
+      }
+
+      :root[data-position="left"] .sample-toolbar {
+        right: 12px;
+        left: 12px;
+      }
+
+      main {
+        padding-top: 148px;
+      }
+    }
   </style>
   <script>
     const sampleParams = new URLSearchParams(window.location.search);
@@ -186,6 +306,23 @@
   </script>
 </head>
 <body>
+  <div class="sample-toolbar" role="toolbar" aria-label="Rail QA controls">
+    <span class="sample-toolbar-title">Rail QA</span>
+    <div class="sample-control-group" role="group" aria-label="Rail position">
+      <button class="is-active" type="button" data-param="position" data-value="right" aria-pressed="true">Right</button>
+      <button type="button" data-param="position" data-value="left" aria-pressed="false">Left</button>
+    </div>
+    <div class="sample-control-group" role="group" aria-label="Surface">
+      <button class="is-active" type="button" data-param="surface" data-value="dark" aria-pressed="true">Dark</button>
+      <button type="button" data-param="surface" data-value="light" aria-pressed="false">Light</button>
+      <button type="button" data-param="surface" data-value="color" aria-pressed="false">Color</button>
+      <button type="button" data-param="surface" data-value="lightstrip" aria-pressed="false">Strip</button>
+    </div>
+    <label class="sample-motion-toggle">
+      <input id="sampleReducedMotion" type="checkbox">
+      Reduce
+    </label>
+  </div>
   <div class="sample-surface-strip" aria-hidden="true">
     <span></span>
     <span></span>
@@ -214,6 +351,36 @@
 
     document.querySelectorAll('#github-toc, #github-sst, .toc-rail-preview').forEach((node) => {
       node.remove();
+    });
+
+    const toolbar = document.querySelector('.sample-toolbar');
+    const reducedMotionToggle = document.getElementById('sampleReducedMotion');
+    const setSampleParam = (param, value) => {
+      const nextUrl = new URL(window.location.href);
+      nextUrl.searchParams.set(param, value);
+      window.location.href = nextUrl.toString();
+    };
+
+    toolbar.querySelectorAll('button[data-param][data-value]').forEach((button) => {
+      const isActive =
+        (button.dataset.param === 'position' && button.dataset.value === samplePosition) ||
+        (button.dataset.param === 'surface' && button.dataset.value === sampleSurface);
+      button.classList.toggle('is-active', isActive);
+      button.setAttribute('aria-pressed', isActive ? 'true' : 'false');
+      button.addEventListener('click', () => {
+        setSampleParam(button.dataset.param, button.dataset.value);
+      });
+    });
+
+    reducedMotionToggle.checked = sampleReducedMotion;
+    reducedMotionToggle.addEventListener('change', () => {
+      const nextUrl = new URL(window.location.href);
+      if (reducedMotionToggle.checked) {
+        nextUrl.searchParams.set('motion', 'reduce');
+      } else {
+        nextUrl.searchParams.delete('motion');
+      }
+      window.location.href = nextUrl.toString();
     });
   </script>
   <script src="../catalog.js?sample=rail-hover-performance"></script>

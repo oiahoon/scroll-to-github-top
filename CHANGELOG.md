@@ -5,6 +5,15 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.9] - 2026-07-10
+
+### Added
+- `test-pages/rail-hover-performance.html` 新增 Rail QA 控制条，可直接切换 left/right、dark/light/color/lightstrip surface 与 reduced motion 状态
+
+### Changed
+- 阅读进度 rail 本地验收流程从“手改 URL 参数”收敛为页面内按钮切换，方便 Chrome/Computer 截图审阅和回归确认
+- Rail QA 控制条会根据 rail 左右位置自动避让到另一侧，避免遮挡被测 rail
+
 ## [2.8] - 2026-07-10
 
 ### Changed

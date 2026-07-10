@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Smart TOC & Scroll",
-  "version": "2.8",
+  "version": "2.9",
   "description": "Adaptive reading navigation for long articles: TOC, progress outline, hover preview, smart skip, and smooth scroll to top.",
   "permissions": [
     "activeTab",

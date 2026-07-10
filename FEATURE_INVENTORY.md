@@ -1,6 +1,6 @@
 # Smart TOC & Scroll — 功能清单（Feature Inventory）
 
-> **版本**：2.8
+> **版本**：2.9
 > **用途**：本文档记录扩展主要行为、交互、配置项与边界情况，作为后续重构和回归验证的功能基线。
 > **更新日期**：2026-07-10
 
@@ -152,6 +152,22 @@
 - Hover wave 布局只缓存可视区域附近 item，并预计算基础宽度，避免长目录在 pointer move 中频繁全量读写布局。
 - 预览气泡需限制在视口内，并与 hover 高亮条保持同一垂直中心。
 - `.toc-rail-link` 允许 overflow visible，避免右侧 rail 向左延展时圆角端被父级裁切成平角。
+
+---
+
+### 1.8 阅读进度 rail 本地 QA 控制条
+
+**功能描述**：`test-pages/rail-hover-performance.html` 提供固定的 `Rail QA` 控制条，用于在本地页面内切换 rail 位置、surface 和 reduced motion 状态，并同步到 URL 参数。
+
+**用户故事**：作为维护扩展交互体验的开发者，我希望不用手动编辑 URL 就能快速切换 rail 验收场景，以便通过 Chrome/Computer 截图复核镜像方向、局部配色和减少动态效果。
+
+**验收标准**：
+
+- Given 打开 `test-pages/rail-hover-performance.html?position=right&surface=dark`，When 页面加载，Then `Rail QA` 控制条中 `Right` 与 `Dark` 按钮应处于 `aria-pressed="true"` 状态。
+- Given 用户点击 `Left` 或 `Right`，When 页面重载，Then URL 的 `position` 参数更新，rail 位置同步切换，控制条移动到 rail 的另一侧。
+- Given 用户点击 `Dark` / `Light` / `Color` / `Strip`，When 页面重载，Then URL 的 `surface` 参数更新，页面背景和 rail 局部 surface 验收场景同步切换。
+- Given 用户勾选 `Reduce`，When 页面重载，Then URL 添加 `motion=reduce`，测试页 mock 的 `matchMedia('(prefers-reduced-motion: reduce)')` 返回 true。
+- Given 视口宽度小于 760px，When 控制条内容换行，Then 正文顶部留出足够 padding，控制条不遮挡首屏标题。
 
 ---
 
@@ -872,7 +888,7 @@
 
 - **Manifest 版本**：3
 - **扩展名称**：Smart TOC & Scroll
-- **版本号**：2.8
+- **版本号**：2.9
 - **所需权限**：`activeTab`、`storage`
 - **主机权限**：`<all_urls>`（所有 HTTP/HTTPS 页面）
 - **Options 页面**：`options.html`

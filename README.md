@@ -124,6 +124,7 @@
   - `window.__SMART_TOC_WIDGET_DIAGNOSTICS__`
   - `window.__SMART_TOC_INSPECT_WIDGETS__()`
 - 阅读进度 rail 视觉调试可使用 `test-pages/rail-hover-performance.html?position=right&surface=lightstrip`，并切换 `position=left/right`、`surface=light/dark/color/lightstrip`、`motion=reduce` 复核镜像方向、预览位置、局部配色与减少动态效果。扫动 toc bar 时，rail wave 应连续响应；预览外框应固定在 rail 纵向中间，内部标题 track 像日期窗口一样滚动，不能出现固定 5 行分片换页感；focus ring 固定在观察窗中心并只在命中新标题时轻微 bounce；点击 rail 跳转后 preview 应短暂保持作为导航确认，随后在指针离开时自动淡出。
+- 该测试页顶部提供 `Rail QA` 控制条，可直接切换 rail 位置、surface 与减少动态效果状态，便于截图审阅和回归。
 - 兼容性检测会优先区分“侧栏导航”和“正文内小目录”，减少误跳过
 
 ## 更新日志

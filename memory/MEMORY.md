@@ -4,8 +4,8 @@
 - Chrome extension, Manifest v3, injects into all pages
 - Key files: `catalog.js`, `theme.js`, `toc.css`, `themes.css`, `options.html`, `options.css`
 - Design spec: `UI_DESIGN_SPEC.md`; Feature inventory: `FEATURE_INVENTORY.md`
-- Current release line: v2.8
-- Active branch context: `codex/toc-rail-preview-hover`
+- Current release line: v2.9
+- Active branch context: `master`
 
 ## Architecture Notes
 - `themes.css` defines CSS custom properties per `.theme-*` class on `#github-toc`
@@ -30,7 +30,14 @@
 - 本地视觉/性能测试页：`test-pages/rail-hover-performance.html?position=right&surface=lightstrip`
   - `position=left/right` 用于检查镜像展开和预览方向
   - `surface=light/dark/color/lightstrip` 用于检查局部自适应配色
+  - 页面内 `Rail QA` 控制条可直接切换 position、surface 和 reduced motion；控制条会自动避让到 rail 的另一侧
   - 测试页会清理旧注入 DOM，并对本地 CSS/JS 加 cache busting，避免浏览器残留影响判断
+
+## v2.9 Rail QA Controls — Completed (2026-07-10)
+- 第 2 轮审阅聚焦阅读进度 rail 的验收流程：此前需要手改 URL 参数才能比较 left/right、surface 和 reduced motion，Chrome/Computer 截图回归不够顺手。
+- `test-pages/rail-hover-performance.html` 新增固定 `Rail QA` 控制条，支持 position、surface、reduced motion 页面内切换并同步 URL 参数。
+- 控制条在 left rail 时自动靠右，在 right rail 时靠左，避免遮挡被测 rail；移动端控制条可换行并增加正文顶部 padding。
+- 该轮不改生产 `catalog.js` / `toc.css` rail 逻辑，只降低后续真实 UI 审阅和截图验证的操作成本。
 
 ## v2.8 Options UX Polish — Completed (2026-07-10)
 - 第 1 轮 Chrome/Computer UX 审阅聚焦 Options 设置页：首屏暗色模式下白色选中胶囊过亮、底部保存入口需要滚动后确认、英文 footer 与中文设置项混用。
