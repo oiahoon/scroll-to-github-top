@@ -5,14 +5,15 @@
 - Key files: `catalog.js`, `theme.js`, `toc.css`, `themes.css`, `options.html`, `options.css`
 - Design spec: `UI_DESIGN_SPEC.md`; Feature inventory: `FEATURE_INVENTORY.md`
 - Current release line: v2.9
-- Active branch context: `master`
+- 不固定记录 active branch；当前分支以每次工作的 `git status --short --branch` 为准，避免复用历史功能分支名
 
 ## Architecture Notes
 - `themes.css` defines CSS custom properties per `.theme-*` class on `#github-toc`
 - `toc.css` is the main component stylesheet, consumes CSS variables from `themes.css`
 - `theme.js` reads page background and adds a `.theme-*` class to `#github-toc` and `#github-sst`
+- 主题判定已不再统计文本颜色：按 body 背景 → html 背景 → color-scheme → prefers-color-scheme → 浅色兜底读取页面亮度；L > 60 选择 `theme-dark`，否则选择 `theme-light`
 - `--toc-backdrop-filter` variable defined in theme classes, applied by `.github-toc` in `toc.css`
-- 独立回顶按钮 `#github-sst` 现在由 `catalog.js` 创建并参与主注入流程
+- `阅读进度目录` preset 下的独立回顶按钮 `#github-sst` 由 `catalog.js` 创建并参与主注入流程；标准目录面板使用 `.toc-top-button`
 - 独立回顶按钮历史上曾拆分为 `button.js`，现已并回 `catalog.js`
 - `阅读进度目录` 使用透明 rail，不给目录容器本体增加面板背景
 - `.toc-rail-preview` 是 `document.body` 下的 fixed layer，不是 `#github-toc` 子节点；这是为了避开 transform ancestor 改变 fixed 定位参照导致的错位
@@ -45,6 +46,12 @@
 - 设置页布局收紧 page margin、row gap、row min-height 与分段按钮宽度；底部 `.settings-footer` 改为 sticky，保存按钮与本地保存说明在滚动配置时持续可见。
 - 暗色模式选中态使用 `--active-bg` / `--active-text` 高对比行动色；保存按钮也使用同一行动色，避免浅蓝底白字对比不足。
 - “滚动屏数”和“最少标题”数值输入补充 `aria-label`，后续调整设置页时不要移除这些可访问名称。
+
+## v2.9 文档基线同步（2026-07-10）
+- 当前真实入口仍是 `catalog.js` 的 `start()`；已有控件检测使用 `getExistingTocDecision()`、`getExistingScrollToTopDecision()` 和 `getSkipInjectionDecision()`，文档不要恢复旧的 `hasExisting*` / `shouldSkipInjection` 函数名。
+- `#github-sst` 只在 `阅读进度目录` preset 下创建；标准目录面板使用面板内的 `.toc-top-button`。
+- SPA / 动态页面恢复依赖 History API、GitHub 的 PJAX/Turbo/AJAX 事件、Astro 生命周期、`pageshow`、`visibilitychange` 和针对标题节点的 MutationObserver；当前没有 GitHub 每秒轮询。
+- `FEATURE_INVENTORY.md`、`UI_DESIGN_SPEC.md`、Chrome Web Store 文案和发布说明已按当前 v2.9 版本/行为同步；v2.8 Options 变更仍作为历史上下文保留，设计规范中仍标为“需补充”的 A11y 项属于未完成 backlog。
 
 ## v2.5 Reading Progress Rail Polish — Completed (2026-06-30)
 - Manifest version bumped to `2.5`

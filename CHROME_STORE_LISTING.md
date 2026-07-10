@@ -1,6 +1,6 @@
 # Chrome Web Store Listing Copy
 
-> Updated: 2026-06-30
+> Updated: 2026-07-10
 > Use for Chrome Web Store title, short description, long description, screenshot captions, and release notes.
 
 ## Positioning
@@ -89,4 +89,4 @@ Smart TOC & Scroll does not upload page content or collect browsing history. Out
 
 ## Release Note
 
-Improved the reading progress outline with smoother hover behavior, stable preview placement, transparent rail styling, and subtle adaptive contrast for different page surfaces.
+Improved the reading progress outline with smoother hover behavior, stable preview placement, transparent rail styling, and subtle adaptive contrast for different page surfaces. The settings page also has shorter Chinese copy, a sticky save area, and clearer dark-mode selection states.

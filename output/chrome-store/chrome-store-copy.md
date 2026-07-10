@@ -1,6 +1,6 @@
 # Chrome Web Store Listing Copy
 
-Updated: 2026-06-30
+Updated: 2026-07-10
 
 ## Short Description
 
@@ -70,4 +70,4 @@ Smart TOC & Scroll 为长文、博客和文档站点提供轻量阅读导航。
 
 ## Release Note
 
-Improved the reading progress outline with smoother hover behavior, stable preview placement, transparent rail styling, and subtle adaptive contrast for different page surfaces.
+Improved the reading progress outline with smoother hover behavior, stable preview placement, transparent rail styling, and subtle adaptive contrast for different page surfaces. The settings page also has shorter Chinese copy, a sticky save area, and clearer dark-mode selection states.

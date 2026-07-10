@@ -1,7 +1,8 @@
 # Smart TOC & Scroll — UI/UX 优化设计规范
 
-> **版本**：v2.5 已落地整理版
-> **更新日期**：2026-06-30
+> **版本**：v2.9 当前落地参考版
+> **更新日期**：2026-07-10
+> **说明**：本文保留 v2.2 基线问题分析，并汇总 v2.5–v2.9 已落地的 rail、主题和 Options 视觉决策；标注“需补充”的条目仍属于后续 backlog。
 > **适用文件**：toc.css、themes.css、options.html、options.css
 
 ---
@@ -1247,18 +1248,17 @@ max-height：min(480px, calc(100vh - 64px))
 ### 11.2 独立滚动按钮无障碍
 
 ```html
-<div
+<button
   id="github-sst"
   class="github-sst"
-  role="button"
-  tabindex="0"
+  type="button"
   aria-label="回到页面顶部"
 >
   <svg aria-hidden="true" focusable="false">...</svg>
-</div>
+</button>
 ```
 
-键盘支持：`Enter` / `Space` 触发滚动到顶部。
+键盘支持由原生 `<button>` 提供：`Enter` / `Space` 触发滚动到顶部；按钮不再需要手动声明 `role="button"` 或 `tabindex="0"`。
 
 ```css
 .github-sst:focus-visible {
@@ -1272,9 +1272,13 @@ max-height：min(480px, calc(100vh - 64px))
 
 #### Label 与控件关联
 
-所有 `<label>` 通过 `for` 属性与对应控件关联（现有实现已满足）。需补充：
-- `showAfterScrollScreens` 输入框增加 `aria-describedby` 指向说明文字
-- 禁用状态的 `avoidExistingWidgets` 复选框增加 `aria-disabled="true"` 和说明文字
+设置项通过嵌套 `<label>` 或 `aria-labelledby` 与控件关联。当前实现已提供：
+- `showAfterScrollScreens` 的 `aria-label` 与 `aria-describedby`
+- `minHeaders` 的 `aria-label`
+- 保存状态的 `role="status"`、`aria-live="polite"` 与 `aria-atomic="true"`
+
+仍需补充：
+- `avoidExistingWidgets` 被 `forceShow` 禁用时，补充 `aria-disabled="true"` 或等价的辅助说明
 
 #### 状态提示
 
@@ -1444,4 +1448,4 @@ max-height：min(480px, calc(100vh - 64px))
 
 ---
 
-*本规范基于 Smart TOC & Scroll v2.2 基线问题分析形成，并已按 v2.5 当前落地状态整理，日期：2026-06-30。*
+*本规范基于 Smart TOC & Scroll v2.2 基线问题分析形成，并已按 v2.9 当前落地状态整理，日期：2026-07-10。*

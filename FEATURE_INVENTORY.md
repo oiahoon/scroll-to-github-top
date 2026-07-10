@@ -67,13 +67,13 @@
 
 ### 1.3 层级缩进展示
 
-**功能描述**：目录条目按标题层级以 16px 为单位逐级缩进，最多支持 6 级。
+**功能描述**：目录条目按标题层级使用收敛后的 padding 缩进，最多支持 6 级；level-2/3 每级增加 12px，level-4/5 每级增加 8px，level-6 与 level-5 对齐。
 
 **用户故事**：作为阅读多层次文档的用户，我希望目录能以视觉缩进反映文章的层级结构，以便一眼判断章节的从属关系。
 
 **验收标准**：
 
-- Given 目录中存在 level-1 至 level-6 的条目，When 面板展开，Then level-1 无缩进，level-2 缩进 16px，level-3 缩进 32px，level-4 缩进 48px，level-5 缩进 64px，level-6 缩进 80px。
+- Given 目录中存在 level-1 至 level-6 的条目，When 面板展开，Then 链接左 padding 依次为 8px、20px、32px、40px、48px、48px。
 - Given 目录列表内容超出面板高度（max-height: calc(100% - 60px)），When 面板展开，Then 列表区域出现纵向滚动条，支持滚动浏览。
 
 ---
@@ -88,7 +88,7 @@
 
 - Given 目录面板已展开且页面包含多个标题，When 用户向下滚动使某标题进入视口顶部（top <= 100px），Then 该标题对应的目录条目获得 `active` class，其他条目移除 `active` class。
 - Given 用户点击某个目录链接触发平滑滚动，When 滚动结束，Then 被点击的条目立即获得 `active` class（点击时即时响应，不等待滚动结束）。
-- Given 活动条目存在，When 渲染，Then 条目链接文字颜色为 `--toc-text-active`（默认 #0366d6），背景色为 `--toc-highlight-active`（默认 rgba(3,102,214,0.1)），字重 500，左侧有宽 3px、高 16px 的圆角指示条。
+- Given 活动条目存在，When 渲染，Then 条目链接文字颜色为 `--toc-accent`（默认 #0969da），背景色为 `--toc-highlight-active`，字重 500，并按层级显示 2px 左侧指示条。
 - Given 没有任何标题的 top <= 100px（用户在页面顶部），When 调用 updateActiveHeader，Then 不更新任何 active 状态（activeHeader 为 null）。
 
 **边界情况**：
@@ -105,7 +105,7 @@
 
 **验收标准**：
 
-- Given `minHeaders = 3`，`showAfterScrollScreens = 1`，页面有 5 个标题，When 用户向下滚动超过 1 个屏幕高度，Then 目录容器 `display: block`。
+- Given `minHeaders = 3`，`showAfterScrollScreens = 1`，页面有 5 个标题，When 用户向下滚动超过 1 个屏幕高度，Then 目录容器 `display: flex`。
 - Given 页面标题数量少于 `minHeaders` 设定值，When 用户无论滚动多少，Then 目录容器保持 `display: none`。
 - Given 用户未滚动超过阈值（`scrollTop <= innerHeight * showAfterScrollScreens`），When 页面加载完成，Then 目录容器保持 `display: none`。
 - Given 用户滚动超过阈值后又向上滚回顶部，When scroll 事件触发，Then 目录容器重新隐藏（`display: none`）。
@@ -175,17 +175,16 @@
 
 ### 2.1 独立回到顶部按钮（catalog.js）
 
-**功能描述**：`catalog.js` 在主注入流程中创建一个独立的回到顶部按钮（`#github-sst`），与 TOC 面板互相独立，仅在页面滚动超过 468px 时显示。
+**功能描述**：`catalog.js` 在 `阅读进度目录` preset 下创建一个独立的回到顶部按钮（`#github-sst`）。它与 TOC rail 独立渲染，按统一的标题数/滚动屏数条件显示；标准目录面板使用面板内的 `.toc-top-button`。
 
 **用户故事**：作为浏览长页面的用户，我希望在页面右下角看到一个回到顶部按钮，以便一键返回页面顶部，无需手动滚动。
 
 **验收标准**：
 
-- Given 页面加载完成且 `#github-sst` 尚不存在，When `catalog.js` 执行 `createScrollTopButton()`，Then 在 `document.body` 末尾创建 id 为 `github-sst`、class 为 `github-sst` 的 `div` 元素。
-- Given 页面 scrollTop 总计 <= 468px，When scroll 事件触发，Then 按钮 `display: none`。
-- Given 页面 scrollTop 总计 > 468px，When scroll 事件触发，Then 按钮 `display: block`。
+- Given `themePreset = 'sspai'` 且页面满足显示条件，When `createUI()` 执行，Then 在 `document.body` 末尾创建 id 为 `github-sst`、class 为 `github-sst` 的 `button` 元素。
+- Given 页面不满足 `minHeaders` 或 `showAfterScrollScreens` 条件，When `updateVisibility()` 执行，Then 按钮移除 `visible` class、设置 `tabIndex = -1`，并保持不可交互。
+- Given 页面满足显示条件，When `updateVisibility()` 执行，Then 按钮获得 `visible` class；指针接近时再通过 `is-near` 显形并允许点击。
 - Given 按钮可见，When 用户点击按钮，Then 页面以时长 348ms 的自定义缓动动画平滑滚动回顶部（scrollTop = 0）。
-- Given `#github-sst` 已经存在于 DOM 中，When `catalog.js` 再次执行 `createScrollTopButton()`，Then 复用现有节点并同步位置 class，不重复创建按钮。
 
 **边界情况**：
 - 滚动监听通过 `requestAnimationFrame` 节流（`cancelAnimationFrame` + 新帧），防止高频回调。
@@ -213,59 +212,56 @@
 
 **验收标准**：
 
-- Given 独立按钮已注入，When 检查 innerHTML，Then 包含 `viewBox="0 0 1024 1024"` 的向上箭头路径 SVG（宽高各 18px）。
+- Given 独立按钮已注入，When 检查 innerHTML，Then 包含 `viewBox="0 0 24 24"` 的向上箭头路径 SVG（宽高各 18px）。
 - Given TOC 容器已创建，When 检查 iconContainer，Then 包含 `viewBox="0 0 24 24"` 的三横线菜单 SVG（宽高各 20px）。
 
 ---
 
 ## 3. 主题自适应
 
-### 3.1 页面主色提取
+### 3.1 页面背景读取
 
-**功能描述**：`theme.js` 扫描页面所有 `p, h1–h6, span, div` 元素的 `color` computed style，统计出现次数最多的颜色作为页面主色。
+**功能描述**：`theme.js` 直接读取页面背景亮度，不再扫描文本颜色。读取优先级为 `body` 背景色、`html` 背景色、`color-scheme` 属性/样式、`prefers-color-scheme`，最后以浅色背景作为兜底。
 
 **用户故事**：作为在各种风格网站上使用扩展的用户，我希望 TOC 面板能自动匹配页面的整体色调，以便视觉上不显突兀。
 
 **验收标准**：
 
-- Given 页面包含大量文本元素，When `theme.js` 执行，Then 统计所有文本元素的 `getComputedStyle(el).color`，取出现次数最高的颜色作为主色。
-- Given 页面无任何文本元素或无法获取颜色，When `selectTheme` 执行，Then 默认返回 `theme-light`。
+- Given `body` 或 `html` 存在非透明背景色，When `getPageBackgroundLightness()` 执行，Then 将 RGB 颜色转换为 HSL 并返回亮度 L。
+- Given 页面背景色透明但 `<html>` 带有深/浅色 `color-scheme`，When 执行背景读取，Then 分别按深色/浅色返回低/高亮度兜底值。
+- Given 以上信息均不可用，When `selectTheme()` 执行，Then 按浅色背景兜底并返回 `theme-dark`。
 
 ---
 
 ### 3.2 RGB 转 HSL 颜色分析
 
-**功能描述**：将提取到的 RGB 主色转换为 HSL，根据亮度（L）和色相（H）选择最合适的主题。
+**功能描述**：将实际读取到的 RGB 背景色转换为 HSL，只使用亮度（L）决定浮层的明暗方向。
 
 **验收标准**：
 
 - Given RGB 字符串格式，When 调用 `rgbToHsl`，Then 返回包含 `h`（0–360）、`s`（0–100）、`l`（0–100）的对象。
-- Given RGB 字符串无法解析（match 返回 null），When 调用 `rgbToHsl`，Then 返回 `null`，`selectTheme` 回退到 `theme-light`。
+- Given RGB 字符串无法解析（match 返回 null），When 调用 `rgbToHsl`，Then 返回 `null`，背景读取继续尝试下一个来源。
 
 ---
 
 ### 3.3 主题选择规则
 
-**功能描述**：根据 HSL 亮度和色相自动选择 5 种主题之一。
+**功能描述**：根据页面背景亮度在 `theme-dark` 与 `theme-light` 之间选择浮层主题；另有 `theme-auto` 和旧彩色 class 作为 CSS 兼容类，但不会被 `selectTheme()` 主动选中。
 
 **用户故事**：作为用户，我希望扩展在深色网站上显示浅色面板、在浅色网站上显示深色面板，以保证 TOC 始终清晰可见。
 
 **验收标准**：
 
-- Given 主色亮度 L > 70（浅色文字，通常意味着深色背景），When 选择主题，Then 应用 `theme-light`（白色背景）。
-- Given 主色亮度 L < 30（深色文字，通常意味着浅色背景），When 选择主题，Then 应用 `theme-dark`（深灰 #424242 背景）。
-- Given 主色亮度在 30–70 之间，色相 H 在 0–60（红/黄色系），When 选择主题，Then 应用 `theme-green`（绿色 #2e7d32 背景）。
-- Given 主色亮度在 30–70 之间，色相 H 在 60–180（绿/青色系），When 选择主题，Then 应用 `theme-purple`（紫色 #512da8 背景）。
-- Given 主色亮度在 30–70 之间，色相 H 在 180–300（蓝/紫色系），When 选择主题，Then 应用 `theme-blue`（蓝色 #1976d2 背景）。
-- Given 主色亮度在 30–70 之间，色相 H 在 300–360 范围，When 选择主题，Then 回退到 `theme-light`。
+- Given 页面背景亮度 `L > 60`，When `selectTheme()` 执行，Then 应用 `theme-dark`，使用深色浮层适配浅色页面。
+- Given 页面背景亮度 `L <= 60`，When `selectTheme()` 执行，Then 应用 `theme-light`，使用浅色浮层适配深色/中色页面。
 
-**重要实现细节**：主题名称作为 CSS class 添加到 `#github-toc` 容器上；应用新主题前先移除所有 5 种主题 class（`theme-dark`, `theme-light`, `theme-blue`, `theme-green`, `theme-purple`），再添加新 class。
+**重要实现细节**：主题 class 会应用到 `#github-toc` 和 `#github-sst`；应用新主题前会移除 `theme-dark`、`theme-light`、`theme-blue`、`theme-green`、`theme-purple`、`theme-auto` 以及 preset class，再添加当前主题与 `theme-preset-default/sspai`。
 
 ---
 
 ### 3.4 主题实时响应 DOM 变化
 
-**功能描述**：`theme.js` 通过 `MutationObserver` 监听 `document.body` 的 childList 和 subtree 变化，在页面内容更新时重新检测并应用主题。
+**功能描述**：`theme.js` 通过 `MutationObserver` 监听 body 的 childList/subtree，以及 body/html 的 class/style 属性变化，在页面内容或页面主题变化时重新检测并应用主题。
 
 **验收标准**：
 
@@ -274,21 +270,22 @@
 
 ---
 
-### 3.5 五种主题的 CSS 变量规范
+### 3.5 主题与导航 preset 的 CSS 变量规范
 
-**功能描述**：每种主题通过 CSS 自定义属性（变量）定义背景色、文字色、高亮色、滚动条颜色与三级阴影。
+**功能描述**：基础主题通过 CSS 自定义属性定义背景、文字、高亮、滚动条和阴影；导航 preset 再覆盖 rail 的透明背景、局部 surface、预览层和回顶按钮 token。
 
-| 主题 | `--toc-bg` | `--toc-text` |
+| class / preset | 用途 |
 |---|---|---|
-| theme-light | #ffffff | #000000 |
-| theme-dark | #424242 | #ffffff |
-| theme-blue | #1976d2 | #ffffff |
-| theme-green | #2e7d32 | #ffffff |
-| theme-purple | #512da8 | #ffffff |
+| theme-light | 深色/中色页面使用的浅色磨砂浮层 |
+| theme-dark | 浅色页面使用的深色磨砂浮层 |
+| theme-auto | 跟随系统偏好的兼容 class |
+| theme-blue / theme-green / theme-purple | 映射到深色变量的旧 class，保留向后兼容 |
+| theme-preset-default | 标准目录面板 preset |
+| theme-preset-sspai | 透明阅读进度 rail、局部自适应和外置标题预览 preset |
 
 **验收标准**：
 
-- Given 任意主题 class 应用于 `#github-toc`，When 检查 CSS 变量，Then `--toc-elevation`、`--toc-elevation-hover`、`--toc-elevation-expanded` 分别对应 Material Design 三级阴影（elevation-1/2/3）。
+- Given 任意基础主题 class 应用于 `#github-toc`，When 检查 CSS 变量，Then 背景、文字、滚动条和阴影 token 均有可用定义。
 - Given 主题应用，When TOC 展开，Then 阴影升级为 `--toc-elevation-expanded`（elevation-3：最高层级）。
 
 ---
@@ -297,7 +294,7 @@
 
 ### 4.1 悬停展开模式（hover）
 
-**功能描述**：鼠标悬停在 TOC 容器上时自动展开面板，移开鼠标后自动折叠；此模式下点击图标触发回到顶部而非展开。
+**功能描述**：鼠标悬停在 TOC 容器上时自动展开面板，移开鼠标后自动折叠；点击图标可将当前展开状态固定/解除固定，不直接回顶。
 
 **用户故事**：作为桌面端用户，我希望鼠标悬停就能自动展开目录，无需多余点击，以便快速浏览章节列表。
 
@@ -305,21 +302,21 @@
 
 - Given `expandMode = 'hover'`，When 鼠标 mouseenter 至 `.github-toc`，Then `toggleExpanded(true)` 被调用，容器获得 `expanded` class，iconContainer opacity 设为 0。
 - Given `expandMode = 'hover'`，When 鼠标 mouseleave 离开 `.github-toc`，Then `toggleExpanded(false)` 被调用，容器移除 `expanded` class，iconContainer opacity 恢复为 1。
-- Given `expandMode = 'hover'`，When 用户点击 `.toc-icon`，Then 调用 `scrollToTop()`（回到顶部），不触发展开/折叠。
+- Given `expandMode = 'hover'`，When 用户点击 `.toc-icon`，Then 打开并固定面板，或关闭已固定的面板；不直接调用 `scrollToTop()`。
 - Given `expandMode = 'hover'`，When 面板处于展开状态，点击 `.toc-tree` 中非链接、非 `.toc-top-button` 区域，Then 调用 `toggleExpanded(false)`，面板折叠。
 
 ---
 
 ### 4.2 点击展开模式（click）
 
-**功能描述**：点击 TOC 容器任意区域展开/折叠面板；未展开状态下点击图标（`!expanded`）时触发回到顶部。
+**功能描述**：点击 TOC 容器非链接区域展开/折叠面板；点击图标遵循同一切换逻辑，不直接回顶。
 
 **用户故事**：作为触控板用户或偏好精确控制的桌面用户，我希望手动点击才展开目录，避免误触悬停自动展开。
 
 **验收标准**：
 
 - Given `expandMode = 'click'`，When 用户点击 `.github-toc` 非链接区域，Then 调用 `toggleExpanded()`（切换），若已展开则折叠，若已折叠则展开。
-- Given `expandMode = 'click'`，面板未展开，When 用户点击 `.toc-icon` 区域，Then 调用 `scrollToTop()`，不展开面板。
+- Given `expandMode = 'click'`，面板未展开，When 用户点击 `.toc-icon` 区域，Then 面板固定展开。
 - Given `expandMode = 'click'`，When 用户点击 `.toc-item a` 链接，Then click 事件不触发展开/折叠（`isClickOnTocLink` 返回 true，直接 return）。
 - Given `expandMode = 'click'`，面板已展开，When 用户点击 `.toc-tree` 中非链接、非 `.toc-top-button` 区域，Then 面板折叠。
 
@@ -362,8 +359,8 @@
 
 **验收标准**：
 
-- Given 调用 `toggleExpanded(true)`，When 执行，Then `.github-toc` 获得 `expanded` class，`iconContainer.style.opacity = '0'`。
-- Given 调用 `toggleExpanded(false)`，When 执行，Then `.github-toc` 移除 `expanded` class，`iconContainer.style.opacity = '1'`。
+- Given 调用 `toggleExpanded(true)`，When 执行，Then `.github-toc` 获得 `expanded` class，`aria-expanded` 变为 `true`，`.toc-tree[aria-hidden]` 变为 `false`。
+- Given 调用 `toggleExpanded(false)`，When 执行，Then `.github-toc` 移除 `expanded` class，`aria-expanded` 变为 `false`，`.toc-tree[aria-hidden]` 变为 `true`。
 - Given 调用 `toggleExpanded()`（无参数），When 执行，Then 检测当前是否含 `expanded` class，进行切换。
 - Given `tocContainer` 为 null（UI 尚未创建），When 调用 `toggleExpanded`，Then 立即 return，不抛出异常。
 
@@ -393,14 +390,14 @@
 **验收标准**：
 
 - Given 用户打开扩展设置页，When 页面加载，Then 展示“阅读导航样式”“交互方式”“显示条件”“位置”“兼容策略”“禁用域名”六个设置行，以及“保存设置”按钮和状态提示区域。
-- Given 设置页面加载，When `loadSettings()` 返回数据，Then 所有表单字段（expandMode、minHeaders、showAfterScrollScreens、position、disabledDomains、avoidExistingWidgets、forceShow）填充已保存的值。
+- Given 设置页面加载，When `loadSettings()` 返回数据，Then 所有表单字段（themePreset、expandMode、minHeaders、showAfterScrollScreens、position、disabledDomains、avoidExistingWidgets、forceShow）填充已保存的值。
 - Given `chrome.storage.sync` 不可用（非扩展环境），When 设置页面加载，Then 使用默认值填充表单，不抛出异常。
 
 ---
 
 ### 5.2 目录展开方式（expandMode）
 
-**功能描述**：下拉选择框，三个选项：悬停展开（hover，默认）、长按展开（press）、点击展开（click）。
+**功能描述**：原生 select 作为可访问数据源，界面以分段按钮呈现三个选项：悬停展开（hover，默认）、长按展开（press）、点击展开（click）。`阅读进度目录` preset 固定使用悬停展开，并禁用该控制。
 
 **验收标准**：
 
@@ -436,7 +433,7 @@
 
 ### 5.5 浮层位置（position）
 
-**功能描述**：下拉选择框，两个选项：右下角（right，默认）、左下角（left），控制 TOC 容器的固定定位位置。
+**功能描述**：原生 select 作为可访问数据源，界面以分段按钮呈现两个选项：右下角（right，默认）、左下角（left），控制 TOC 容器的固定定位位置。
 
 **验收标准**：
 
@@ -465,9 +462,9 @@
 
 **验收标准**：
 
-- Given `avoidExistingWidgets = true` 且 `forceShow = false`，页面已有符合条件的 TOC 或回到顶部按钮，When `shouldSkipInjection()` 执行，Then 返回 true，`start()` 函数直接 return，不注入任何 UI。
-- Given `avoidExistingWidgets = false`，When `shouldSkipInjection()` 执行，Then 返回 false（不管页面有无已有控件）。
-- Given `forceShow = true`，When `shouldSkipInjection()` 执行，Then 直接返回 false（`forceShow` 优先级高于 `avoidExistingWidgets`）。
+- Given `avoidExistingWidgets = true` 且 `forceShow = false`，页面已有符合条件的 TOC 或回到顶部按钮，When `getSkipInjectionDecision()` 执行，Then 返回带类型/来源的跳过决策，`start()` 函数直接 return，不注入任何 UI。
+- Given `avoidExistingWidgets = false`，When `getSkipInjectionDecision()` 执行，Then 发布“由设置禁用检测”的诊断快照并返回 null。
+- Given `forceShow = true`，When `getSkipInjectionDecision()` 执行，Then 直接返回 null（`forceShow` 优先级高于 `avoidExistingWidgets`）。
 
 ---
 
@@ -481,7 +478,7 @@
 
 - Given `forceShow` 复选框被勾选，When `syncForceShow()` 执行，Then `avoidExistingWidgets` 复选框被强制取消勾选并 `disabled = true`。
 - Given `forceShow` 复选框被取消勾选，When `syncForceShow()` 执行，Then `avoidExistingWidgets` 复选框重新启用（`disabled = false`）。
-- Given `forceShow = true`，`avoidExistingWidgets = true`，When `shouldSkipInjection()` 执行，Then 因为 `forceShow` 优先级最高直接返回 false，照常注入 UI。
+- Given `forceShow = true`，`avoidExistingWidgets = true`，When `getSkipInjectionDecision()` 执行，Then 因为 `forceShow` 优先级最高直接返回 null，照常注入 UI。
 
 **注意**：`forceShow` 与 `avoidExistingWidgets` 为互斥配置，设置页面在 UI 层强制互斥，但存储层两者独立保存。
 
@@ -489,11 +486,11 @@
 
 ### 5.9 保存与状态提示
 
-**功能描述**：点击"保存设置"按钮后将当前表单数据写入 `chrome.storage.sync`，并在按钮旁显示"已保存"提示 1500ms 后自动消失。
+**功能描述**：点击"保存设置"按钮后将当前表单数据的 8 个字段写入 `chrome.storage.sync`，并在按钮旁显示"已保存"提示 1500ms 后隐藏、再延迟清空文字。
 
 **验收标准**：
 
-- Given 用户修改任意设置项，When 点击"保存设置"，Then `chrome.storage.sync.set` 被调用，写入所有 7 个字段的最新值。
+- Given 用户修改任意设置项，When 点击"保存设置"，Then `chrome.storage.sync.set` 被调用，写入所有 8 个字段的最新值。
 - Given 保存操作完成，When `renderStatus('已保存')` 被调用，Then `#status` 元素显示"已保存"文字，1500ms 后文字自动清空。
 - Given `chrome.storage.sync` 不可用，When 点击保存，Then `saveSettings` 直接 resolve，不抛出异常，状态提示仍然显示。
 
@@ -505,6 +502,7 @@
 
 | 配置项 | 默认值 | 类型 |
 |---|---|---|
+| themePreset | `'default'` | `'default' \| 'sspai'` |
 | expandMode | `'hover'` | string |
 | minHeaders | `3` | number |
 | showAfterScrollScreens | `1` | number |
@@ -519,15 +517,15 @@
 
 ### 6.1 History API 拦截
 
-**功能描述**：重写 `history.pushState` 和 `history.replaceState`，在路由切换后 100ms 延迟重新初始化 TOC。
+**功能描述**：重写 `history.pushState` 和 `history.replaceState`，在路由切换后 120ms 延迟重新初始化 TOC。
 
 **用户故事**：作为使用 React Router、Vue Router 等前端路由框架的 SPA 用户，我希望导航到新页面后 TOC 能自动更新，以便始终反映当前页面的章节结构。
 
 **验收标准**：
 
-- Given 应用调用 `history.pushState`，When 调用后，Then 原始 `pushState` 正常执行，同时 100ms 后触发 `reinitializeTOC()`。
-- Given 应用调用 `history.replaceState`，When 调用后，Then 原始 `replaceState` 正常执行，同时 100ms 后触发 `reinitializeTOC()`。
-- Given 用户点击浏览器后退/前进按钮，When `popstate` 事件触发，Then 100ms 后触发 `reinitializeTOC()`。
+- Given 应用调用 `history.pushState`，When 调用后，Then 原始 `pushState` 正常执行，同时 120ms 后触发 `reinitializeTOC()`。
+- Given 应用调用 `history.replaceState`，When 调用后，Then 原始 `replaceState` 正常执行，同时 120ms 后触发 `reinitializeTOC()`。
+- Given 用户点击浏览器后退/前进按钮，When `popstate` 事件触发，Then 120ms 后触发 `reinitializeTOC()`。
 
 ---
 
@@ -540,34 +538,35 @@
 **验收标准**：
 
 - Given 当前域名为 `github.com`，When `pjax:start` 事件触发，Then 调用 `cleanup()`（断开 MutationObserver，清除 timeout，清空 lastProcessedHeaders）。
-- Given 当前域名为 `github.com`，When `pjax:end` 事件触发，Then 100ms 后触发 `reinitializeTOC()`。
-- Given 当前域名为 `github.com`，When `turbo:load` 事件触发，Then 100ms 后触发 `reinitializeTOC()`。
-- Given 当前域名为 `github.com`，When `ajaxComplete` 事件触发，Then 100ms 后触发 `reinitializeTOC()`。
+- Given 当前域名为 `github.com`，When `pjax:end` 事件触发，Then 120ms 后触发 `reinitializeTOC()`。
+- Given 当前域名为 `github.com`，When `turbo:load` 事件触发，Then 120ms 后触发 `reinitializeTOC()`。
+- Given 当前域名为 `github.com`，When `ajaxComplete` 事件触发，Then 120ms 后触发 `reinitializeTOC()`。
 - Given 当前域名不是 `github.com`，When `setupGitHubListener()` 调用，Then 上述事件监听器一律不添加。
 
 ---
 
-### 6.3 GitHub 容器轮询检测
+### 6.3 页面生命周期恢复监听
 
-**功能描述**：在 `github.com` 上启动每秒一次的轮询，检测内容容器是否发生变化，若变化则重新初始化 TOC。
+**功能描述**：监听 Astro 页面交换/加载、`pageshow` 和页面重新变为可见等生命周期事件，在客户端页面恢复或 BFCache 返回后重新初始化 TOC。
 
 **验收标准**：
 
-- Given 当前域名为 `github.com`，When `initialize()` 被调用，Then 启动 `setInterval`，每 1000ms 执行一次容器检测。
-- Given 轮询中检测到 `findContentContainer()` 返回值与 `contentContainer` 不同，When 下次轮询，Then 调用 `reinitializeTOC()`，更新 contentContainer。
-- Given 当前域名不是 `github.com`，When `initialize()` 被调用，Then 不启动轮询。
+- Given `astro:after-swap` 或 `astro:page-load` 事件触发，Then 延迟 80ms 调用 `reinitializeTOC()`。
+- Given `pageshow` 事件触发，Then 延迟 80ms 调用 `reinitializeTOC()`。
+- Given `visibilitychange` 后页面变为 visible，Then 延迟 100ms 调用 `reinitializeTOC()`。
+- 当前实现不使用 GitHub 每秒轮询；内容变化主要由事件监听和标题节点 MutationObserver 覆盖。
 
 ---
 
 ### 6.4 MutationObserver DOM 变化监听
 
-**功能描述**：监听整个 `document.documentElement` 的 childList、subtree、characterData 变化，检测到 DOM 变化或 URL 变化后延迟更新 TOC。
+**功能描述**：监听当前内容容器（尚未确定时回退到 `document.body`）的 childList/subtree 变化，并结合 URL 变化检测标题节点是否受影响；命中后经过防抖和延迟重新初始化 TOC。
 
 **验收标准**：
 
-- Given MutationObserver 已挂载，When 页面 DOM 发生 childList 或 subtree 变化，Then 经过 250ms 防抖后，100ms 延迟触发 `reinitializeTOC()`。
+- Given MutationObserver 已挂载，When 新增/移除节点命中 H1–H6 或自定义标题选择器，Then 经过 250ms 防抖后，再延迟 120ms 触发 `reinitializeTOC()`。
 - Given MutationObserver 已挂载，When 检测到 URL 发生变化（`checkUrlChange()` 返回 true），Then 触发 `reinitializeTOC()`。
-- Given `reinitializeTOC()` 调用，When 执行，Then 先调用 `cleanup()` 断开旧 observer，再 `findContentContainer()`，再 `setupObserver()`，再 `updateTOC()`。
+- Given `reinitializeTOC()` 调用，When 内容容器未变化且 observer 仍存在，Then 只更新 TOC；容器变化或 observer 不存在时，`setupObserver()` 会先断开旧 observer 再重新挂载。
 
 **边界情况**：
 - `debounce` 延迟为 250ms，防止页面频繁 DOM 更新导致 TOC 反复重建。
@@ -582,7 +581,7 @@
 **验收标准**：
 
 - Given `#github-toc` 已存在于 DOM 中，When `catalog.js` 再次执行，Then 立即 return，不创建新的 TOC 容器，不重复绑定事件。
-- Given `#github-sst` 已存在于 DOM 中，When `catalog.js` 再次执行 `createScrollTopButton()`，Then 复用现有按钮节点，不创建新按钮。
+- Given历史遗留的 `#github-sst` 已存在于 DOM 中，When `start()` 执行，Then 先移除旧节点，再按当前 preset 重新创建所需 UI，避免旧实现残留。
 
 ---
 
@@ -608,7 +607,7 @@
 
 **验收标准**：
 
-- Given 扩展初始化完成，When `displayPerformanceStats()` 被调用，Then `#toc-performance-stats` 元素被添加到 `document.body`，初始 `display: none`。
+- Given 扩展初始化完成，When `setupPerformanceStats()` 注册快捷键，Then 首次调用快捷键时由 `ensurePerformanceStatsContainer()` 将 `#toc-performance-stats` 添加到 `document.body`，初始 `display: none`。
 - Given 性能面板已注入，When 用户按下 Ctrl+Shift+P，Then 面板在 `display: none` 和 `display: block` 之间切换。
 - Given 面板处于 `display: block`，When 每秒定时刷新，Then 面板 innerHTML 更新，显示 Generation、Updates、Scroll Performance 三组统计（count、avgDuration、minDuration、maxDuration、memoryUsage/memoryDelta），以 MB 为单位格式化内存，以 ms 为单位格式化时间（保留 2 位小数）。
 - Given 所有指标均无数据（全为 null），When 定时刷新，Then 面板内容不更新（`if (!stats.generation && !stats.update && !stats.scroll) return`）。
@@ -630,25 +629,25 @@
 
 ### 8.1 圆形浮标基础样式
 
-**功能描述**：未展开时，TOC 容器呈直径 56px 的圆形浮标，固定在屏幕角落，不透明度 0.6，z-index 9999。
+**功能描述**：未展开时，TOC 容器呈直径 44px 的圆形浮标，固定在屏幕角落，不透明度 0.38，z-index 9999。
 
 **验收标准**：
 
-- Given TOC 容器已创建，When 未展开，Then 元素为 `position: fixed`，`width: 56px`，`height: 56px`，`border-radius: 50%`，`opacity: 0.6`，`z-index: 9999`。
-- Given 用户鼠标悬停在圆形浮标上（CSS :hover），When hover 状态，Then `opacity` 升至 1，`box-shadow` 升级为 `--toc-elevation-hover`（elevation-2）。
-- Given 容器为 `position-right`，When 渲染，Then `right: 20px; left: auto`（距右边 20px、距底部 20px）。
-- Given 容器为 `position-left`，When 渲染，Then `left: 20px; right: auto`（距左边 20px、距底部 20px）。
+- Given TOC 容器已创建，When 未展开，Then 元素为 `position: fixed`，`width: 44px`，`height: 44px`，`border-radius: 50%`，`opacity: 0.38`，`z-index: 9999`。
+- Given 用户鼠标悬停在圆形浮标上（CSS :hover），When hover 状态，Then `opacity` 升至 0.76，`box-shadow` 升级为 `--toc-elevation-hover`。
+- Given 容器为 `position-right`，When 渲染，Then `right: 24px; left: auto`（距右边 24px、距底部 24px）。
+- Given 容器为 `position-left`，When 渲染，Then `left: 24px; right: auto`（距左边 24px、距底部 24px）。
 
 ---
 
 ### 8.2 展开动画
 
-**功能描述**：TOC 容器从圆形扩展为 320×480px 的矩形卡片，使用 `cubic-bezier(0.0, 0.0, 0.2, 1)` 缓动，过渡时长 0.3s。
+**功能描述**：TOC 容器从圆形扩展为宽 280px、高度不超过 `min(420px, calc(100vh - 64px))` 的矩形卡片，使用展开/收缩专用缓动，过渡时长约 0.3s。
 
 **验收标准**：
 
-- Given `.github-toc` 获得 `expanded` class，When CSS transition 执行，Then 容器从 56×56px 过渡到 320×480px，border-radius 从 50% 过渡到 8px，opacity 升至 1，box-shadow 升级为 `--toc-elevation-expanded`（elevation-3）。
-- Given `.github-toc` 失去 `expanded` class，When CSS transition 执行，Then 容器反向从 320×480 过渡回 56×56，圆角、透明度同步复原。
+- Given `.github-toc` 获得 `expanded` class，When CSS transition 执行，Then 容器从 44×44px 过渡到宽 280px、最大高 420px，border-radius 从 50% 过渡到 12px，opacity 升至 1，box-shadow 升级为 `--toc-elevation-expanded`。
+- Given `.github-toc` 失去 `expanded` class，When CSS transition 执行，Then 容器反向收缩回 44×44px，圆角、透明度同步复原。
 - Given `will-change: transform, width, height, border-radius` 已声明，When 动画执行，Then GPU 加速层提前创建，避免合成层抖动。
 
 ---
@@ -659,32 +658,31 @@
 
 **验收标准**：
 
-- Given `.github-toc.expanded svg`，When expanded class 存在，Then SVG `opacity: 0`，`transform: translate(-50%, -50%) scale(0.8)`。
+- Given `.github-toc.expanded svg`，When expanded class 存在，Then SVG `opacity: 0`，并在图标容器已有居中 transform 的基础上缩放为 `scale(0.8)`。
 - Given expanded class 移除，When transition 执行，Then SVG 恢复 opacity 和 scale（通过 `.toc-icon` 的 `transition: all 0.3s var(--ease-out)` 驱动）。
 
 ---
 
 ### 8.4 目录内容入场动画（Staggered Animation）
 
-**功能描述**：展开时，toc-tree 整体放大淡入，标题条目依次以 50ms 间隔错落动画滑入（translateX -10px → 0）。
+**功能描述**：展开时，toc-tree 从 `scale(0.96)` 淡入，标题条目以最多约 200ms 的阶梯延迟从 `translateY(4px)` 滑入。
 
 **验收标准**：
 
-- Given `.github-toc.expanded .toc-tree`，When expanded，Then toc-tree `opacity: 1`，`transform: scale(1)`（从 scale(0.8) 过渡）；pointer-events 从 none 变为 auto。
+- Given `.github-toc.expanded .toc-tree`，When expanded，Then toc-tree `opacity: 1`，`transform: scale(1)`（从 scale(0.96) 过渡）；pointer-events 从 none 变为 auto。
 - Given `.github-toc.expanded .toc-title`，When expanded，Then `opacity: 1`，`transform: translateY(0)`（从 translateY(-10px) 过渡）。
-- Given `.github-toc.expanded .toc-item`，When expanded，Then `opacity: 1`，`transform: translateX(0)`（从 translateX(-10px) 过渡）。
-- Given 前 10 个 toc-item，When expanded，Then 第 1 个延迟 0.05s，第 2 个延迟 0.1s，…，第 10 个延迟 0.5s（阶梯式 transition-delay）。
-- Given 第 11 个及以后的 toc-item（无显式 transition-delay 规则），When expanded，Then 无额外延迟（使用基础 0.3s transition）。
+- Given `.github-toc.expanded .toc-item`，When expanded，Then `opacity: 1`，`transform: translateY(0)`（从 translateY(4px) 过渡）。
+- Given 前 8 个 toc-item，When expanded，Then 延迟从 0.03s 递增至 0.20s；第 9 项及以后保持 0.20s 封顶。
 
 ---
 
 ### 8.5 自定义滚动条样式
 
-**功能描述**：toc-list 区域使用 `::-webkit-scrollbar` 定制 8px 宽、圆角 4px 的滚动条，颜色跟随主题 CSS 变量。
+**功能描述**：toc-list 区域使用 `::-webkit-scrollbar` 定制 4px 宽、圆角 2px 的滚动条，颜色跟随主题 CSS 变量。
 
 **验收标准**：
 
-- Given toc-list 内容超出 `max-height: calc(100% - 60px)`，When 出现滚动条，Then 滚动条宽度 8px，轨道颜色 `--toc-scrollbar-track`，滑块颜色 `--toc-scrollbar-thumb`，均具有 4px 圆角。
+- Given toc-list 内容超出可用高度，When 出现滚动条，Then 滚动条宽度 4px，轨道透明，滑块颜色为 `--toc-scrollbar-thumb`，圆角为 2px。
 
 ---
 
@@ -737,7 +735,7 @@
 - Given 上述两步均无结果，When 执行，Then 扫描所有 `div, section, article, main` 元素，选包含 H 标签数量最多的元素作为容器。
 - Given 三个层次均无合适结果，When 执行，Then 返回 `document.body` 作为兜底容器。
 
-**mainContainers 选择器完整列表**（共 27 项，顺序即优先级）：
+**mainContainers 选择器完整列表**（共 36 项，顺序即优先级）：
 `main-container`, `body-container`, `application-main`, `main-content`, `content`, `article`, `main`, `.markdown-body`, `#readme`, `.repository-content`, `.js-repo-root`, `.documentation`, `.docs-content`, `.doc-content`, `.doc-body`, `.document-body`, `.article-content`, `.post-content`, `.entry-content`, `.blog-post`, `.post-body`, `.article-body`, `.entry-body`, `.technical-docs`, `.api-docs`, `.guide-content`, `.tutorial-content`, `.mdx-content`, `.md-content`, `.rst-content`, `.asciidoc-content`, `[role="main"]`, `[role="article"]`, `[role="document"]`, `[itemprop="articleBody"]`, `[itemprop="mainContentOfPage"]`
 
 ---
@@ -761,35 +759,35 @@
 
 **验收标准**：
 
-- Given 页面有 `#toc`、`#table-of-contents`、`.toc`、`.toc-container` 等匹配元素，When `hasExistingTOC()` 执行，Then 检查每个候选元素是否满足 `isVisible + hasTocLinks + isLikelySidebarToc`。
+- Given 页面有 `#toc`、`#table-of-contents`、`.toc`、`.toc-container` 等匹配元素，When `getExistingTocDecision()` 执行，Then 检查候选元素是否满足可见、包含真实锚点、位于侧栏/边缘 rail 等条件，并返回带来源的决策对象。
 - Given 候选元素 `display: none` 或尺寸 <= 40px，When `isVisible()` 执行，Then 返回 false，该元素不计入"已有 TOC"。
-- Given 候选元素包含的 `a[href^="#"]` 少于 3 个，When `hasTocLinks()` 执行，Then 返回 false。
-- Given 候选元素所有锚链接的 href 都等于 `"#"`（无实际目标），When `hasTocLinks()` 执行，Then 返回 false（要求至少一个 href.length > 1）。
+- Given 候选元素包含的同页链接少于 3 个，When `hasTocLinks()` 执行，Then 返回 false；同页链接可以是 hash 或解析后仍指向当前 pathname 的 URL。
+- Given 候选元素的同页链接全部没有实际 hash 目标，When `hasTocLinks()` 执行，Then 返回 false（要求至少一个解析后的 hash 长度大于 1）。
 - Given 候选元素 `left < viewportWidth * 35%` 或 `right > viewportWidth * 65%`（位于边缘），且 position 为 fixed/sticky 或位于 `aside, nav, .sidebar` 等侧边栏容器内，When `isLikelySidebarToc()` 执行，Then 返回 true。
 
 ---
 
 ### 9.4 已有回到顶部按钮检测
 
-**功能描述**：检测页面是否已存在固定/sticky 定位且尺寸 >= 32px 的回到顶部按钮。
+**功能描述**：检测页面是否已存在可见且固定/sticky 定位的回到顶部按钮；可见性判断要求宽高均大于 40px。
 
 **验收标准**：
 
-- Given 页面有 `#scroll-to-top`、`#back-to-top`、`.scroll-to-top`、`.back-to-top`、`.scrolltop`、`.to-top`、`[data-scroll-to-top]`、`[aria-label*="scroll to top" i]` 匹配元素，When `hasExistingScrollToTop()` 执行，Then 检查元素是否满足 `isVisible + isFixedOrSticky`。
-- Given 候选元素 `position: fixed` 或 `position: sticky`，且宽高均 >= 32px，When `isFixedOrSticky()` 执行，Then 返回 true。
+- Given 页面有 `#scroll-to-top`、`#back-to-top`、`.scroll-to-top`、`.back-to-top`、`.scrolltop`、`.to-top`、`[data-scroll-to-top]`、`[aria-label*="scroll to top" i]` 匹配元素，When `getExistingScrollToTopDecision()` 执行，Then 检查元素是否满足 `isVisible + isFixedOrSticky`，并返回带来源的决策对象。
+- Given 候选元素 `position: fixed` 或 `position: sticky`，且通过 `isVisible()` 尺寸检查，When `getExistingScrollToTopDecision()` 执行，Then 返回回顶控件决策。
 - Given 候选元素 `position: relative`（非固定），When `isFixedOrSticky()` 执行，Then 返回 false。
 
 ---
 
 ### 9.5 设置加载与 normalizeSettings 保护
 
-**功能描述**：从 `chrome.storage.sync` 加载设置后，经 `normalizeSettings` 严格校验所有字段类型和取值范围，防止非法配置导致运行时错误。
+**功能描述**：从 `chrome.storage.sync` 加载设置后，经 `normalizeSettings` 校验 preset/交互/位置枚举、数值范围和域名数组，防止主要非法配置导致运行时错误。
 
 **验收标准**：
 
 - Given `chrome.storage.sync` 不可用，When `loadSettings()` 执行，Then resolve 默认设置对象，不抛出异常。
 - Given 设置加载失败（Promise rejected），When `start()` 调用链中的 catch 执行，Then 使用默认设置 `{ ...defaultSettings }` 继续执行 `start()`。
-- Given 所有字段都有效，When `normalizeSettings` 执行，Then 各字段值保持不变，仅补全缺失字段为默认值。
+- Given 所有已校验字段都有效，When `normalizeSettings` 执行，Then 各字段值保持不变，仅补全缺失字段为默认值；`avoidExistingWidgets` 与 `forceShow` 由设置页联动保持互斥，但函数本身不强制转换其布尔类型。
 
 ---
 
@@ -850,20 +848,21 @@
 | `toggleExpanded(force?)` | catalog.js | 核心展开/折叠逻辑 |
 | `scrollToTop()` | catalog.js | 选择正确的滚动容器并调用自定义 scrollTo 动画 |
 | `scrollTo(el, to, duration)` | catalog.js | 递归定时滚动动画，每 10ms 步进，duration <= 0 时终止 |
-| `createScrollTopButton()` | catalog.js | 创建或复用独立回顶按钮 `#github-sst`，并同步左右位置 |
+| `createSspaiUI()` | catalog.js | 创建阅读进度 rail、body-level 标题预览和独立回顶按钮 `#github-sst` |
 | `setupObserver()` | catalog.js | 创建/重建 MutationObserver，debounce 250ms |
 | `setupHistoryListener()` | catalog.js | 拦截 pushState/replaceState + popstate |
 | `setupGitHubListener()` | catalog.js | GitHub pjax/turbo/ajax 事件监听（仅 github.com） |
 | `normalizeSettings(input)` | catalog.js | 校验并修正所有配置字段 |
 | `loadSettings()` | catalog.js / options.js | 从 chrome.storage.sync 读取设置，不可用时 resolve 默认值 |
 | `isDomainDisabled()` | catalog.js | 精确匹配 hostname 是否在黑名单中 |
-| `shouldSkipInjection()` | catalog.js | 综合 forceShow、avoidExistingWidgets、hasExistingTOC/ScrollToTop |
-| `hasExistingTOC()` | catalog.js | 检测页面已有侧边栏 TOC |
-| `hasExistingScrollToTop()` | catalog.js | 检测页面已有固定回到顶部按钮 |
+| `getSkipInjectionDecision()` | catalog.js | 综合 forceShow、avoidExistingWidgets 与已有控件检测，返回跳过决策或 null |
+| `getExistingTocDecision()` | catalog.js | 检测页面已有侧边栏 TOC 并记录来源 |
+| `getExistingScrollToTopDecision()` | catalog.js | 检测页面已有固定回到顶部按钮并记录来源 |
 | `measurePerformance(name, cb)` | catalog.js | 性能采集包装器 |
-| `displayPerformanceStats()` | catalog.js | 注入性能面板并绑定 Ctrl+Shift+P 快捷键 |
-| `selectTheme()` | theme.js | 根据 HSL 分析选择主题名 |
-| `applyTheme()` | theme.js | 移除旧主题 class，添加新主题 class 到 #github-toc |
+| `ensurePerformanceStatsContainer()` | catalog.js | 按需创建隐藏的性能面板容器 |
+| `setupPerformanceStats()` | catalog.js | 绑定 Ctrl+Shift+P 性能面板快捷键 |
+| `selectTheme()` | theme.js | 根据页面背景亮度选择 `theme-light` 或 `theme-dark` |
+| `applyTheme()` | theme.js | 移除旧主题/preset class，并应用主题到 #github-toc 与 #github-sst |
 | `bindForm(settings)` | options.js | 将设置对象填充到设置页面所有表单字段 |
 | `syncForceShow()` | options.js | forceShow 勾选时禁用并取消 avoidExistingWidgets |
 | `normalizeDomains(input)` | options.js | 解析逗号分隔域名字符串为数组 |
@@ -874,6 +873,7 @@
 
 | 配置项 | 默认值 | 合法值 | 非法时行为 |
 |---|---|---|---|
+| `themePreset` | `'default'` | `'default' \| 'sspai'` | 重置为 `'default'` |
 | `expandMode` | `'hover'` | `'hover' \| 'press' \| 'click'` | 重置为 `'hover'` |
 | `minHeaders` | `3` | 有限正数或 0 | 非有限数重置为 3；负数截断为 0 |
 | `showAfterScrollScreens` | `1` | 有限正数或 0 | 非有限数重置为 1；负数截断为 0 |
@@ -899,4 +899,4 @@
 
 ---
 
-*本文档基于源码分析整理，并已按 v2.5 当前行为更新，日期：2026-06-30。*
+*本文档基于源码分析整理，已按 v2.9 当前行为更新，日期：2026-07-10。*
