@@ -2,6 +2,12 @@ name: Package & GitHub Release
 
 on:
   workflow_dispatch:
+    inputs:
+      release_tag:
+        description: Optional existing tag to publish or repair (for example v2.13)
+        required: false
+        default: ''
+        type: string
   push:
     tags:
       - 'v*'
@@ -21,26 +27,47 @@ jobs:
       package_name: ${{ steps.package.outputs.package_name }}
       checksum_name: ${{ steps.package.outputs.checksum_name }}
       artifact_name: ${{ steps.package.outputs.artifact_name }}
+      release_tag: ${{ steps.release.outputs.release_tag }}
     steps:
       - name: Check out repository
         uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.release_tag || github.ref }}
+          fetch-depth: 0
 
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
           node-version: 22
 
-      - name: Validate release tag
-        if: startsWith(github.ref, 'refs/tags/')
+      - name: Resolve and validate release tag
+        id: release
+        env:
+          REQUESTED_RELEASE_TAG: ${{ inputs.release_tag || '' }}
         shell: bash
         run: |
           VERSION="$(node -p "require('./manifest.json').version")"
+          RELEASE_TAG=""
+          if [[ "$GITHUB_REF" == refs/tags/* ]]; then
+            RELEASE_TAG="$GITHUB_REF_NAME"
+          elif [[ -n "$REQUESTED_RELEASE_TAG" ]]; then
+            RELEASE_TAG="$REQUESTED_RELEASE_TAG"
+          fi
+
+          echo "release_tag=$RELEASE_TAG" >> "$GITHUB_OUTPUT"
+          if [[ -z "$RELEASE_TAG" ]]; then
+            echo "Artifact-only run; no GitHub Release requested."
+            exit 0
+          fi
+
           EXPECTED_TAG="v${VERSION}"
-          if [[ "$GITHUB_REF_NAME" != "$EXPECTED_TAG" ]]; then
-            echo "Release tag $GITHUB_REF_NAME does not match manifest version $VERSION."
+          if [[ "$RELEASE_TAG" != "$EXPECTED_TAG" ]]; then
+            echo "Release tag $RELEASE_TAG does not match manifest version $VERSION."
             echo "Expected tag: $EXPECTED_TAG"
             exit 1
           fi
+
+          git rev-parse --verify "refs/tags/$RELEASE_TAG" >/dev/null
 
       - name: Package extension
         id: package
@@ -75,7 +102,7 @@ jobs:
 
   release:
     name: Publish GitHub Release
-    if: startsWith(github.ref, 'refs/tags/')
+    if: needs.package.outputs.release_tag != ''
     needs: package
     runs-on: ubuntu-latest
     permissions:
@@ -90,15 +117,17 @@ jobs:
       - name: Create or update GitHub Release
         env:
           GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          RELEASE_TAG: ${{ needs.package.outputs.release_tag }}
           ZIP_FILE: dist/${{ needs.package.outputs.package_name }}
           CHECKSUM_FILE: dist/${{ needs.package.outputs.checksum_name }}
         shell: bash
         run: |
-          if gh release view "$GITHUB_REF_NAME" >/dev/null 2>&1; then
-            gh release upload "$GITHUB_REF_NAME" "$ZIP_FILE" "$CHECKSUM_FILE" --clobber
+          if gh release view "$RELEASE_TAG" >/dev/null 2>&1; then
+            gh release upload "$RELEASE_TAG" "$ZIP_FILE" "$CHECKSUM_FILE" --clobber
           else
-            gh release create "$GITHUB_REF_NAME" "$ZIP_FILE" "$CHECKSUM_FILE" \
+            gh release create "$RELEASE_TAG" "$ZIP_FILE" "$CHECKSUM_FILE" \
               --verify-tag \
-              --title "Smart TOC & Scroll $GITHUB_REF_NAME" \
+              --title "Smart TOC & Scroll $RELEASE_TAG" \
               --generate-notes
           fi

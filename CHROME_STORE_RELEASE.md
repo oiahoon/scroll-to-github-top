@@ -11,7 +11,8 @@
 
 工作流名称为 `Package & GitHub Release`，支持以下触发方式：
 
-- 手动触发：校验并打包，在本次 Actions 运行的 Artifacts 中保留 30 天
+- 手动触发且不填写 `release_tag`：校验并打包，在本次 Actions 运行的 Artifacts 中保留 30 天
+- 手动触发并填写已有 `release_tag`：从该 Tag 打包并创建或修复对应 GitHub Release
 - 推送 `v*` Tag：校验、打包并创建 GitHub Release，永久附加 ZIP 和 SHA-256 文件
 
 该流程不会调用 Chrome Web Store API，也不需要任何 Chrome Web Store Secret。
@@ -37,7 +38,7 @@
 3. 点击 `Run workflow`。
 4. 工作流通过后，从该次运行的 `Artifacts` 下载 ZIP 和 SHA-256 文件。
 
-手动触发只生成 Artifact，不会创建 GitHub Release。
+默认不填写 `release_tag` 时，手动触发只生成 Artifact，不会创建 GitHub Release。如果 Tag 自动发布曾失败，可以填写现有 Tag（例如 `v2.13`）安全重试；工作流会 checkout 该 Tag，确保附件内容与 Tag 对应源码一致。
 
 ## 创建 GitHub Release
 
@@ -57,7 +58,7 @@ git push origin v2.13
 5. 创建 GitHub Release，并自动生成 Release Notes。
 6. 将 ZIP 和 SHA-256 文件附加到 Release。
 
-如果同一个 Tag 的工作流被重新运行，现有 Release 的附件会被覆盖，避免重复 Release。
+如果同一个 Tag 的工作流被重新运行，现有 Release 的附件会被覆盖，避免重复 Release。Release Job 显式使用当前 GitHub 仓库上下文，不依赖 checkout 目录推断仓库名。
 
 ## 本地打包
 
