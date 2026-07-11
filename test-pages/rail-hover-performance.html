@@ -3,9 +3,9 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Smart TOC Rail Hover Performance Sample</title>
-  <link rel="stylesheet" href="../toc.css?sample=rail-hover-performance">
-  <link rel="stylesheet" href="../themes.css?sample=rail-hover-performance">
+  <title>Smart TOC Rail Navigation Performance Sample</title>
+  <link rel="stylesheet" href="../toc.css?sample=barcode-preview-v1">
+  <link rel="stylesheet" href="../themes.css?sample=barcode-preview-v1">
   <style>
     :root {
       color-scheme: dark;
@@ -258,6 +258,11 @@
       ? sampleParams.get('surface')
       : 'dark';
     const sampleReducedMotion = sampleParams.get('motion') === 'reduce';
+    const legacyMode = sampleParams.get('mode');
+    const requestedPreview = sampleParams.get('preview');
+    const samplePreview = ['wheel', 'spotlight', 'gpt'].includes(requestedPreview)
+      ? requestedPreview
+      : legacyMode === 'glimmer' ? 'spotlight' : 'wheel';
     document.documentElement.dataset.surface = sampleSurface;
     document.documentElement.dataset.position = samplePosition;
 
@@ -285,7 +290,8 @@
           get(defaults, callback) {
             callback({
               ...defaults,
-              themePreset: 'sspai',
+              themePreset: 'barcode',
+              barcodePreview: samplePreview,
               expandMode: 'hover',
               minHeaders: 1,
               showAfterScrollScreens: 0,
@@ -308,6 +314,11 @@
 <body>
   <div class="sample-toolbar" role="toolbar" aria-label="Rail QA controls">
     <span class="sample-toolbar-title">Rail QA</span>
+    <div class="sample-control-group" role="group" aria-label="Barcode title preview">
+      <button class="is-active" type="button" data-param="preview" data-value="wheel" aria-pressed="true">Wheel</button>
+      <button type="button" data-param="preview" data-value="spotlight" aria-pressed="false">Spotlight</button>
+      <button type="button" data-param="preview" data-value="gpt" aria-pressed="false">GPT</button>
+    </div>
     <div class="sample-control-group" role="group" aria-label="Rail position">
       <button class="is-active" type="button" data-param="position" data-value="right" aria-pressed="true">Right</button>
       <button type="button" data-param="position" data-value="left" aria-pressed="false">Left</button>
@@ -329,10 +340,10 @@
     <span></span>
   </div>
   <main id="sample-content">
-    <h1>Rail Hover Preview Performance Sample</h1>
+    <h1>Rail Navigation Performance Sample</h1>
     <p class="sample-note">
-      This page loads the extension content script directly and forces the reading progress rail preset.
-      It generates many headings so the rail hover wave, item preview, active section, and scroll-to-top control can be tested locally.
+      This page loads the extension content script directly and switches between all three Barcode title preview styles.
+      It generates many headings so hover labels, wave response, active section, and scroll-to-top behavior can be tested locally.
     </p>
   </main>
   <script>
@@ -349,7 +360,7 @@
       main.appendChild(paragraph);
     }
 
-    document.querySelectorAll('#github-toc, #github-sst, .toc-rail-preview').forEach((node) => {
+    document.querySelectorAll('#github-toc, #github-sst, .toc-rail-preview, .toc-spotlight-layer, .toc-gpt-preview, .toc-glimmer-layer').forEach((node) => {
       node.remove();
     });
 
@@ -363,6 +374,7 @@
 
     toolbar.querySelectorAll('button[data-param][data-value]').forEach((button) => {
       const isActive =
+        (button.dataset.param === 'preview' && button.dataset.value === samplePreview) ||
         (button.dataset.param === 'position' && button.dataset.value === samplePosition) ||
         (button.dataset.param === 'surface' && button.dataset.value === sampleSurface);
       button.classList.toggle('is-active', isActive);
@@ -383,7 +395,7 @@
       window.location.href = nextUrl.toString();
     });
   </script>
-  <script src="../catalog.js?sample=rail-hover-performance"></script>
-  <script src="../theme.js?sample=rail-hover-performance"></script>
+  <script src="../catalog.js?sample=barcode-preview-gpt-v1"></script>
+  <script src="../theme.js?sample=barcode-preview-gpt-v1"></script>
 </body>
 </html>

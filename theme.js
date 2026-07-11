@@ -2,10 +2,30 @@
 
 (function() {
   const defaultSettings = {
-    themePreset: 'default'
+    themePreset: 'default',
+    barcodePreview: 'wheel'
   };
 
   let currentThemePreset = defaultSettings.themePreset;
+  let currentBarcodePreview = defaultSettings.barcodePreview;
+
+  function normalizeThemeSettings(input = {}) {
+    const normalized = { ...defaultSettings, ...input };
+    if (input.themePreset === 'sspai') {
+      normalized.themePreset = 'barcode';
+      normalized.barcodePreview = 'wheel';
+    } else if (input.themePreset === 'glimmer') {
+      normalized.themePreset = 'barcode';
+      normalized.barcodePreview = 'spotlight';
+    }
+    if (!['default', 'barcode'].includes(normalized.themePreset)) {
+      normalized.themePreset = defaultSettings.themePreset;
+    }
+    if (!['wheel', 'spotlight', 'gpt'].includes(normalized.barcodePreview)) {
+      normalized.barcodePreview = defaultSettings.barcodePreview;
+    }
+    return normalized;
+  }
 
   // 将RGB字符串解析为HSL对象
   // 参数格式：'rgb(r, g, b)' 或 'rgba(r, g, b, a)'
@@ -97,33 +117,65 @@
   }
 
   const toneClassNames = ['theme-dark', 'theme-light', 'theme-blue', 'theme-green', 'theme-purple', 'theme-auto'];
-  const presetClassNames = ['theme-preset-default', 'theme-preset-sspai'];
+  const presetClassNames = [
+    'theme-preset-default',
+    'theme-preset-rail',
+    'theme-preset-barcode',
+    'theme-preview-wheel',
+    'theme-preview-spotlight',
+    'theme-preview-gpt',
+    'theme-preset-sspai',
+    'theme-preset-glimmer'
+  ];
   let themeApplyTimer = null;
   let lastAppliedTheme = null;
   let lastAppliedPreset = null;
+  let lastAppliedBarcodePreview = null;
 
   function applyThemeClass(element, theme) {
     if (!element) return;
     element.classList.remove(...toneClassNames, ...presetClassNames);
     element.classList.add(theme);
-    element.classList.add(currentThemePreset === 'sspai' ? 'theme-preset-sspai' : 'theme-preset-default');
+    if (currentThemePreset === 'barcode') {
+      element.classList.add('theme-preset-rail', 'theme-preset-barcode', `theme-preview-${currentBarcodePreview}`);
+      return;
+    }
+    element.classList.add('theme-preset-default');
   }
 
   // 应用主题到扩展注入的浮层元素
   function applyTheme() {
     const theme = selectTheme();
-    if (theme === lastAppliedTheme && currentThemePreset === lastAppliedPreset && document.getElementById('github-toc')) {
+    if (
+      theme === lastAppliedTheme &&
+      currentThemePreset === lastAppliedPreset &&
+      currentBarcodePreview === lastAppliedBarcodePreview &&
+      document.getElementById('github-toc')
+    ) {
       return;
     }
     lastAppliedTheme = theme;
     lastAppliedPreset = currentThemePreset;
+    lastAppliedBarcodePreview = currentBarcodePreview;
     applyThemeClass(document.getElementById('github-toc'), theme);
     applyThemeClass(document.getElementById('github-sst'), theme);
+    applyThemeClass(document.querySelector('.toc-rail-preview'), theme);
+    applyThemeClass(document.querySelector('.toc-spotlight-layer'), theme);
+    applyThemeClass(document.querySelector('.toc-gpt-preview'), theme);
   }
 
   function scheduleApplyTheme() {
     clearTimeout(themeApplyTimer);
     themeApplyTimer = setTimeout(applyTheme, 120);
+  }
+
+  function isExtensionOwnedMutation(mutation) {
+    const target = mutation.target instanceof Element
+      ? mutation.target
+      : mutation.target?.parentElement;
+    return Boolean(target?.closest(
+      '#github-toc, #github-sst, .toc-rail-preview, .toc-spotlight-layer, .toc-gpt-preview, #toc-performance-stats'
+    ));
   }
 
   function startThemeObserver() {
@@ -132,6 +184,9 @@
     // 监听 DOM 变化，在页面内容更新时重新检测主题（如 SPA 路由切换后背景色改变）
     const observer = new MutationObserver((mutations) => {
       const shouldRefreshTheme = mutations.some((mutation) => {
+        if (isExtensionOwnedMutation(mutation)) {
+          return false;
+        }
         if (mutation.type === 'attributes') {
           return mutation.target === document.body || mutation.target === document.documentElement;
         }
@@ -180,17 +235,24 @@
     }
 
     chrome.storage.onChanged.addListener((changes, areaName) => {
-      if (areaName !== 'sync' || !changes.themePreset) {
+      if (areaName !== 'sync' || (!changes.themePreset && !changes.barcodePreview)) {
         return;
       }
 
-      currentThemePreset = changes.themePreset.newValue || defaultSettings.themePreset;
+      const normalized = normalizeThemeSettings({
+        themePreset: changes.themePreset?.newValue || currentThemePreset,
+        barcodePreview: changes.barcodePreview?.newValue || currentBarcodePreview
+      });
+      currentThemePreset = normalized.themePreset;
+      currentBarcodePreview = normalized.barcodePreview;
       scheduleApplyTheme();
     });
   }
 
   loadSettings().then((items) => {
-    currentThemePreset = items.themePreset || defaultSettings.themePreset;
+    const normalized = normalizeThemeSettings(items);
+    currentThemePreset = normalized.themePreset;
+    currentBarcodePreview = normalized.barcodePreview;
     watchSettingsChanges();
 
     if (document.body) {

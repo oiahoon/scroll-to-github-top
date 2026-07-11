@@ -10,11 +10,8 @@
   // 状态变量
   let observer = null;
   let headingObserver = null;
-  let updateTimeout = null;
-  let lastProcessedHeaders = new Set();
   let lastUrl = window.location.href;
   let contentContainer = null;
-  let isGitHub = window.location.hostname === 'github.com';
   let headerCount = 0;
   let currentHeaders = [];
   let reinitializeTimer = null;
@@ -35,6 +32,8 @@
   let tocCountBadge = null;
   let scrollTopButton = null;
   let tocRailPreview = null;
+  let tocSpotlightLayer = null;
+  let tocGptPreview = null;
 
   let longPressTimer = null;
   let longPressTriggered = false;
@@ -51,6 +50,7 @@
   let railPreviewRenderedItem = null;
   let railPreviewRenderedMeta = { rowCount: 0, currentRowIndex: 0 };
   let railPointerInside = false;
+  let railPointerExitTimer = null;
   let railPostClickHoldTimer = null;
   let railPostClickHoldUntil = 0;
   const railWaveAffectedItems = new Set();
@@ -66,6 +66,9 @@
   const railPreviewPaddingY = 4;
   const scrollTopProximityRadius = 116;
   const scrollTopHoverRadius = 44;
+  const reducedMotionQuery = window.matchMedia
+    ? window.matchMedia('(prefers-reduced-motion: reduce)')
+    : { matches: false };
   let adaptiveThemeFrame = null;
   let lastAdaptiveThemeApplied = '';
   let lastAdaptiveThemeSampleAt = 0;
@@ -74,9 +77,11 @@
   let performanceStatsContainer = null;
   let shouldShowIconHint = true;
   let lastSkipDecision = null;
+  let lastTocVisibility = null;
 
   const defaultSettings = {
     themePreset: 'default',
+    barcodePreview: 'wheel', // 'wheel' | 'spotlight' | 'gpt'
     expandMode: 'hover', // 'press' | 'hover' | 'click'
     minHeaders: 3,
     showAfterScrollScreens: 1,
@@ -93,7 +98,8 @@
     tocGeneration: [],
     tocUpdate: [],
     scrollPerformance: [],
-    memoryUsage: []
+    adaptiveTheme: [],
+    railPointer: []
   };
 
   const genericTocSelectors = [
@@ -468,14 +474,24 @@
 
   function normalizeSettings(input) {
     const normalized = { ...defaultSettings, ...input };
+    if (input?.themePreset === 'sspai') {
+      normalized.themePreset = 'barcode';
+      normalized.barcodePreview = 'wheel';
+    } else if (input?.themePreset === 'glimmer') {
+      normalized.themePreset = 'barcode';
+      normalized.barcodePreview = 'spotlight';
+    }
     if (!Array.isArray(normalized.disabledDomains)) {
       normalized.disabledDomains = [];
     }
     if (!['press', 'hover', 'click'].includes(normalized.expandMode)) {
       normalized.expandMode = defaultSettings.expandMode;
     }
-    if (!['default', 'sspai'].includes(normalized.themePreset)) {
+    if (!['default', 'barcode'].includes(normalized.themePreset)) {
       normalized.themePreset = defaultSettings.themePreset;
+    }
+    if (!['wheel', 'spotlight', 'gpt'].includes(normalized.barcodePreview)) {
+      normalized.barcodePreview = defaultSettings.barcodePreview;
     }
     if (!['left', 'right'].includes(normalized.position)) {
       normalized.position = defaultSettings.position;
@@ -523,8 +539,24 @@
     }
   }
 
-  function isSspaiPreset() {
-    return settings.themePreset === 'sspai';
+  function isBarcodePreset() {
+    return settings.themePreset === 'barcode';
+  }
+
+  function isWheelPreview() {
+    return isBarcodePreset() && settings.barcodePreview === 'wheel';
+  }
+
+  function isSpotlightPreview() {
+    return isBarcodePreset() && settings.barcodePreview === 'spotlight';
+  }
+
+  function isGptPreview() {
+    return isBarcodePreset() && settings.barcodePreview === 'gpt';
+  }
+
+  function isRailPreset() {
+    return isBarcodePreset();
   }
 
   function bindDefaultKeyboardNavigation() {
@@ -557,27 +589,45 @@
     });
   }
 
-  function createSspaiUI() {
+  function createRailUI() {
     tocTree = document.createElement('div');
-    tocTree.className = 'toc-tree toc-tree-sspai';
+    tocTree.className = 'toc-tree toc-tree-rail';
     tocTree.setAttribute('aria-hidden', 'false');
 
     tocList = document.createElement('ul');
-    tocList.className = 'toc-list toc-list-sspai';
+    tocList.className = 'toc-list toc-list-rail';
     tocList.setAttribute('role', 'list');
     tocList.setAttribute('aria-label', '文章目录');
     tocTree.appendChild(tocList);
     tocContainer.appendChild(tocTree);
 
-    tocRailPreview = document.createElement('div');
-    tocRailPreview.className = 'toc-rail-preview theme-light theme-preset-sspai';
-    tocRailPreview.setAttribute('aria-hidden', 'true');
-    document.body.appendChild(tocRailPreview);
+    if (isWheelPreview()) {
+      tocRailPreview = document.createElement('div');
+      tocRailPreview.className = 'toc-rail-preview theme-light theme-preset-rail theme-preset-barcode theme-preview-wheel';
+      tocRailPreview.setAttribute('aria-hidden', 'true');
+      document.body.appendChild(tocRailPreview);
+    }
+
+    if (isSpotlightPreview()) {
+      tocSpotlightLayer = document.createElement('div');
+      tocSpotlightLayer.className = 'toc-spotlight-layer theme-light theme-preset-rail theme-preset-barcode theme-preview-spotlight';
+      tocSpotlightLayer.setAttribute('aria-hidden', 'true');
+      document.body.appendChild(tocSpotlightLayer);
+    }
+
+    if (isGptPreview()) {
+      tocGptPreview = document.createElement('div');
+      tocGptPreview.className = 'toc-gpt-preview theme-light theme-preset-rail theme-preset-barcode theme-preview-gpt';
+      tocGptPreview.setAttribute('role', 'navigation');
+      tocGptPreview.setAttribute('aria-label', '文章标题预览');
+      tocGptPreview.setAttribute('aria-hidden', 'true');
+      document.body.appendChild(tocGptPreview);
+    }
 
     scrollTopButton = document.createElement('button');
     scrollTopButton.id = 'github-sst';
     scrollTopButton.type = 'button';
-    scrollTopButton.className = `github-sst theme-light theme-preset-sspai ${settings.position === 'left' ? 'position-left' : 'position-right'}`;
+    scrollTopButton.className = `github-sst theme-light theme-preset-rail theme-preset-barcode theme-preview-${settings.barcodePreview} ${settings.position === 'left' ? 'position-left' : 'position-right'}`;
     scrollTopButton.setAttribute('aria-label', '回到页面顶部');
     scrollTopButton.innerHTML = '<svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 5l-6 6 1.4 1.4 3.6-3.6V19h2V8.8l3.6 3.6L18 11z"/></svg>';
     document.body.appendChild(scrollTopButton);
@@ -646,7 +696,9 @@
   function createUI() {
     tocContainer = document.createElement('div');
     tocContainer.id = 'github-toc';
-    tocContainer.className = `github-toc theme-light ${isSspaiPreset() ? 'theme-preset-sspai' : 'theme-preset-default'}`;
+    tocContainer.className = isRailPreset()
+      ? `github-toc theme-light theme-preset-rail theme-preset-barcode theme-preview-${settings.barcodePreview}`
+      : 'github-toc theme-light theme-preset-default';
     tocContainer.classList.add(settings.position === 'left' ? 'position-left' : 'position-right');
     // ARIA：辅助导航区域
     tocContainer.setAttribute('role', 'complementary');
@@ -655,8 +707,8 @@
     tocContainer.setAttribute('data-pinned', 'false');
     document.body.appendChild(tocContainer);
 
-    if (isSspaiPreset()) {
-      createSspaiUI();
+    if (isRailPreset()) {
+      createRailUI();
       return;
     }
 
@@ -792,9 +844,6 @@
       clearTimeout(activeHeaderHoldTimer);
       activeHeaderHoldTimer = null;
     }
-    if (updateTimeout) {
-      clearTimeout(updateTimeout);
-    }
     if (reinitializeTimer) {
       clearTimeout(reinitializeTimer);
       reinitializeTimer = null;
@@ -807,12 +856,35 @@
       window.cancelAnimationFrame(scrollTopProximityFrame);
       scrollTopProximityFrame = null;
     }
+    if (scrollTimeout) {
+      window.cancelAnimationFrame(scrollTimeout);
+      scrollTimeout = null;
+    }
+    if (railWaveFrame) {
+      window.cancelAnimationFrame(railWaveFrame);
+      railWaveFrame = null;
+    }
+    if (railPostClickHoldTimer) {
+      window.clearTimeout(railPostClickHoldTimer);
+      railPostClickHoldTimer = null;
+    }
+    if (railPointerExitTimer) {
+      window.clearTimeout(railPointerExitTimer);
+      railPointerExitTimer = null;
+    }
+    if (performanceStatsTimer) {
+      window.clearInterval(performanceStatsTimer);
+      performanceStatsTimer = null;
+    }
+    clearHoverTimers();
+    clearTimeout(longPressTimer);
+    longPressTimer = null;
     lastScrollTopPointer = null;
-    lastProcessedHeaders.clear();
     lastObservedHeadersSignature = '';
     observerActiveHeaderId = null;
     activeHeaderHoldUntil = 0;
     activeHeaderHoldId = null;
+    lastTocVisibility = null;
   }
 
   function ensureUiMounted() {
@@ -824,12 +896,20 @@
       document.body.appendChild(tocContainer);
     }
 
-    if (isSspaiPreset() && scrollTopButton && !scrollTopButton.isConnected) {
+    if (isRailPreset() && scrollTopButton && !scrollTopButton.isConnected) {
       document.body.appendChild(scrollTopButton);
     }
 
-    if (isSspaiPreset() && tocRailPreview && !tocRailPreview.isConnected) {
+    if (isWheelPreview() && tocRailPreview && !tocRailPreview.isConnected) {
       document.body.appendChild(tocRailPreview);
+    }
+
+    if (isSpotlightPreview() && tocSpotlightLayer && !tocSpotlightLayer.isConnected) {
+      document.body.appendChild(tocSpotlightLayer);
+    }
+
+    if (isGptPreview() && tocGptPreview && !tocGptPreview.isConnected) {
+      document.body.appendChild(tocGptPreview);
     }
 
     return true;
@@ -901,8 +981,7 @@
       : { r: 255, g: 255, b: 255, a: 1 };
   }
 
-  function resolveElementBackground(element) {
-    const fallback = getFallbackPageBackground();
+  function resolveElementBackground(element, fallback = getFallbackPageBackground()) {
     const layers = [];
     let current = element;
 
@@ -926,7 +1005,7 @@
 
     const candidates = elements.filter((element) => {
       if (!(element instanceof Element)) return false;
-      return !element.closest('#github-toc, #github-sst');
+      return !element.closest('#github-toc, #github-sst, .toc-rail-preview, .toc-spotlight-layer, .toc-gpt-preview');
     });
 
     return candidates.find((element) => {
@@ -951,8 +1030,8 @@
     return yPositions.map((y) => ({ x, y }));
   }
 
-  function averageColors(colors) {
-    if (colors.length === 0) return getFallbackPageBackground();
+  function averageColors(colors, fallback = getFallbackPageBackground()) {
+    if (colors.length === 0) return fallback;
     const total = colors.reduce((sum, color) => ({
       r: sum.r + color.r,
       g: sum.g + color.g,
@@ -1017,7 +1096,7 @@
     const nextSignature = `${palette.tone}:${Math.round(palette.luminance * 100)}`;
     if (nextSignature === lastAdaptiveThemeApplied) return;
 
-    [tocContainer, scrollTopButton, tocRailPreview].forEach((element) => {
+    [tocContainer, scrollTopButton, tocRailPreview, tocSpotlightLayer, tocGptPreview].forEach((element) => {
       if (!element) return;
       Object.entries(palette.vars).forEach(([name, value]) => {
         element.style.setProperty(name, value);
@@ -1034,12 +1113,13 @@
   }
 
   function updateAdaptiveRailTheme() {
-    if (!isSspaiPreset() || !tocContainer || !tocContainer.isConnected) return;
+    if (!isRailPreset() || !tocContainer || !tocContainer.isConnected) return;
     const points = getAdaptiveThemeSamplePoints();
+    const fallback = getFallbackPageBackground();
     const colors = points.map((point) => (
-      resolveElementBackground(getElementBehindTocAtPoint(point.x, point.y))
+      resolveElementBackground(getElementBehindTocAtPoint(point.x, point.y), fallback)
     ));
-    const background = averageColors(colors);
+    const background = averageColors(colors, fallback);
     const palette = buildAdaptiveRailPalette(background);
 
     applyAdaptiveRailPalette(palette, {
@@ -1051,7 +1131,7 @@
   }
 
   function scheduleAdaptiveRailThemeUpdate(force = false) {
-    if (!isSspaiPreset()) return;
+    if (!isRailPreset()) return;
     const now = Date.now();
     if (!force && now - lastAdaptiveThemeSampleAt < 180) return;
     if (adaptiveThemeFrame) return;
@@ -1059,7 +1139,7 @@
     adaptiveThemeFrame = window.requestAnimationFrame(() => {
       adaptiveThemeFrame = null;
       lastAdaptiveThemeSampleAt = Date.now();
-      updateAdaptiveRailTheme();
+      measurePerformance('adaptiveTheme', updateAdaptiveRailTheme);
     });
   }
 
@@ -1092,15 +1172,22 @@
       });
     }
 
-    const allElements = document.querySelectorAll('div, section, article, main');
+    const headingCounts = new Map();
     let bestContainer = null;
     let maxHeaders = 0;
 
-    allElements.forEach(element => {
-      const headers = element.querySelectorAll('h1, h2, h3, h4, h5, h6').length;
-      if (headers > maxHeaders) {
-        maxHeaders = headers;
-        bestContainer = element;
+    document.querySelectorAll('h1, h2, h3, h4, h5, h6').forEach((heading) => {
+      let candidate = heading.parentElement;
+      while (candidate && candidate !== document.body) {
+        if (candidate.matches('div, section, article, main')) {
+          const nextCount = (headingCounts.get(candidate) || 0) + 1;
+          headingCounts.set(candidate, nextCount);
+          if (nextCount > maxHeaders) {
+            maxHeaders = nextCount;
+            bestContainer = candidate;
+          }
+        }
+        candidate = candidate.parentElement;
       }
     });
 
@@ -1113,19 +1200,26 @@
     }
 
     const standardHeaders = Array.from(contentContainer.querySelectorAll('h1, h2, h3, h4, h5, h6'));
-    const customHeaders = Array.from(contentContainer.querySelectorAll('[class*="title"], [class*="heading"], [class*="header"]'))
-      .filter(el => {
-        const style = window.getComputedStyle(el);
-        const fontSize = parseInt(style.fontSize);
-        const fontWeight = parseInt(style.fontWeight);
-        return fontSize >= 16 && fontWeight >= 500;
-      });
+    const standardHeaderSet = new Set(standardHeaders);
+    const customHeaders = Array.from(contentContainer.querySelectorAll('[class*="title"], [class*="heading"], [class*="header"]'));
+    const seenHeaders = new Set();
 
     return [...standardHeaders, ...customHeaders]
       .filter(header => {
+        if (seenHeaders.has(header)) return false;
+        seenHeaders.add(header);
+
         const style = window.getComputedStyle(header);
         if (style.display === 'none' || style.visibility === 'hidden') {
           return false;
+        }
+
+        if (!standardHeaderSet.has(header)) {
+          const fontSize = parseFloat(style.fontSize);
+          const fontWeight = parseInt(style.fontWeight, 10);
+          if (!Number.isFinite(fontSize) || !Number.isFinite(fontWeight) || fontSize < 16 || fontWeight < 500) {
+            return false;
+          }
         }
 
         let parent = header.parentElement;
@@ -1135,13 +1229,6 @@
           }
           parent = parent.parentElement;
         }
-
-        const headerText = header.textContent.trim();
-        const headerId = `${headerText}-${header.tagName}-${header.offsetTop}`;
-        if (lastProcessedHeaders.has(headerId)) {
-          return false;
-        }
-        lastProcessedHeaders.add(headerId);
 
         return true;
       })
@@ -1218,6 +1305,8 @@
       font-size: 12px;
       z-index: 10000;
       display: none;
+      max-height: calc(100vh - 40px);
+      overflow: auto;
     `;
     document.body.appendChild(performanceStatsContainer);
     return performanceStatsContainer;
@@ -1227,55 +1316,41 @@
     const statsContainer = ensurePerformanceStatsContainer();
     if (!performancePanelVisible) return;
 
-    const stats = {
-      generation: getPerformanceStats('tocGeneration'),
-      update: getPerformanceStats('tocUpdate'),
-      scroll: getPerformanceStats('scrollPerformance')
-    };
+    const sections = [
+      { metric: 'tocGeneration', label: 'Generation', memory: 'usage' },
+      { metric: 'tocUpdate', label: 'Updates', memory: 'delta' },
+      { metric: 'scrollPerformance', label: 'Scroll' },
+      { metric: 'adaptiveTheme', label: 'Adaptive Theme' },
+      { metric: 'railPointer', label: 'Rail Pointer' }
+    ].map((section) => ({
+      ...section,
+      stats: getPerformanceStats(section.metric)
+    })).filter((section) => section.stats);
 
-    if (!stats.generation && !stats.update && !stats.scroll) {
+    if (sections.length === 0) {
       statsContainer.innerHTML = '<h3>TOC Performance Stats</h3><p>No metrics collected yet.</p>';
       return;
     }
 
-    let html = '<h3>TOC Performance Stats</h3>';
-
-    if (stats.generation) {
-      html += `
+    const blocks = sections.map(({ label, memory, stats }) => {
+      let memoryLine = '';
+      if (memory === 'usage' && stats.latestMemoryUsage > 0) {
+        memoryLine = `<p>Memory Usage: ${(stats.latestMemoryUsage / 1024 / 1024).toFixed(2)}MB</p>`;
+      } else if (memory === 'delta' && stats.avgMemoryDelta !== 0) {
+        memoryLine = `<p>Memory Delta: ${(stats.avgMemoryDelta / 1024 / 1024).toFixed(2)}MB</p>`;
+      }
+      return `
         <div>
-          <h4>Generation</h4>
-          <p>Count: ${stats.generation.count}</p>
-          <p>Avg Duration: ${stats.generation.avgDuration.toFixed(2)}ms</p>
-          <p>Min/Max: ${stats.generation.minDuration.toFixed(2)}ms / ${stats.generation.maxDuration.toFixed(2)}ms</p>
-          <p>Memory Usage: ${(stats.generation.latestMemoryUsage / 1024 / 1024).toFixed(2)}MB</p>
+          <h4>${label}</h4>
+          <p>Count: ${stats.count}</p>
+          <p>Avg Duration: ${stats.avgDuration.toFixed(2)}ms</p>
+          <p>Min/Max: ${stats.minDuration.toFixed(2)}ms / ${stats.maxDuration.toFixed(2)}ms</p>
+          ${memoryLine}
         </div>
       `;
-    }
+    }).join('');
 
-    if (stats.update) {
-      html += `
-        <div>
-          <h4>Updates</h4>
-          <p>Count: ${stats.update.count}</p>
-          <p>Avg Duration: ${stats.update.avgDuration.toFixed(2)}ms</p>
-          <p>Min/Max: ${stats.update.minDuration.toFixed(2)}ms / ${stats.update.maxDuration.toFixed(2)}ms</p>
-          <p>Memory Delta: ${(stats.update.avgMemoryDelta / 1024 / 1024).toFixed(2)}MB</p>
-        </div>
-      `;
-    }
-
-    if (stats.scroll) {
-      html += `
-        <div>
-          <h4>Scroll Performance</h4>
-          <p>Count: ${stats.scroll.count}</p>
-          <p>Avg Duration: ${stats.scroll.avgDuration.toFixed(2)}ms</p>
-          <p>Min/Max: ${stats.scroll.minDuration.toFixed(2)}ms / ${stats.scroll.maxDuration.toFixed(2)}ms</p>
-        </div>
-      `;
-    }
-
-    statsContainer.innerHTML = html;
+    statsContainer.innerHTML = `<h3>TOC Performance Stats</h3>${blocks}`;
   }
 
   function togglePerformanceStats() {
@@ -1356,7 +1431,7 @@
     const a = document.createElement('a');
     a.href = `#${headerId}`;
 
-    if (isSspaiPreset()) {
+    if (isRailPreset()) {
       a.className = 'toc-rail-link';
       a.setAttribute('aria-label', text);
 
@@ -1386,7 +1461,7 @@
   }
 
   function primeRailPostClickHoldFromLink(link) {
-    if (!isSspaiPreset() || !link) return;
+    if (!isRailPreset() || !link) return;
 
     if (railPostClickHoldTimer) {
       window.clearTimeout(railPostClickHoldTimer);
@@ -1402,7 +1477,7 @@
     }
     railPreviewItem = item;
     railPreviewItem.classList.add('is-previewed');
-    if (tocRailPreview) {
+    if (isWheelPreview() && tocRailPreview) {
       tocRailPreview.classList.add('is-visible');
     }
   }
@@ -1431,12 +1506,28 @@
     if (tocRailPreview) {
       tocRailPreview.classList.remove('is-visible');
     }
+    if (tocSpotlightLayer) {
+      tocSpotlightLayer.querySelectorAll('.toc-spotlight-row').forEach((row) => {
+        row.classList.remove('is-visible', 'distance-0', 'distance-1', 'distance-2', 'distance-far');
+      });
+    }
+    if (tocGptPreview) {
+      tocGptPreview.classList.remove('is-visible');
+      tocGptPreview.setAttribute('aria-hidden', 'true');
+      tocGptPreview.querySelectorAll('.toc-gpt-preview-row').forEach((row) => {
+        row.tabIndex = -1;
+      });
+    }
     railPreviewItem = null;
     railPreviewRenderedItem = null;
     railPreviewRenderedMeta = { rowCount: 0, currentRowIndex: 0 };
     if (railPostClickHoldTimer) {
       window.clearTimeout(railPostClickHoldTimer);
       railPostClickHoldTimer = null;
+    }
+    if (railPointerExitTimer) {
+      window.clearTimeout(railPointerExitTimer);
+      railPointerExitTimer = null;
     }
     railPostClickHoldUntil = 0;
     headers.forEach((header) => {
@@ -1496,8 +1587,6 @@
   // 修改现有的函数以包含性能监控
   function updateTOC() {
     return measurePerformance('tocUpdate', () => {
-      lastProcessedHeaders.clear();
-
       const headers = getHeaders();
       const nextSignature = getHeadersSignature(headers);
       currentHeaders = headers;
@@ -1545,7 +1634,7 @@
 
     const listRect = tocList.getBoundingClientRect();
     const itemRect = item.getBoundingClientRect();
-    const padding = settings.themePreset === 'sspai' ? 18 : 12;
+    const padding = isBarcodePreset() ? 18 : 12;
 
     if (itemRect.top < listRect.top + padding || itemRect.bottom > listRect.bottom - padding) {
       item.scrollIntoView({
@@ -1655,19 +1744,24 @@
 
   function updateVisibility() {
     ensureUiMounted();
-    if (tocContainer) {
-      tocContainer.style.display = shouldShowToc() ? 'flex' : 'none';
-    }
-    if (scrollTopButton) {
-      const shouldShow = shouldShowToc();
-      scrollTopButton.classList.toggle('visible', shouldShow);
-      scrollTopButton.tabIndex = shouldShow ? 0 : -1;
-      if (!shouldShow) {
-        scrollTopButton.classList.remove('is-near');
-        scrollTopButton.classList.remove('is-hovered');
+    const shouldShow = shouldShowToc();
+    if (shouldShow !== lastTocVisibility) {
+      lastTocVisibility = shouldShow;
+      if (tocContainer) {
+        tocContainer.style.display = shouldShow ? 'flex' : 'none';
+      }
+      if (scrollTopButton) {
+        scrollTopButton.classList.toggle('visible', shouldShow);
+        scrollTopButton.tabIndex = shouldShow ? 0 : -1;
       }
     }
-    scheduleAdaptiveRailThemeUpdate();
+    if (scrollTopButton && !shouldShow) {
+      scrollTopButton.classList.remove('is-near');
+      scrollTopButton.classList.remove('is-hovered');
+    }
+    if (shouldShow) {
+      scheduleAdaptiveRailThemeUpdate();
+    }
   }
 
   window.addEventListener('scroll', () => {
@@ -1681,7 +1775,6 @@
         if (shouldTrackActiveHeaderOnScroll()) {
           updateActiveHeader();
         }
-        scheduleAdaptiveRailThemeUpdate();
       });
     });
   }, { passive: true });
@@ -1721,7 +1814,7 @@
           if (
             node.id === 'github-toc' ||
             node.id === 'github-sst' ||
-            node.closest('#github-toc, #github-sst')
+            node.closest('#github-toc, #github-sst, .toc-rail-preview, .toc-spotlight-layer, .toc-gpt-preview, #toc-performance-stats')
           ) {
             return false;
           }
@@ -1887,11 +1980,38 @@
   }
 
   function scrollToTop() {
-    const holder = document.body.scrollTop === 0 ? document.documentElement : document.body;
-    scrollTo(holder, 0, 348);
+    window.scrollTo({
+      top: 0,
+      left: 0,
+      behavior: reducedMotionQuery.matches ? 'auto' : 'smooth'
+    });
   }
 
-  function setupSspaiInteractions() {
+  function setupRailInteractions() {
+    let spotlightRows = [];
+    let gptRows = [];
+    let gptCurrentIndex = -1;
+
+    function clearRailPointerExit() {
+      if (!railPointerExitTimer) return;
+      window.clearTimeout(railPointerExitTimer);
+      railPointerExitTimer = null;
+    }
+
+    function scheduleRailPointerExit() {
+      if (railPointerExitTimer) return;
+      railPointerExitTimer = window.setTimeout(() => {
+        railPointerExitTimer = null;
+        if (railPointerInside) return;
+        if (isRailPostClickHoldActive()) {
+          scheduleRailPostClickHoldRelease();
+          return;
+        }
+        resetRailWave();
+        scheduleHoverClose();
+      }, 96);
+    }
+
     function getRailWaveItems() {
       if (!tocList) return [];
       if (railWaveItems.length === 0) {
@@ -1983,6 +2103,176 @@
     function getRailItemText(item) {
       const label = item?.querySelector('.toc-rail-label');
       return label?.textContent?.trim() || '';
+    }
+
+    function ensureSpotlightRows() {
+      if (!tocSpotlightLayer) return [];
+      const items = getRailWaveItems().map(({ item }) => item);
+      const canReuse = spotlightRows.length === items.length && spotlightRows.every((entry, index) => entry.item === items[index]);
+      if (canReuse) return spotlightRows;
+
+      tocSpotlightLayer.textContent = '';
+      spotlightRows = items.map((item) => {
+        const row = document.createElement('span');
+        row.className = 'toc-spotlight-row';
+        row.setAttribute('aria-hidden', 'true');
+        const text = document.createElement('span');
+        text.className = 'toc-spotlight-text';
+        text.textContent = getRailItemText(item);
+        row.appendChild(text);
+        const link = item.querySelector('.toc-rail-link');
+        row.addEventListener('click', (event) => {
+          event.preventDefault();
+          event.stopPropagation();
+          link?.click();
+        });
+        tocSpotlightLayer.appendChild(row);
+        return { item, row };
+      });
+      return spotlightRows;
+    }
+
+    function hideSpotlightLabels() {
+      ensureSpotlightRows().forEach(({ row }) => {
+        row.classList.remove('is-visible', 'distance-0', 'distance-1', 'distance-2', 'distance-far');
+      });
+    }
+
+    function updateSpotlightLabelContext(item) {
+      if (!isSpotlightPreview()) return;
+      const rows = ensureSpotlightRows();
+      if (!item) {
+        hideSpotlightLabels();
+        return;
+      }
+
+      const items = getRailWaveItems().map(({ item: railItem }) => railItem);
+      const currentIndex = items.indexOf(item);
+      if (currentIndex === -1) return;
+
+      if (railWaveLayout.length === 0) {
+        refreshRailWaveLayout();
+      }
+      const layoutByItem = new Map(railWaveLayout.map((entry) => [entry.item, entry]));
+      const railRect = tocContainer.getBoundingClientRect();
+      const isLeft = tocContainer.classList.contains('position-left');
+      rows.forEach(({ item: railItem, row }, index) => {
+        const distance = Math.abs(index - currentIndex);
+        const distanceClass = distance <= railPreviewContextRadius ? `distance-${distance}` : 'distance-far';
+        const layout = layoutByItem.get(railItem);
+        const isVisible = layout && layout.centerY >= railRect.top && layout.centerY <= railRect.bottom;
+        if (!isVisible) {
+          row.className = `toc-spotlight-row ${isLeft ? 'position-left' : 'position-right'}`;
+          return;
+        }
+
+        row.className = `toc-spotlight-row is-visible ${distanceClass} ${isLeft ? 'position-left' : 'position-right'}`;
+        row.style.top = `${layout.centerY}px`;
+        if (isLeft) {
+          row.style.left = `${layout.previewEdge + railPreviewGap}px`;
+          row.style.right = 'auto';
+        } else {
+          row.style.left = 'auto';
+          row.style.right = `${window.innerWidth - layout.previewEdge + railPreviewGap}px`;
+        }
+      });
+    }
+
+    function ensureGptPreviewRows() {
+      if (!tocGptPreview) return [];
+      const items = getRailWaveItems().map(({ item }) => item);
+      const canReuse = gptRows.length === items.length && gptRows.every((entry, index) => entry.item === items[index]);
+      if (canReuse) return gptRows;
+
+      tocGptPreview.textContent = '';
+      gptCurrentIndex = -1;
+      const list = document.createElement('div');
+      list.className = 'toc-gpt-preview-list';
+      tocGptPreview.appendChild(list);
+
+      gptRows = items.map((item) => {
+        const row = document.createElement('button');
+        row.type = 'button';
+        row.tabIndex = -1;
+        row.className = 'toc-gpt-preview-row';
+        row.dataset.level = item.dataset.level || '1';
+
+        const text = document.createElement('span');
+        text.className = 'toc-gpt-preview-text';
+        text.textContent = getRailItemText(item);
+        row.appendChild(text);
+
+        const link = item.querySelector('.toc-rail-link');
+        row.addEventListener('click', (event) => {
+          event.preventDefault();
+          event.stopPropagation();
+          link?.click();
+        });
+        list.appendChild(row);
+        return { item, row };
+      });
+      return gptRows;
+    }
+
+    function hideGptPreview() {
+      if (!tocGptPreview) return;
+      tocGptPreview.classList.remove('is-visible');
+      tocGptPreview.setAttribute('aria-hidden', 'true');
+      gptRows.forEach(({ row }) => {
+        row.tabIndex = -1;
+        row.classList.remove('is-current');
+        row.removeAttribute('aria-current');
+      });
+      gptCurrentIndex = -1;
+    }
+
+    function setGptRowCurrent(index, isCurrent) {
+      const row = gptRows[index]?.row;
+      if (!row) return;
+      row.tabIndex = isCurrent ? 0 : -1;
+      row.classList.toggle('is-current', isCurrent);
+      if (isCurrent) {
+        row.setAttribute('aria-current', 'location');
+      } else {
+        row.removeAttribute('aria-current');
+      }
+    }
+
+    function positionGptPreview(item, layout = getRailPreviewLayout(item)) {
+      if (!tocGptPreview || !item || !layout) return;
+      const rows = ensureGptPreviewRows();
+      const currentIndex = rows.findIndex((entry) => entry.item === item);
+      if (currentIndex === -1) return;
+
+      const isLeft = tocContainer.classList.contains('position-left');
+      tocGptPreview.classList.toggle('position-left', isLeft);
+      tocGptPreview.classList.toggle('position-right', !isLeft);
+      if (isLeft) {
+        tocGptPreview.style.left = `${layout.previewEdge + railPreviewGap}px`;
+        tocGptPreview.style.right = 'auto';
+      } else {
+        tocGptPreview.style.left = 'auto';
+        tocGptPreview.style.right = `${window.innerWidth - layout.previewEdge + railPreviewGap}px`;
+      }
+
+      if (gptCurrentIndex !== currentIndex) {
+        setGptRowCurrent(gptCurrentIndex, false);
+        setGptRowCurrent(currentIndex, true);
+        gptCurrentIndex = currentIndex;
+      }
+      tocGptPreview.classList.add('is-visible');
+      tocGptPreview.setAttribute('aria-hidden', 'false');
+
+      const list = tocGptPreview.querySelector('.toc-gpt-preview-list');
+      const currentRow = rows[currentIndex].row;
+      if (!list || !currentRow) return;
+      const rowTop = currentRow.offsetTop;
+      const rowBottom = rowTop + currentRow.offsetHeight;
+      if (rowTop < list.scrollTop) {
+        list.scrollTop = rowTop;
+      } else if (rowBottom > list.scrollTop + list.clientHeight) {
+        list.scrollTop = rowBottom - list.clientHeight;
+      }
     }
 
     function getRailPreviewContext(item) {
@@ -2127,12 +2417,20 @@
         railPreviewItem.classList.remove('is-previewed');
       }
       railPreviewItem = nextItem;
+      updateSpotlightLabelContext(railPreviewItem);
+      if (isGptPreview()) {
+        if (railPreviewItem) {
+          positionGptPreview(railPreviewItem);
+        } else {
+          hideGptPreview();
+        }
+      }
       if (railPreviewItem) {
         railPreviewItem.classList.add('is-previewed');
-        if (tocRailPreview) {
+        if (isWheelPreview() && tocRailPreview) {
           tocRailPreview.classList.add('is-visible');
         }
-      } else if (tocRailPreview) {
+      } else if (isWheelPreview() && tocRailPreview) {
         tocRailPreview.classList.remove('is-visible');
         railPreviewRenderedItem = null;
         railPreviewRenderedMeta = { rowCount: 0, currentRowIndex: 0 };
@@ -2177,15 +2475,19 @@
       const entry = railWaveLayout.find(({ item: railItem }) => railItem === item);
       if (entry) {
         lastRailPointerY = entry.centerY;
-        if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+        if (reducedMotionQuery.matches) {
           updateReducedMotionRailPreview(entry.centerY);
         } else {
           updateRailWave(entry.centerY);
         }
-        positionRailPreview(item, entry);
+        if (isWheelPreview()) {
+          positionRailPreview(item, entry);
+        }
       } else {
         setRailPreviewItem(item);
-        positionRailPreview(item);
+        if (isWheelPreview()) {
+          positionRailPreview(item);
+        }
       }
 
       scheduleHoverOpen();
@@ -2201,6 +2503,7 @@
       lastRailPointerY = null;
       setRailPreviewItem(null);
       getRailWaveItems().forEach(({ item }) => {
+        item.classList.remove('is-wave-active');
         item.style.removeProperty('--toc-rail-wave-width');
         item.style.removeProperty('--toc-rail-wave-opacity');
         item.style.removeProperty('--toc-rail-wave-shift');
@@ -2240,6 +2543,7 @@
         }
 
         if (strength > 0) {
+          item.classList.add('is-wave-active');
           item.style.setProperty('--toc-rail-wave-width', `${waveWidth.toFixed(2)}px`);
           item.style.setProperty('--toc-rail-wave-opacity', (0.62 + strength * 0.38).toFixed(3));
           item.style.setProperty('--toc-rail-wave-shift', `${(strength * 2 * shiftDirection).toFixed(2)}px`);
@@ -2247,6 +2551,7 @@
           item.style.setProperty('--toc-rail-wave-scale', (1 + strength * 0.24).toFixed(3));
           railWaveAffectedItems.add(item);
         } else if (railWaveAffectedItems.has(item)) {
+          item.classList.remove('is-wave-active');
           item.style.removeProperty('--toc-rail-wave-width');
           item.style.removeProperty('--toc-rail-wave-opacity');
           item.style.removeProperty('--toc-rail-wave-shift');
@@ -2258,6 +2563,7 @@
 
       railWaveAffectedItems.forEach((item) => {
         if (touchedItems.has(item)) return;
+        item.classList.remove('is-wave-active');
         item.style.removeProperty('--toc-rail-wave-width');
         item.style.removeProperty('--toc-rail-wave-opacity');
         item.style.removeProperty('--toc-rail-wave-shift');
@@ -2268,7 +2574,7 @@
 
       const nextPreviewItem = nearestDistance <= railWaveMaxDistance ? nearestItem : null;
       setRailPreviewItem(nextPreviewItem);
-      if (railPreviewItem) {
+      if (isWheelPreview() && railPreviewItem) {
         positionRailPreview(railPreviewItem, nearestEntry);
       }
     }
@@ -2293,7 +2599,7 @@
 
       const nextPreviewItem = nearestDistance <= railWaveMaxDistance ? nearestEntry?.item || null : null;
       setRailPreviewItem(nextPreviewItem);
-      if (railPreviewItem) {
+      if (isWheelPreview() && railPreviewItem) {
         positionRailPreview(railPreviewItem, nearestEntry);
       }
     }
@@ -2310,11 +2616,13 @@
       railWaveFrame = window.requestAnimationFrame(() => {
         railWaveFrame = null;
         if (lastRailPointerY !== null) {
-          if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
-            updateReducedMotionRailPreview(lastRailPointerY);
-          } else {
-            updateRailWave(lastRailPointerY);
-          }
+          measurePerformance('railPointer', () => {
+            if (reducedMotionQuery.matches) {
+              updateReducedMotionRailPreview(lastRailPointerY);
+            } else {
+              updateRailWave(lastRailPointerY);
+            }
+          });
         }
       });
     }
@@ -2354,25 +2662,124 @@
       });
     }
 
-    tocContainer.addEventListener('mouseenter', () => {
-      railPointerInside = true;
-      refreshRailWaveLayout();
-      scheduleAdaptiveRailThemeUpdate(true);
-      scheduleHoverOpen();
-    });
-    tocContainer.addEventListener('pointermove', scheduleRailWave);
-    tocContainer.addEventListener('mouseleave', () => {
+    function handleRailDocumentPointerMove(event) {
+      scheduleScrollTopProximity(event);
+      if ((!isSpotlightPreview() && !isGptPreview()) || !railPreviewItem) return;
+      const target = event.target;
+      if (tocContainer.contains(target) || tocSpotlightLayer?.contains(target) || tocGptPreview?.contains(target)) {
+        railPointerInside = true;
+        clearRailPointerExit();
+        return;
+      }
+
       railPointerInside = false;
       if (isRailPostClickHoldActive()) {
         scheduleRailPostClickHoldRelease();
         return;
       }
-      resetRailWave();
-      scheduleHoverClose();
+      scheduleRailPointerExit();
+    }
+
+    tocContainer.addEventListener('pointerenter', () => {
+      railPointerInside = true;
+      clearRailPointerExit();
+      refreshRailWaveLayout();
+      scheduleAdaptiveRailThemeUpdate(true);
+      scheduleHoverOpen();
     });
-    tocContainer.addEventListener('focusin', () => toggleExpanded(true));
+    tocContainer.addEventListener('pointermove', scheduleRailWave);
+    tocContainer.addEventListener('pointerleave', (event) => {
+      if (
+        (isSpotlightPreview() && tocSpotlightLayer?.contains(event.relatedTarget)) ||
+        (isGptPreview() && tocGptPreview?.contains(event.relatedTarget))
+      ) {
+        railPointerInside = true;
+        clearRailPointerExit();
+        return;
+      }
+      railPointerInside = false;
+      if (isRailPostClickHoldActive()) {
+        scheduleRailPostClickHoldRelease();
+        return;
+      }
+      scheduleRailPointerExit();
+    });
+    tocContainer.addEventListener('focusin', (event) => {
+      toggleExpanded(true);
+      const item = event.target?.closest?.('.toc-item:not(.no-headers)');
+      if (!item) return;
+      setRailPreviewItem(item);
+      if (isWheelPreview()) {
+        positionRailPreview(item);
+      }
+    });
+
+    if (tocSpotlightLayer) {
+      tocSpotlightLayer.addEventListener('pointerenter', () => {
+        railPointerInside = true;
+        clearRailPointerExit();
+        clearHoverTimers();
+      });
+      tocSpotlightLayer.addEventListener('pointerleave', (event) => {
+        if (tocContainer.contains(event.relatedTarget)) return;
+        railPointerInside = false;
+        if (isRailPostClickHoldActive()) {
+          scheduleRailPostClickHoldRelease();
+          return;
+        }
+        scheduleRailPointerExit();
+      });
+    }
+
+    if (tocGptPreview) {
+      tocGptPreview.addEventListener('pointerenter', () => {
+        railPointerInside = true;
+        clearRailPointerExit();
+        clearHoverTimers();
+      });
+      tocGptPreview.addEventListener('pointerleave', (event) => {
+        if (tocContainer.contains(event.relatedTarget)) return;
+        railPointerInside = false;
+        if (isRailPostClickHoldActive()) {
+          scheduleRailPostClickHoldRelease();
+          return;
+        }
+        scheduleRailPointerExit();
+      });
+      tocGptPreview.addEventListener('focusin', (event) => {
+        railPointerInside = true;
+        clearRailPointerExit();
+        clearHoverTimers();
+        const row = event.target?.closest?.('.toc-gpt-preview-row');
+        const index = row ? gptRows.findIndex((entry) => entry.row === row) : -1;
+        if (index >= 0) {
+          setRailPreviewItem(gptRows[index].item);
+        }
+      });
+      tocGptPreview.addEventListener('keydown', (event) => {
+        if (!['ArrowDown', 'ArrowUp', 'Home', 'End'].includes(event.key)) return;
+        const row = event.target?.closest?.('.toc-gpt-preview-row');
+        const currentIndex = row ? gptRows.findIndex((entry) => entry.row === row) : gptCurrentIndex;
+        if (currentIndex < 0 || gptRows.length === 0) return;
+
+        event.preventDefault();
+        let nextIndex = currentIndex;
+        if (event.key === 'ArrowDown') nextIndex = Math.min(gptRows.length - 1, currentIndex + 1);
+        if (event.key === 'ArrowUp') nextIndex = Math.max(0, currentIndex - 1);
+        if (event.key === 'Home') nextIndex = 0;
+        if (event.key === 'End') nextIndex = gptRows.length - 1;
+        gptRows[nextIndex].row.focus({ preventScroll: true });
+        setRailPreviewItem(gptRows[nextIndex].item);
+      });
+      tocGptPreview.addEventListener('focusout', (event) => {
+        if (tocGptPreview.contains(event.relatedTarget) || tocContainer.contains(event.relatedTarget)) return;
+        railPointerInside = false;
+        clearRailPostClickHold();
+        scheduleRailPointerExit();
+      });
+    }
     tocContainer.addEventListener('focusout', (e) => {
-      if (!tocContainer.contains(e.relatedTarget)) {
+      if (!tocContainer.contains(e.relatedTarget) && !tocGptPreview?.contains(e.relatedTarget)) {
         clearRailPostClickHold();
         resetRailWave();
         scheduleHoverClose();
@@ -2390,18 +2797,23 @@
 
       tocList.addEventListener('scroll', () => {
         railWaveLayout = [];
+        if (isSpotlightPreview() || isGptPreview()) {
+          setRailPreviewItem(null);
+        }
       }, { passive: true });
     }
 
     window.addEventListener('resize', () => {
       railWaveLayout = [];
+      if (isSpotlightPreview() || isGptPreview()) {
+        setRailPreviewItem(null);
+      }
       lastAdaptiveThemeApplied = '';
       scheduleAdaptiveRailThemeUpdate(true);
     }, { passive: true });
 
     if (scrollTopButton) {
-      document.addEventListener('pointermove', scheduleScrollTopProximity, { passive: true });
-      document.addEventListener('mousemove', scheduleScrollTopProximity, { passive: true });
+      document.addEventListener('pointermove', handleRailDocumentPointerMove, { passive: true });
       document.addEventListener('pointerleave', () => {
         scrollTopButton.classList.remove('is-near');
         scrollTopButton.classList.remove('is-hovered');
@@ -2540,24 +2952,12 @@
   function setupInteractions() {
     if (!tocContainer) return;
 
-    if (isSspaiPreset()) {
-      setupSspaiInteractions();
+    if (isRailPreset()) {
+      setupRailInteractions();
       return;
     }
 
     setupDefaultInteractions();
-  }
-
-  function scrollTo(element, to, duration) {
-    if (duration <= 0) return;
-    const difference = to - element.scrollTop;
-    const perTick = difference / duration * 10;
-
-    setTimeout(() => {
-      element.scrollTop = element.scrollTop + perTick;
-      if (element.scrollTop === to) return;
-      scrollTo(element, to, duration - 10);
-    }, 10);
   }
 
   function start() {

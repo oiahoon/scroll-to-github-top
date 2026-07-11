@@ -1,16 +1,16 @@
 # Chrome Web Store Listing Copy
 
-> Updated: 2026-07-10
+> Updated: 2026-07-11
 > Use for Chrome Web Store title, short description, long description, screenshot captions, and release notes.
 
 ## Positioning
 
 Smart TOC & Scroll is a lightweight reading navigation extension for long articles, blogs, and documentation pages.
 
-It provides two complementary navigation styles:
+It provides two navigation types:
 
 - `Standard TOC Panel`: full outline, active-section highlighting, quick heading jumps, and a compact Top action.
-- `Reading Progress Outline`: transparent progress rail, subtle hover wave, title preview outside the rail, and low-intrusion scroll-to-top.
+- `Barcode`: a transparent edge rail with subtle hover waves and low-intrusion scroll-to-top. Choose a Wheel window, Spotlight column, or GPT-style scrollable title panel.
 
 ## Short Description
 
@@ -20,10 +20,13 @@ Adaptive reading navigation for long articles and docs: TOC, progress outline, h
 
 Smart TOC & Scroll adds lightweight reading navigation to long articles, blogs, and documentation pages.
 
-It gives you two navigation styles for different reading contexts:
+It gives you two navigation types for different reading contexts:
 
 - Standard TOC Panel: a full outline with active-section highlighting, quick heading jumps, and a compact Top action.
-- Reading Progress Outline: a transparent progress rail for immersive long-form reading, with subtle hover waves and title previews that appear outside the rail.
+- Barcode: a transparent progress rail for immersive long-form reading, with three title previews:
+  - Wheel: headings move through a fixed observation window.
+  - Spotlight: all visible headings stay aligned with their bars while focus fades through the nearest one or two neighbors.
+  - GPT: the idle rail stays minimal, then hover opens a bordered, scrollable panel containing the complete outline.
 
 Key features:
 
@@ -48,10 +51,13 @@ Built for readers who want a clear sense of place without adding clutter to ever
 
 Smart TOC & Scroll 为长文、博客和文档站点提供轻量阅读导航。
 
-它提供两种互补的导航方式：
+它提供两种导航类型：
 
 - 标准目录面板：展示完整目录、当前章节高亮、快速标题跳转和紧凑的 Top 回顶操作。
-- 阅读进度目录：以透明短横线表达长文结构，悬停时产生柔和延展，并在 rail 外侧显示标题预览。
+- Barcode：以透明短横线表达长文结构，悬停时产生柔和延展，并提供三种标题预览：
+  - 滚轮：标题在固定观察窗中滑动。
+  - 聚光灯：所有当前可见标题保持对齐，命中项向上下 1–2 项渐隐扩散。
+  - GPT：平时保持纯条形码，悬停后展开带背景和边框的完整可滚动标题面板。
 
 核心能力：
 
@@ -69,10 +75,10 @@ Smart TOC & Scroll 为长文、博客和文档站点提供轻量阅读导航。
 ## Screenshot Captions
 
 1. Full outline panel for documentation and technical pages.
-2. Hover preview and progress wave for long-form reading.
+2. Barcode GPT opens the complete outline in a compact scrollable hover panel.
 3. Left-side progress outline with mirrored preview placement.
 4. Adaptive contrast on light pages without adding a panel background.
-5. Simple settings for style, placement, compatibility, and appearance.
+5. Simple settings for navigation type, Barcode preview, placement, and compatibility.
 
 ## Screenshot Files
 
@@ -89,4 +95,4 @@ Smart TOC & Scroll does not upload page content or collect browsing history. Out
 
 ## Release Note
 
-Improved the reading progress outline with smoother hover behavior, stable preview placement, transparent rail styling, and subtle adaptive contrast for different page surfaces. The settings page also has shorter Chinese copy, a sticky save area, and clearer dark-mode selection states.
+Added a third Barcode preview named GPT. The rail stays minimal at rest, then opens a bordered, scrollable complete outline with current-row highlighting, automatic reveal, left/right mirroring, and heading jumps. Keyboard navigation now uses a single Tab stop with Arrow, Home, and End controls, while rail hover animation responds more directly with less trailing. Wheel and Spotlight remain available.

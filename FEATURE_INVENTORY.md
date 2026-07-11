@@ -1,6 +1,6 @@
 # Smart TOC & Scroll — 功能清单（Feature Inventory）
 
-> **版本**：2.10
+> **版本**：2.13
 > **用途**：本文档记录扩展主要行为、交互、配置项与边界情况，作为后续重构和回归验证的功能基线。
 > **更新日期**：2026-07-10
 
@@ -131,9 +131,9 @@
 
 ---
 
-### 1.7 阅读进度目录 rail 与标题预览
+### 1.7 Barcode / 滚轮标题预览
 
-**功能描述**：在 `阅读进度目录` 样式下，TOC 以透明边缘 rail 展示章节短横线；hover 时短横线向外产生 wave 延展，并在 rail 外侧显示当前标题预览。
+**功能描述**：在 `themePreset = 'barcode'` 且 `barcodePreview = 'wheel'` 时，TOC 以透明边缘 rail 展示章节短横线；hover 时短横线向外产生 wave 延展，标题 track 在固定观察窗内滚动。
 
 **用户故事**：作为沉浸式阅读长文的用户，我希望页面边缘只保留低侵扰的位置感知，但在我主动悬停时能快速看清对应章节标题。
 
@@ -146,7 +146,7 @@
 - Given rail 附近页面背景为浅色条带或深色 surface，When 自适应主题执行，Then rail、独立回顶按钮与预览气泡使用克制的局部 CSS 变量保持可读，rail 本体仍为透明背景。
 - Given rail 采样区与 preview 背后的正文底色不同，When 上下文行显示，Then 行级 surface 自身提供足够对比度，当前项与邻近项不依赖宿主底色保持可读。
 - Given 用户离开 rail 或 TOC 重绘，When 预览关闭，Then 旧的 `.is-previewed` 状态被清理，不应残留高亮。
-- Given 用户启用 `prefers-reduced-motion: reduce`，When 悬停阅读进度 rail，Then wave 动画可以停用，但标题预览仍应显示。
+- Given 用户启用 `prefers-reduced-motion: reduce`，When 悬停 Barcode rail，Then wave 动画可以停用，但标题预览仍应显示。
 
 **边界情况**：
 
@@ -156,15 +156,16 @@
 
 ---
 
-### 1.8 阅读进度 rail 本地 QA 控制条
+### 1.8 Barcode 本地 QA 控制条
 
-**功能描述**：`test-pages/rail-hover-performance.html` 提供固定的 `Rail QA` 控制条，用于在本地页面内切换 rail 位置、surface 和 reduced motion 状态，并同步到 URL 参数。
+**功能描述**：`test-pages/rail-hover-performance.html` 提供固定的 `Rail QA` 控制条，用于在本地页面内切换 Wheel / Spotlight / GPT、rail 位置、surface 和 reduced motion 状态，并同步到 URL 参数。
 
 **用户故事**：作为维护扩展交互体验的开发者，我希望不用手动编辑 URL 就能快速切换 rail 验收场景，以便通过 Chrome/Computer 截图复核镜像方向、局部配色和减少动态效果。
 
 **验收标准**：
 
 - Given 打开 `test-pages/rail-hover-performance.html?position=right&surface=dark`，When 页面加载，Then `Rail QA` 控制条中 `Right` 与 `Dark` 按钮应处于 `aria-pressed="true"` 状态。
+- Given 用户点击 `Wheel`、`Spotlight` 或 `GPT`，When 页面重载，Then URL 的 `preview` 参数更新为 `wheel` / `spotlight` / `gpt`，Barcode 标题预览同步切换。
 - Given 用户点击 `Left` 或 `Right`，When 页面重载，Then URL 的 `position` 参数更新，rail 位置同步切换，控制条移动到 rail 的另一侧。
 - Given 用户点击 `Dark` / `Light` / `Color` / `Strip`，When 页面重载，Then URL 的 `surface` 参数更新，页面背景和 rail 局部 surface 验收场景同步切换。
 - Given 用户勾选 `Reduce`，When 页面重载，Then URL 添加 `motion=reduce`，测试页 mock 的 `matchMedia('(prefers-reduced-motion: reduce)')` 返回 true。
@@ -172,25 +173,75 @@
 
 ---
 
+### 1.9 Barcode / 聚光灯标题预览
+
+**功能描述**：在 `themePreset = 'barcode'` 且 `barcodePreview = 'spotlight'` 时，idle 只显示透明 rail 与短横线；hover / focus 时显示当前可见的完整标题列，并将命中高亮向上下邻近项渐隐扩散。
+
+**用户故事**：作为希望长期保持页面干净、但偶尔需要快速查看附近结构的读者，我希望标题只在主动探索 rail 时出现，而且能直接对应每条短横线。
+
+**验收标准**：
+
+- Given 指针不在 rail 或聚光灯标题上，When 页面处于 idle，Then `.toc-spotlight-row.is-visible` 数量为 0，页面只保留短横线。
+- Given 用户 hover 中间 rail item，When 聚光灯层显示，Then 所有当前可见 bar 都有对应标题 row，DOM 不因命中项变化而重建。
+- Given 标题列已显示，When 检查视觉层级，Then 命中项为 100%，上下距离 1 / 2 项约为 66% / 36%，其余可见标题约为 10%。
+- Given 命中项显示，When 检查样式，Then `.toc-spotlight-text` 不出现 border，高亮仅使用亮度、轻微缩放、字重和 surface。
+- Given TOC 位于右侧或左侧，When hover，Then 标题分别显示在 rail 左侧或右侧，布局镜像且不超出视口。
+- Given 用户从 bar 移到聚光灯标题，When 点击标题，Then 原目录链接执行跳转、目标获得 active / `aria-current` 并保留短暂落点反馈。
+- Given 用户通过键盘聚焦原 rail link，When focus 变化，Then同样显示该项附近上下文；原 link 仍提供可访问名称和导航语义。
+- Given 用户启用 reduced motion，When hover 聚光灯，Then 标题仍显示，但聚光灯层 transition / animation 为 0。
+
+**性能边界**：
+
+- 聚光灯 rows 在当前 TOC 生命周期内一次建立并稳定复用；hover 命中只切换距离 class。
+- pointer 热路径使用 rAF 合帧；wave 只读写可视区域附近 item，`will-change` 只在影响项启用。
+- 主题与内容 MutationObserver 忽略聚光灯层内部更新。
+
+---
+
+### 1.10 Barcode / GPT 标题面板
+
+**功能描述**：在 `themePreset = 'barcode'` 且 `barcodePreview = 'gpt'` 时，idle 只显示透明 rail 与短横线；hover / focus 后在 rail 内侧展开带背景、边框和圆角的完整标题面板。
+
+**用户故事**：作为阅读超长文章的用户，我希望常驻状态尽量克制，但在需要时能打开一个可滚动的完整目录，并直接跳转到任意标题。
+
+**验收标准**：
+
+- Given 指针不在 rail 或 GPT 面板内，When 页面处于 idle，Then `.toc-gpt-preview` 不可见且页面只保留短横线。
+- Given 用户 hover 任意 rail item，When GPT 面板展开，Then 面板包含当前 TOC 生命周期内的全部标题，命中行高亮并自动滚入面板视区。
+- Given 标题数量超过面板高度，When 用户在 `.toc-gpt-preview-list` 内滚动，Then 仅面板滚动，页面不跟随滚动。
+- Given 用户从 rail 移向面板，When 指针跨越两者之间的短间隙，Then 96ms 离开宽限允许面板保持打开，进入面板后取消关闭。
+- Given 用户点击面板标题，When 原 `.toc-rail-link` 被触发，Then 页面平滑跳转并保持目标 active / `aria-current` 反馈。
+- Given GPT 面板包含大量标题，When 面板展开，Then 仅 `.is-current` row 使用 `tabIndex = 0`，其余 rows 保持 `-1`。
+- Given 键盘焦点位于 GPT 当前 row，When 用户按 ArrowUp / ArrowDown / Home / End，Then 焦点与 current 状态移动到对应标题并自动进入面板视区。
+- Given TOC 位于左侧或右侧，When 面板展开，Then 面板分别显示在 rail 右侧或左侧，并使用对应方向的 transform origin。
+- Given 用户启用 reduced motion，When GPT 面板展开，Then 面板与内部 row 不执行 transition / animation，但滚动和跳转仍可用。
+
+**性能边界**：
+
+- 完整标题 button 在当前 TOC 生命周期内一次建立并复用；hover 命中只更新旧/新 current row、ARIA、roving tabindex 与必要的 `scrollTop`。
+- `.toc-gpt-preview` 参与局部 surface token，但被主题与内容 MutationObserver 视为扩展自有 DOM。
+
+---
+
 ## 2. 滚动到顶部
 
 ### 2.1 独立回到顶部按钮（catalog.js）
 
-**功能描述**：`catalog.js` 在 `阅读进度目录` preset 下创建一个独立的回到顶部按钮（`#github-sst`）。它与 TOC rail 独立渲染，按统一的标题数/滚动屏数条件显示；标准目录面板使用面板内的 `.toc-top-button`。
+**功能描述**：`catalog.js` 在 `Barcode` 下创建一个独立的回到顶部按钮（`#github-sst`）。它与 TOC rail 独立渲染，按统一的标题数/滚动屏数条件显示；标准目录面板使用面板内的 `.toc-top-button`。
 
 **用户故事**：作为浏览长页面的用户，我希望在页面右下角看到一个回到顶部按钮，以便一键返回页面顶部，无需手动滚动。
 
 **验收标准**：
 
-- Given `themePreset = 'sspai'` 且页面满足显示条件，When `createUI()` 执行，Then 在 `document.body` 末尾创建 id 为 `github-sst`、class 为 `github-sst` 的 `button` 元素。
+- Given `themePreset = 'barcode'` 且页面满足显示条件，When `createUI()` 执行，Then 在 `document.body` 末尾创建 id 为 `github-sst`、class 为 `github-sst` 的 `button` 元素。
 - Given 页面不满足 `minHeaders` 或 `showAfterScrollScreens` 条件，When `updateVisibility()` 执行，Then 按钮移除 `visible` class、设置 `tabIndex = -1`，并保持不可交互。
 - Given 页面满足显示条件，When `updateVisibility()` 执行，Then 按钮获得 `visible` class；指针接近时再通过 `is-near` 显形并允许点击。
-- Given 按钮可见，When 用户点击按钮，Then 页面以时长 348ms 的自定义缓动动画平滑滚动回顶部（scrollTop = 0）。
+- Given 按钮可见，When 用户点击按钮，Then 使用浏览器原生 smooth scroll 回到顶部；reduced motion 下使用即时滚动。
 
 **边界情况**：
 - 滚动监听通过 `requestAnimationFrame` 节流（`cancelAnimationFrame` + 新帧），防止高频回调。
 - 滚动位置兼容写法：`document.body.scrollTop + document.documentElement.scrollTop`。
-- 自定义 `scrollTo` 实现：每 10ms 递归执行，按 `perTick = difference / duration * 10` 步进，`duration <= 0` 时终止；滚动目标元素根据 `document.body.scrollTop === 0` 来判断选 `documentElement` 还是 `body`。
+- 回顶使用 `window.scrollTo({ top: 0, left: 0, behavior })`，不创建递归 timer。
 
 ---
 
@@ -384,21 +435,22 @@
 
 ### 5.1 设置页面（options.html）布局
 
-**功能描述**：扩展设置页面包含阅读导航样式、交互方式、显示条件、位置、兼容策略、禁用域名六个设置行，以及底部保存按钮和状态提示。
+**功能描述**：扩展设置页面包含导航类型、Barcode 标题预览、标准面板交互方式、显示条件、位置、兼容策略、禁用域名，以及底部保存按钮和状态提示；两个二级设置行按一级类型条件显示。
 
 **用户故事**：作为扩展用户，我希望通过一个清晰分组的设置页面管理所有配置项，以便找到并修改我需要的选项。
 
 **验收标准**：
 
-- Given 用户打开扩展设置页，When 页面加载，Then 展示六个设置行，以及默认禁用并显示“已保存”的按钮和状态提示区域。
-- Given 设置页面加载，When `loadSettings()` 返回数据，Then 所有表单字段（themePreset、expandMode、minHeaders、showAfterScrollScreens、position、disabledDomains、avoidExistingWidgets、forceShow）填充已保存的值。
+- Given 用户打开扩展设置页，When 页面加载，Then 根据一级导航类型展示六个相关设置行；Barcode 预览与标准面板交互方式不会同时出现。
+- Given 设置页面加载，When `loadSettings()` 返回数据，Then 所有表单字段（themePreset、barcodePreview、expandMode、minHeaders、showAfterScrollScreens、position、disabledDomains、avoidExistingWidgets、forceShow）填充已保存的值。
+- Given 旧设置为 `sspai` / `glimmer`，When 设置加载，Then 自动迁移为 `barcode + wheel` / `barcode + spotlight`。
 - Given `chrome.storage.sync` 不可用（非扩展环境），When 设置页面加载，Then 使用默认值填充表单，不抛出异常。
 
 ---
 
 ### 5.2 目录展开方式（expandMode）
 
-**功能描述**：原生 select 作为可访问数据源，界面以分段按钮呈现三个选项：悬停展开（hover，默认）、长按展开（press）、点击展开（click）。`阅读进度目录` preset 固定使用悬停展开，并禁用该控制。
+**功能描述**：标准目录面板以分段按钮呈现悬停展开（hover，默认）、长按展开（press）、点击展开（click）；Barcode 下隐藏该行并固定使用 rail hover 交互。
 
 **验收标准**：
 
@@ -487,12 +539,12 @@
 
 ### 5.9 保存与状态提示
 
-**功能描述**：页面加载后保存按钮显示“已保存”并禁用；任意配置改变后按钮启用并显示“保存更改”。点击后将 8 个字段写入 `chrome.storage.sync`，按钮恢复 clean state，并在旁边显示“设置已保存”提示。
+**功能描述**：页面加载后保存按钮显示“已保存”并禁用；任意配置改变后按钮启用并显示“保存更改”。点击后将 9 个字段写入 `chrome.storage.sync`，按钮恢复 clean state，并在旁边显示“设置已保存”提示。
 
 **验收标准**：
 
 - Given 用户修改任意设置项，When change / input 事件触发，Then按钮启用并显示“保存更改”。
-- Given 用户点击“保存更改”，Then `chrome.storage.sync.set` 被调用，写入所有 8 个字段的最新值。
+- Given 用户点击“保存更改”，Then `chrome.storage.sync.set` 被调用，写入所有 9 个字段的最新值。
 - Given 保存操作完成，When `renderStatus('设置已保存')` 被调用，Then按钮恢复禁用的“已保存”，`#status` 显示“设置已保存”并在 1500ms 后淡出。
 - Given `chrome.storage.sync` 不可用，When 点击保存，Then `saveSettings` 直接 resolve，不抛出异常，状态提示仍然显示。
 
@@ -504,7 +556,8 @@
 
 | 配置项 | 默认值 | 类型 |
 |---|---|---|
-| themePreset | `'default'` | `'default' \| 'sspai'` |
+| themePreset | `'default'` | `'default' \| 'barcode'` |
+| barcodePreview | `'wheel'` | `'wheel' \| 'spotlight' \| 'gpt'` |
 | expandMode | `'hover'` | string |
 | minHeaders | `3` | number |
 | showAfterScrollScreens | `1` | number |
@@ -875,7 +928,8 @@
 
 | 配置项 | 默认值 | 合法值 | 非法时行为 |
 |---|---|---|---|
-| `themePreset` | `'default'` | `'default' \| 'sspai'` | 重置为 `'default'` |
+| `themePreset` | `'default'` | `'default' \| 'barcode'` | 重置为 `'default'`；旧 `sspai/glimmer` 自动迁移 |
+| `barcodePreview` | `'wheel'` | `'wheel' \| 'spotlight' \| 'gpt'` | 重置为 `'wheel'` |
 | `expandMode` | `'hover'` | `'hover' \| 'press' \| 'click'` | 重置为 `'hover'` |
 | `minHeaders` | `3` | 有限正数或 0 | 非有限数重置为 3；负数截断为 0 |
 | `showAfterScrollScreens` | `1` | 有限正数或 0 | 非有限数重置为 1；负数截断为 0 |
@@ -890,7 +944,7 @@
 
 - **Manifest 版本**：3
 - **扩展名称**：Smart TOC & Scroll
-- **版本号**：2.10
+- **版本号**：2.13
 - **所需权限**：`activeTab`、`storage`
 - **主机权限**：`<all_urls>`（所有 HTTP/HTTPS 页面）
 - **Options 页面**：`options.html`
@@ -901,4 +955,4 @@
 
 ---
 
-*本文档基于源码分析整理，已按 v2.10 当前行为更新，日期：2026-07-10。*
+*本文档基于源码分析整理，已按 v2.13 当前行为更新，日期：2026-07-11。*

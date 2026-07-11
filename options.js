@@ -2,6 +2,7 @@
 
 const defaultSettings = {
   themePreset: 'default',
+  barcodePreview: 'wheel',
   expandMode: 'hover',
   minHeaders: 3,
   showAfterScrollScreens: 1,
@@ -14,6 +15,10 @@ const defaultSettings = {
 const elements = {
   themePreset: document.getElementById('themePreset'),
   themePresetHint: document.getElementById('themePresetHint'),
+  barcodePreview: document.getElementById('barcodePreview'),
+  barcodePreviewHint: document.getElementById('barcodePreviewHint'),
+  barcodePreviewRow: document.getElementById('barcodePreviewRow'),
+  standardInteractionRow: document.getElementById('standardInteractionRow'),
   expandMode: document.getElementById('expandMode'),
   expandModeHint: document.getElementById('expandModeHint'),
   minHeaders: document.getElementById('minHeaders'),
@@ -36,10 +41,34 @@ const expandModeDescriptions = {
   press: '短按回到顶部，长按展开目录。'
 };
 
-const themePresetDescriptions = {
+const navigationTypeDescriptions = {
   default: '完整目录，适合文档站和技术长文。',
-  sspai: '线状进度目录，适合沉浸式长文阅读。'
+  barcode: '用页面边缘的短横线表达长文结构，再选择标题预览方式。'
 };
+
+const barcodePreviewDescriptions = {
+  wheel: '标题在固定观察窗中像滚轮一样滑动。',
+  spotlight: '悬停时显示完整标题列，命中项向上下邻近标题渐隐扩散。',
+  gpt: '悬停时展开带背景和边框的完整标题面板，可在面板内滚动。'
+};
+
+function normalizeSettings(input = {}) {
+  const normalized = { ...defaultSettings, ...input };
+  if (input.themePreset === 'sspai') {
+    normalized.themePreset = 'barcode';
+    normalized.barcodePreview = 'wheel';
+  } else if (input.themePreset === 'glimmer') {
+    normalized.themePreset = 'barcode';
+    normalized.barcodePreview = 'spotlight';
+  }
+  if (!['default', 'barcode'].includes(normalized.themePreset)) {
+    normalized.themePreset = defaultSettings.themePreset;
+  }
+  if (!['wheel', 'spotlight', 'gpt'].includes(normalized.barcodePreview)) {
+    normalized.barcodePreview = defaultSettings.barcodePreview;
+  }
+  return normalized;
+}
 
 function normalizeDomains(input) {
   return input
@@ -136,14 +165,16 @@ function saveSettings(data) {
 }
 
 function bindForm(settings) {
-  elements.themePreset.value = settings.themePreset || defaultSettings.themePreset;
-  elements.expandMode.value = settings.expandMode || defaultSettings.expandMode;
-  elements.minHeaders.value = settings.minHeaders ?? defaultSettings.minHeaders;
-  elements.showAfterScrollScreens.value = settings.showAfterScrollScreens ?? defaultSettings.showAfterScrollScreens;
-  elements.position.value = settings.position || defaultSettings.position;
-  elements.disabledDomains.value = (settings.disabledDomains || []).join(', ');
-  elements.avoidExistingWidgets.checked = settings.avoidExistingWidgets ?? defaultSettings.avoidExistingWidgets;
-  elements.forceShow.checked = settings.forceShow ?? defaultSettings.forceShow;
+  const normalized = normalizeSettings(settings);
+  elements.themePreset.value = normalized.themePreset;
+  elements.barcodePreview.value = normalized.barcodePreview;
+  elements.expandMode.value = normalized.expandMode;
+  elements.minHeaders.value = normalized.minHeaders;
+  elements.showAfterScrollScreens.value = normalized.showAfterScrollScreens;
+  elements.position.value = normalized.position;
+  elements.disabledDomains.value = (normalized.disabledDomains || []).join(', ');
+  elements.avoidExistingWidgets.checked = normalized.avoidExistingWidgets;
+  elements.forceShow.checked = normalized.forceShow;
   syncThemePreset();
   syncExpandModeHint();
   syncForceShow();
@@ -151,20 +182,20 @@ function bindForm(settings) {
 }
 
 function syncExpandModeHint() {
-  if (elements.themePreset.value === 'sspai') {
-    elements.expandModeHint.textContent = '阅读进度目录固定为悬停展开，标题在外侧预览。';
-    return;
-  }
   elements.expandModeHint.textContent = expandModeDescriptions[elements.expandMode.value] || expandModeDescriptions.hover;
 }
 
 function syncThemePreset() {
-  const isSspai = elements.themePreset.value === 'sspai';
-  elements.themePresetHint.textContent = themePresetDescriptions[elements.themePreset.value] || themePresetDescriptions.default;
-  elements.expandMode.disabled = isSspai;
-  elements.expandMode.closest('.setting-row')?.classList.toggle('is-locked', isSspai);
+  const isBarcode = elements.themePreset.value === 'barcode';
+  elements.themePresetHint.textContent = navigationTypeDescriptions[elements.themePreset.value] || navigationTypeDescriptions.default;
+  elements.barcodePreviewRow.hidden = !isBarcode;
+  elements.standardInteractionRow.hidden = isBarcode;
+  elements.barcodePreview.disabled = !isBarcode;
+  elements.expandMode.disabled = isBarcode;
+  elements.barcodePreviewHint.textContent = barcodePreviewDescriptions[elements.barcodePreview.value] || barcodePreviewDescriptions.wheel;
   syncExpandModeHint();
   syncSegmentedControl('themePreset');
+  syncSegmentedControl('barcodePreview');
   syncSegmentedControl('expandMode');
 }
 
@@ -180,6 +211,7 @@ function syncForceShow() {
 elements.save.addEventListener('click', async () => {
   const payload = {
     themePreset: elements.themePreset.value,
+    barcodePreview: elements.barcodePreview.value,
     expandMode: elements.expandMode.value,
     minHeaders: Number(elements.minHeaders.value),
     showAfterScrollScreens: Number(elements.showAfterScrollScreens.value),
@@ -196,6 +228,10 @@ elements.save.addEventListener('click', async () => {
 
 elements.forceShow.addEventListener('change', syncForceShow);
 elements.themePreset.addEventListener('change', syncThemePreset);
+elements.barcodePreview.addEventListener('change', () => {
+  elements.barcodePreviewHint.textContent = barcodePreviewDescriptions[elements.barcodePreview.value] || barcodePreviewDescriptions.wheel;
+  syncSegmentedControl('barcodePreview');
+});
 elements.expandMode.addEventListener('change', () => {
   syncExpandModeHint();
   syncSegmentedControl('expandMode');
@@ -204,6 +240,7 @@ elements.position.addEventListener('change', () => syncSegmentedControl('positio
 
 [
   elements.themePreset,
+  elements.barcodePreview,
   elements.expandMode,
   elements.minHeaders,
   elements.showAfterScrollScreens,

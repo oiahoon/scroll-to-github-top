@@ -1,8 +1,8 @@
 # Smart TOC & Scroll — UI/UX 优化设计规范
 
-> **版本**：v2.10 当前落地参考版
+> **版本**：v2.13 当前落地参考版
 > **更新日期**：2026-07-10
-> **说明**：本文保留 v2.2 基线问题分析，并汇总 v2.5–v2.10 已落地的 rail、主题和 Options 视觉决策；标注“需补充”的条目仍属于后续 backlog。
+> **说明**：本文保留 v2.2 基线问题分析，并汇总 v2.5–v2.13 已落地的 rail、主题和 Options 视觉决策；标注“需补充”的条目仍属于后续 backlog。
 > **适用文件**：toc.css、themes.css、options.html、options.css
 
 ---
@@ -93,12 +93,12 @@
 └── svg                                ← 向上箭头图标
 ```
 
-### 2.3 阅读进度目录结构
+### 2.3 Barcode 结构
 
-`阅读进度目录` 不使用标准展开面板，而是由透明 rail、短横线 item、独立回顶按钮和 body-level 标题预览组成：
+`Barcode` 不使用标准展开面板，而是由透明 rail、短横线 item、独立回顶按钮和 body-level 标题预览组成；`barcodePreview` 决定使用滚轮、聚光灯或 GPT：
 
 ```
-#github-toc.github-toc.[progress-preset-class]
+#github-toc.github-toc.theme-preset-barcode
 └── .toc-tree.[progress-tree-class]
     └── ul.toc-list.[progress-list-class]
         ├── li.toc-item.level-1
@@ -107,7 +107,7 @@
         └── li.toc-item.level-2 / level-3 / ...
 
 body
-└── .toc-rail-preview                  ← fixed 上下文预览层，避免受 rail transform 影响
+└── .toc-rail-preview.theme-preview-wheel  ← 滚轮：fixed 观察窗
     └── .toc-rail-preview-list
         ├── .toc-rail-preview-focus    ← 当前项专属 focus ring，新 item 命中时 bounce/pulse
         └── .toc-rail-preview-track    ← 全量标题 track，像日期窗口一样上下滚动
@@ -116,11 +116,26 @@ body
             ├── .toc-rail-preview-row.is-current
             ├── .toc-rail-preview-row.distance-1
             └── .toc-rail-preview-row.distance-2
+
+body
+└── .toc-spotlight-layer               ← 聚光灯：fixed 完整可见标题列
+    ├── .toc-spotlight-row.distance-far
+    ├── .toc-spotlight-row.distance-2
+    ├── .toc-spotlight-row.distance-1
+    ├── .toc-spotlight-row.distance-0
+    └── ...
+
+body
+└── .toc-gpt-preview.theme-preview-gpt ← GPT：fixed 完整标题浮层
+    └── .toc-gpt-preview-list           ← 内部独立滚动
+        ├── button.toc-gpt-preview-row
+        ├── button.toc-gpt-preview-row.is-current
+        └── ...
 ```
 
 设计约束：
 
-- 阅读进度目录容器本体保持透明背景，不使用面板底色。
+- Barcode 容器本体保持透明背景，不使用面板底色。
 - Hover 时 rail 本体不左右移动，只让相关 `.toc-rail-bar` 向页面正文方向延展。
 - 右侧 rail 向左展开，预览在高亮条左侧；左侧 rail 向右展开，预览在高亮条右侧。
 - `.toc-rail-link` 允许 `overflow: visible`，保证延展条两端圆角不会被裁切。
@@ -133,9 +148,9 @@ body
 - Rail 常驻状态应保持细、紧凑、低侵扰；hover wave 可以延展当前区域，但不应扩大成面板感或遮挡正文。
 - 局部自适应配色只调整 rail、回顶按钮和预览的 CSS 变量，避免大面积改变宿主页面视觉。
 
-#### 2.3.1 Hover 联动契约
+#### 2.3.1 Barcode / 滚轮 Hover 联动契约
 
-阅读进度目录的 hover 体验由三层协作完成，后续开发必须保持职责分离：
+滚轮预览的 hover 体验由三层协作完成，后续开发必须保持职责分离：
 
 | 层级 | 触发频率 | 职责 | 禁止事项 |
 |---|---|---|---|
@@ -158,6 +173,33 @@ body
 - Post-click hold 到期时，如果 pointer 不在 rail 内，应调用 rail wave cleanup 并按常规 hover close 淡出；如果 pointer 仍在 rail 内，则后续由 pointer move / hover 状态接管。
 - `prefers-reduced-motion: reduce` 下 preview、row、focus ring 的 transition / animation 必须关闭。
 
+#### 2.3.2 Barcode / 聚光灯契约
+
+`聚光灯` 复用 Barcode 的短横线、wave、局部主题与独立回顶能力，但标题 presentation 必须与滚轮固定观察窗保持清晰区分：
+
+- idle 状态不得显示标题；hover、原 rail link 键盘 focus 或点击落点确认时才显示当前可见的完整标题列。
+- `.toc-spotlight-layer` 是 `document.body` 下的 fixed 层；每个 TOC item 对应一个稳定 `.toc-spotlight-row`，hover 命中变化时不得清空或重建 rows。
+- 命中项透明度为 100%，距离 1 / 2 的标题逐级降至约 66% / 36%，其余当前可见标题保持约 10% 的低透明度；每个 row 的 Y 中心来自对应 bar 的真实位置。
+- 右侧 rail 的标题显示在左侧，左侧 rail 的标题显示在右侧；标题与 rail 之间保留 pointer bridge，允许用户从 bar 移到标题并点击跳转。
+- 当前项禁止使用 border；焦点只通过透明度、轻微缩放、字重和克制 surface 表达。
+- 每个标题都有自包含 surface，并复用 rail 局部采样 token；不得依赖宿主正文底色保证可读性。
+- 离开 rail 与聚光灯层、列表滚动或视口 resize 时，应立即隐藏 rows；reduced motion 下仍显示内容，但取消 transition / animation。
+- 原 `.toc-rail-link` 保留 `aria-label`、focus 与 click 语义；聚光灯层是 pointer presentation，不替代原始可访问目录树。
+
+#### 2.3.3 Barcode / GPT 面板契约
+
+`GPT` 复用 Barcode 的透明 rail、wave、局部主题和独立回顶能力，但 hover presentation 是一个接近对话目录体验的完整浮层：
+
+- idle 时不得显示面板背景或标题，只保留 Barcode 短横线。
+- hover / focus 后展开 `.toc-gpt-preview`：宽度不超过 320px、高度不超过 446px，使用 16px 圆角、1px 克制边框和高不透明 surface。
+- `.toc-gpt-preview-list` 承载当前 TOC 的全部标题并独立滚动；命中项自动进入可视区域，只用行背景和字重高亮。
+- 每个标题使用原生 button，并转发到对应 `.toc-rail-link`，保留既有 smooth scroll、active hold 与 `aria-current` 行为。
+- 面板使用 roving tabindex：只有当前 row 为 `tabIndex = 0`；ArrowUp / ArrowDown 逐项移动，Home / End 跳至首尾，避免长目录制造几十个连续 Tab 停靠点。
+- 右侧 rail 的面板显示在左侧，左侧 rail 的面板显示在右侧；transform origin 同步镜像。
+- rail 与面板之间保留 16px pointer bridge，并提供 96ms 离开宽限，避免快速跨越短间隙时闪退。
+- dark surface 使用接近 `rgba(48, 48, 48, 0.97)` 的面板底色；light surface 使用接近白色的高不透明底色，文字继续由局部主题 token 控制。
+- reduced motion 下关闭面板和内部 row 的过渡；滚动、键盘 focus 与标题跳转保持可用。
+
 ### 2.4 设置页面结构
 
 ```
@@ -168,8 +210,9 @@ body
         │   ├── h1
         │   └── p.page-subtitle
         ├── .settings-list
-        │   ├── section.setting-row  (阅读导航样式)
-        │   ├── section.setting-row  (交互方式)
+        │   ├── section.setting-row  (导航类型：标准目录面板 / Barcode)
+        │   ├── section.setting-row  (Barcode 标题预览：滚轮 / 聚光灯 / GPT，条件显示)
+        │   ├── section.setting-row  (标准面板交互方式，条件显示)
         │   ├── section.setting-row  (显示条件)
         │   ├── section.setting-row  (位置)
         │   ├── section.setting-row  (兼容策略)
@@ -1454,4 +1497,4 @@ max-height：min(480px, calc(100vh - 64px))
 
 ---
 
-*本规范基于 Smart TOC & Scroll v2.2 基线问题分析形成，并已按 v2.10 当前落地状态整理，日期：2026-07-10。*
+*本规范基于 Smart TOC & Scroll v2.2 基线问题分析形成，并已按 v2.13 当前落地状态整理，日期：2026-07-11。*

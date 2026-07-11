@@ -4,7 +4,7 @@
 - Chrome extension, Manifest v3, injects into all pages
 - Key files: `catalog.js`, `theme.js`, `toc.css`, `themes.css`, `options.html`, `options.css`
 - Design spec: `UI_DESIGN_SPEC.md`; Feature inventory: `FEATURE_INVENTORY.md`
-- Current release line: v2.10
+- Current release line: v2.13
 - 不固定记录 active branch；当前分支以每次工作的 `git status --short --branch` 为准，避免复用历史功能分支名
 
 ## Architecture Notes
@@ -13,11 +13,11 @@
 - `theme.js` reads page background and adds a `.theme-*` class to `#github-toc` and `#github-sst`
 - 主题判定已不再统计文本颜色：按 body 背景 → html 背景 → color-scheme → prefers-color-scheme → 浅色兜底读取页面亮度；L > 60 选择 `theme-dark`，否则选择 `theme-light`
 - `--toc-backdrop-filter` variable defined in theme classes, applied by `.github-toc` in `toc.css`
-- `阅读进度目录` preset 下的独立回顶按钮 `#github-sst` 由 `catalog.js` 创建并参与主注入流程；标准目录面板使用 `.toc-top-button`
+- `Barcode`（`themePreset = 'barcode'`）下的独立回顶按钮 `#github-sst` 由 `catalog.js` 创建并参与主注入流程；标准目录面板使用 `.toc-top-button`
 - 独立回顶按钮历史上曾拆分为 `button.js`，现已并回 `catalog.js`
-- `阅读进度目录` 使用透明 rail，不给目录容器本体增加面板背景
+- `Barcode` 使用透明 rail，不给目录容器本体增加面板背景；`barcodePreview` 在 `wheel` / `spotlight` / `gpt` 间切换标题呈现
 - `.toc-rail-preview` 是 `document.body` 下的 fixed layer，不是 `#github-toc` 子节点；这是为了避开 transform ancestor 改变 fixed 定位参照导致的错位
-- 阅读进度 rail 局部自适应配色在 `catalog.js` 中采样 rail 附近 surface，并将轻量 CSS 变量应用到 `tocContainer`、`scrollTopButton` 和 `tocRailPreview`
+- Barcode 局部自适应配色在 `catalog.js` 中采样附近 surface，并将轻量 CSS 变量应用到 `tocContainer`、`scrollTopButton`、`tocRailPreview`、`tocSpotlightLayer` 和 `tocGptPreview`
 - 阅读进度 hover wave 只更新可视区域附近 item，预计算基础宽度，避免 pointer move 时全量布局读写
 - `.toc-rail-link` 必须保持 `overflow: visible`，否则右侧 rail 向左延展时圆角端会被裁切成平角
 - 阅读进度独立回顶按钮使用 `.visible` + `.is-near` + `.is-hovered` 状态：远处几乎透明，桌面 idle 不启用 pointer events 以避免不可见点击遮挡，指针接近时显形并播放轻微水面/箭头回弹，坐标命中/hover/focus-visible 用柔和 accent surface 停止跳动并进入稳定选中态；默认/接近态不显示硬圆形边框
@@ -32,10 +32,18 @@
 - v2.10 Options 保存区不是 sticky 文档流元素，而是 `.settings-panel` 的固定第三行；`.settings-list` 是唯一滚动区。无改动时按钮禁用并显示“已保存”，输入变化后显示“保存更改”。
 - v2.10 rail preview 可读性契约：继续保持透明 body-level observation window、无容器 backdrop-filter、普通邻近项无边框；但每个 row 的 background surface 必须足够不透明，保证 rail 采样区与 preview 背后的正文底色不一致时仍可读。
 - v2.10 标准目录入口 `.toc-icon` 是原生 `button[type=button]`，同时维护按钮自身和容器的 `aria-expanded`，并通过 `aria-controls="github-toc-tree"` 关联目录；不要退回 role=button 的 div。
-- 本地视觉/性能测试页：`test-pages/rail-hover-performance.html?position=right&surface=lightstrip`
+- v2.13 设置层级契约：一级 `themePreset` 只允许 `default / barcode`；二级 `barcodePreview` 允许 `wheel / spotlight / gpt`。旧 `sspai / glimmer` 必须分别迁移为 `barcode + wheel / spotlight`。
+- `Barcode / 聚光灯`：idle 不显示标题；hover / focus 显示所有当前可见标题；命中项 100%，距离 1 / 2 约 66% / 36%，其余约 10%。命中项禁止边框，只用透明度、缩放、字重和 surface 表达焦点。
+- `.toc-spotlight-layer` 是 body-level fixed presentation layer；rows 按当前 TOC 项一次建立并稳定复用，命中变化只切换距离 class，不得恢复 hover 时清空 / 重建 5 行窗口。
+- Barcode 的共享边界是 `theme-preset-rail`、`createRailUI()`、`setupRailInteractions()`；滚轮观察窗、聚光灯标题列与 GPT 完整面板只保留 presentation 差异，后续不要重新复制整套 hover / wave / theme / cleanup 逻辑。
+- `Barcode / GPT`：idle 不显示面板；hover / focus 展开 `.toc-gpt-preview`，内部完整标题 buttons 独立滚动，命中项高亮并自动滚入视野。右 rail 向左展开，左 rail 向右展开。
+- GPT 面板的 rows 在当前 TOC 生命周期内一次建立并复用；面板点击转发到原 `.toc-rail-link`。rail 与面板之间保留 16px bridge 和 96ms pointer exit grace；`railPointerExitTimer` 必须纳入 cleanup。
+- v2.11 性能契约：标题去重不读取 `offsetTop`；fallback 容器只做一次标题扫描；scroll 只计算一次可见条件和 adaptive 调度；rail bar 只有 `.is-wave-active` 时启用 `will-change`；回顶使用原生 smooth scroll；cleanup 必须取消 rAF/timer/interval。
+- 本地视觉/性能测试页：`test-pages/rail-hover-performance.html?preview=wheel&position=right&surface=lightstrip`
+  - `preview=wheel/spotlight/gpt` 用于切换滚轮、聚光灯与 GPT
   - `position=left/right` 用于检查镜像展开和预览方向
   - `surface=light/dark/color/lightstrip` 用于检查局部自适应配色
-  - 页面内 `Rail QA` 控制条可直接切换 position、surface 和 reduced motion；控制条会自动避让到 rail 的另一侧
+  - 页面内 `Rail QA` 控制条可直接切换 preview、position、surface 和 reduced motion；控制条会自动避让到 rail 的另一侧
   - 测试页会清理旧注入 DOM，并对本地 CSS/JS 加 cache busting，避免浏览器残留影响判断
 
 ## v2.9 Rail QA Controls — Completed (2026-07-10)
@@ -51,6 +59,23 @@
 - 标准入口改为原生按钮并补齐 ARIA；目录链接统一增加 900ms active hold。
 - 本地回归覆盖 right/left、lightstrip、reduced motion 路径、键盘 Enter/Escape、目标跳转和 Options 保存；Options、Rail、Standard 三个页面 console 均无 warning/error。
 
+## v2.11 Barcode Preview & Performance Governance — Completed (2026-07-11)
+- 线状 rail 正式命名为 `Barcode`，设置页改成一级导航类型 + 二级滚轮 / 聚光灯预览；Options、Rail QA 和版本文档同步到该信息架构。
+- Barcode 两种预览共享创建、交互、主题与生命周期能力；聚光灯使用稳定的 body-level rows，保留原始 rail links 的键盘和导航语义。
+- 高价值性能债务已处理：移除标题扫描布局读、降低 fallback 容器复杂度、合并 scroll/adaptive 调度、按需启用 will-change、原生 smooth scroll、observer 自有 DOM 过滤和完整 cleanup。
+- 详细测量边界、样本与后续拆分顺序见 `PERFORMANCE_CODE_QUALITY_PLAN.md`。
+
+## v2.12 Barcode GPT Preview — Completed (2026-07-11)
+- Barcode 新增 `gpt` 二级预览：idle 保留纯条形码，hover / focus 后展开 320px × 446px 上限的高不透明完整标题面板。
+- 面板支持内部滚动、当前项自动 reveal、原 rail link 跳转、左右镜像、dark/light surface 与 reduced motion。
+- Options、Rail QA、发布文档、设计规范和功能清单同步为 Wheel / Spotlight / GPT 三种二级预览。
+
+## v2.13 Final Review & Runtime Performance — Completed (2026-07-11)
+- GPT 面板使用 roving tabindex：展开 73 行时只有 current row 为 `tabIndex = 0`；ArrowUp / ArrowDown / Home / End 更新焦点与 current。
+- GPT 命中切换只更新旧/新两行；rail wave transform / opacity 收敛为 90ms；标准面板移除 `transition: all`，并恢复 GPT row 的清晰 `:focus-visible`。
+- 73 项本地样本：Scroll 100 次平均 0.02ms / 最大 0.10ms；Adaptive Theme 6 次平均 0.98ms / 最大 2.30ms；Rail Pointer 3 次平均 0.07ms / 最大 0.10ms。
+- Chrome DevTools trace MCP 未配置，因此不报告 LCP / INP / CLS；Wheel、Spotlight、GPT 与 Options 的 in-app Browser console 均无扩展 warning/error。
+
 ## v2.8 Options UX Polish — Completed (2026-07-10)
 - 第 1 轮 Chrome/Computer UX 审阅聚焦 Options 设置页：首屏暗色模式下白色选中胶囊过亮、底部保存入口需要滚动后确认、英文 footer 与中文设置项混用。
 - Options 页面文案统一为更短的中文说明，保留设置含义但减少解释性负担。
@@ -60,7 +85,7 @@
 
 ## v2.9 文档基线同步（2026-07-10）
 - 当前真实入口仍是 `catalog.js` 的 `start()`；已有控件检测使用 `getExistingTocDecision()`、`getExistingScrollToTopDecision()` 和 `getSkipInjectionDecision()`，文档不要恢复旧的 `hasExisting*` / `shouldSkipInjection` 函数名。
-- `#github-sst` 只在 `阅读进度目录` preset 下创建；标准目录面板使用面板内的 `.toc-top-button`。
+- v2.9 当时 `#github-sst` 只在旧 `阅读进度目录` preset 下创建；v2.11 起该语义迁移为 `Barcode`，标准目录面板仍使用面板内的 `.toc-top-button`。
 - SPA / 动态页面恢复依赖 History API、GitHub 的 PJAX/Turbo/AJAX 事件、Astro 生命周期、`pageshow`、`visibilitychange` 和针对标题节点的 MutationObserver；当前没有 GitHub 每秒轮询。
 - 该段记录 v2.9 历史基线；当前文档已在 v2.10 再次同步，v2.8 Options 变更仍作为历史上下文保留，设计规范中仍标为“需补充”的 A11y 项属于未完成 backlog。
 

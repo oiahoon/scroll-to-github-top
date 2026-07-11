@@ -1,5 +1,5 @@
 /* =============================================
-   Smart TOC & Scroll — Options 设置页面样式 v2.10
+   Smart TOC & Scroll — Options 设置页面样式 v2.11
    ============================================= */
 
 :root {
@@ -144,6 +144,10 @@ textarea {
     border-color 0.16s ease;
 }
 
+.setting-row[hidden] {
+  display: none;
+}
+
 .setting-row:hover {
   background: var(--row-bg-hover);
   border-color: var(--border-soft);
@@ -223,6 +227,16 @@ textarea {
 .segmented-control--wide button {
   min-width: 118px;
   padding-inline: 18px;
+}
+
+.segmented-control--preset button {
+  min-width: 124px;
+  padding-inline: 16px;
+}
+
+.segmented-control--barcode-preview button {
+  min-width: 108px;
+  padding-inline: 16px;
 }
 
 .segmented-control button:hover {

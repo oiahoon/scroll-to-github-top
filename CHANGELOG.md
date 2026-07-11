@@ -5,6 +5,58 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.13] - 2026-07-11
+
+### Changed
+- GPT 完整标题面板改为 roving tabindex：73 项长目录展开时仅当前项进入 Tab 序列，并支持方向键、Home / End 导航
+- GPT hover 命中变化只更新旧行与新行的 class、ARIA 和 tabindex，不再重复写入全部标题行
+- Barcode wave 的 transform / opacity 反馈从 140ms 收敛到 90ms，减少连续 pointer move 下的追赶与拖尾
+- 标准面板图标和标题移除 `transition: all`，只动画实际变化的 opacity / transform 属性
+
+### Fixed
+- GPT 标题行恢复明确的 `:focus-visible` 轮廓，避免键盘用户只看到背景色变化
+- 最终代码审阅补齐三种 Barcode 预览、设置保存、左右镜像、控制台健康和 73 项长目录性能证据
+
+### Performance
+- 73 项 QA 样本中，100 次 Scroll 更新平均 `0.02ms`、Rail Pointer 平均 `0.07ms`、Adaptive Theme 平均 `0.98ms`，已测最大值 `2.30ms`
+
+## [2.12] - 2026-07-11
+
+### Added
+- Barcode 新增第三种 `GPT` 标题预览：idle 保留纯条形码，hover / focus 后展开带背景、边框和圆角的完整标题面板
+- GPT 面板支持长目录内部滚动、当前项高亮、自动滚入视野、标题点击跳转与左右 rail 镜像
+- Rail QA 控制条新增 GPT 场景，覆盖深浅 surface、左右位置和 reduced motion
+
+### Changed
+- Barcode 二级选择扩展为 `滚轮` / `聚光灯` / `GPT`，三者继续共享 rail、wave、局部主题和生命周期逻辑
+- rail 与预览面板之间加入短暂指针离开宽限，提升跨越间隙时的滚动和点击稳定性
+
+### Fixed
+- 主题与内容观察器补充忽略 `.toc-gpt-preview`，避免面板行状态变化触发无意义重算
+
+## [2.11] - 2026-07-11
+
+### Added
+- 将线状导航正式命名为 `Barcode`，并提供 `滚轮` / `聚光灯` 两种二级标题预览
+- `聚光灯` hover 时显示当前可见的完整标题列；命中项最清晰，高亮向上下各 1–2 项渐隐扩散
+- Options 新增 Barcode 二级预览选择；本地 Rail QA 页面新增 Wheel / Spotlight 切换
+- 新增 `PERFORMANCE_CODE_QUALITY_PLAN.md`，记录本轮性能测量边界、技术债务优先级和后续拆分路线
+- 内置性能面板新增 Adaptive Theme 与 Rail Pointer 指标
+
+### Changed
+- 设置结构从三个并列主题收敛为“标准目录面板 / Barcode”一级选择，以及 Barcode 下的预览方式二级选择
+- 聚光灯改为复用稳定的全标题 row，不在 hover 时清空并重建 5 行上下文，减少动画跳变
+- Barcode 的两种预览共享创建、交互、主题与生命周期逻辑
+- 标题去重取消 `offsetTop` 布局读取；内容容器 fallback 改为一次标题扫描与祖先累计
+- scroll 热路径合并显示条件与主题调度；rail wave 只为当前影响项开启 `will-change`
+- 回顶改用浏览器原生 smooth scroll，并尊重 `prefers-reduced-motion`
+- cleanup 统一取消 rAF、timer、interval 和 hover / long-press 状态
+
+### Fixed
+- 主题与内容 MutationObserver 忽略扩展自身的 preview、浮光层与性能面板，避免无意义重算
+- 聚光灯标题使用 body-level 固定层，避免被 rail 滚动容器裁切；左右 rail 自动镜像
+- 聚光灯命中项取消边框，只使用透明度、轻微缩放和字重表达焦点
+
 ## [2.10] - 2026-07-10
 
 ### Changed

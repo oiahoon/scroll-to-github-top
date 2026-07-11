@@ -19,22 +19,41 @@
         <div class="settings-list">
           <section class="setting-row" aria-labelledby="themePreset-label">
             <div class="setting-copy">
-              <h2 id="themePreset-label">阅读导航样式</h2>
+              <h2 id="themePreset-label">导航类型</h2>
               <p id="themePresetHint">完整目录，适合文档站和技术长文。</p>
             </div>
             <div class="setting-control">
               <select id="themePreset" class="native-select" tabindex="-1" aria-hidden="true">
                 <option value="default">标准目录面板</option>
-                <option value="sspai">阅读进度目录</option>
+                <option value="barcode">Barcode</option>
               </select>
-              <div class="segmented-control" data-control-for="themePreset" role="group" aria-labelledby="themePreset-label">
+              <div class="segmented-control segmented-control--preset" data-control-for="themePreset" role="group" aria-labelledby="themePreset-label">
                 <button class="is-active" type="button" data-value="default" aria-pressed="true">标准目录面板</button>
-                <button type="button" data-value="sspai" aria-pressed="false">阅读进度目录</button>
+                <button type="button" data-value="barcode" aria-pressed="false">Barcode</button>
               </div>
             </div>
           </section>
 
-          <section class="setting-row" aria-labelledby="expandMode-label">
+          <section id="barcodePreviewRow" class="setting-row" aria-labelledby="barcodePreview-label" hidden>
+            <div class="setting-copy">
+              <h2 id="barcodePreview-label">Barcode 标题预览</h2>
+              <p id="barcodePreviewHint">标题在固定观察窗中像滚轮一样滑动。</p>
+            </div>
+            <div class="setting-control">
+              <select id="barcodePreview" class="native-select" tabindex="-1" aria-hidden="true">
+                <option value="wheel">滚轮</option>
+                <option value="spotlight">聚光灯</option>
+                <option value="gpt">GPT</option>
+              </select>
+              <div class="segmented-control segmented-control--barcode-preview" data-control-for="barcodePreview" role="group" aria-labelledby="barcodePreview-label">
+                <button class="is-active" type="button" data-value="wheel" aria-pressed="true">滚轮</button>
+                <button type="button" data-value="spotlight" aria-pressed="false">聚光灯</button>
+                <button type="button" data-value="gpt" aria-pressed="false">GPT</button>
+              </div>
+            </div>
+          </section>
+
+          <section id="standardInteractionRow" class="setting-row" aria-labelledby="expandMode-label">
             <div class="setting-copy">
               <h2 id="expandMode-label">交互方式</h2>
               <p id="expandModeHint">悬停预览目录，点击浮标可固定展开。</p>

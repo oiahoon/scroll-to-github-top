@@ -1,14 +1,14 @@
 # Smart TOC & Scroll
 
-一个面向长文与文档站点的 Chrome 扩展，为网页提供轻量阅读导航。当前支持两种阅读导航样式：`标准目录面板` 与 `阅读进度目录`。扩展支持主题自适应、hover 标题预览、已有控件避让与 SPA 页面更新，并提供平滑回顶能力。
+一个面向长文与文档站点的 Chrome 扩展，为网页提供轻量阅读导航。当前提供两种导航类型：`标准目录面板` 与 `Barcode`；Barcode 可进一步选择`滚轮`、`聚光灯`或`GPT`标题预览。扩展支持主题自适应、hover 标题预览、已有控件避让与 SPA 页面更新，并提供平滑回顶能力。
 
-当前版本：`2.10`（Manifest V3）。
+当前版本：`2.13`（Manifest V3）。
 
 ## 功能特点
 
 - 智能主题适配
   - 基于页面背景亮度自动选择浅色或深色浮层
-  - `阅读进度目录` 会额外采样 rail 附近的局部背景，克制调整短横线、回顶按钮与预览气泡的对比度
+  - `Barcode` 会额外采样 rail 附近的局部背景，克制调整短横线、回顶按钮与预览标题的对比度
   - 边缘 rail 本体保持透明背景，避免像独立面板一样遮挡正文
   - 使用磨砂玻璃风格主题变量
   - DOM 变化后自动重新应用主题
@@ -18,7 +18,7 @@
   - 面板顶部提供 `Top` 按钮
   - 平滑滚动回到页面顶部
   - 与目录导航处于同一交互上下文
-  - 在 `阅读进度目录` 样式下，回顶按钮以低透明度独立显示，鼠标靠近时会轻柔显形并用水面回弹动效提示，hover 或键盘聚焦后进入稳定选中态
+  - 在 `Barcode` 下，回顶按钮以低透明度独立显示，鼠标靠近时会轻柔显形并用水面回弹动效提示，hover 或键盘聚焦后进入稳定选中态
 
 - 目录树功能
   - 自动生成页面目录
@@ -33,12 +33,16 @@
 
 - 阅读导航样式
   - `标准目录面板`：适合文档站、博客和技术内容页面
-  - `阅读进度目录`：适合沉浸式长文阅读，默认用透明 rail 与短横线表达章节位置，悬停时向外产生 wave 延展，并在外侧显示可跨底色阅读的上下文预览
+  - `Barcode`：适合沉浸式长文阅读，用透明 rail 与短横线表达章节位置，悬停时向外产生 wave 延展
+    - `滚轮`：标题在固定观察窗内滚动，当前项进入固定焦点位置
+    - `聚光灯`：hover 时显示当前可见的完整标题列；命中项最清晰，高亮向上下各 1–2 项渐隐，不使用边框
+    - `GPT`：idle 保留纯条形码；hover 时展开带背景和边框的完整标题面板，支持面板内滚动与标题跳转
 
 - 性能监控
   - 实时监控目录生成性能
   - 跟踪目录更新性能
   - 监控滚动性能
+  - 跟踪 rail pointer 与自适应主题热路径
   - 内存使用情况分析
   - 使用 Ctrl + Shift + P 快捷键查看性能统计
   - 当前章节高亮优先使用 `IntersectionObserver`，减少滚动时的布局读取
@@ -86,7 +90,10 @@
    - 点击面板外部区域或按 `Esc` 可收起固定展开的面板
    - 可用 `Esc` 折叠面板，方向键在目录项间移动
    - 当前阅读位置会在目录中高亮
-   - `阅读进度目录` 默认以更细、更紧凑的低侵扰短横线显示，悬停后只向外延展当前区域，并以聚光灯式上下文预览显示当前标题及邻近标题；点击跳转后会短暂保持当前预览作为确认反馈；独立回顶按钮会在指针靠近时显形，避免长期遮挡正文
+   - `Barcode / 滚轮` 使用固定观察窗和全量标题 track，鼠标沿 bar 移动时标题像机械表日期窗一样滑动
+   - `Barcode / 聚光灯` 不移动标题列；hover / focus 时显示所有当前可见标题，只让亮度与缩放焦点平滑移动，离开后全部收起
+   - `Barcode / GPT` 平时只显示短横线；hover / focus 后展开可滚动的完整标题面板，并自动让命中项进入可视区域
+   - GPT 面板使用单一 Tab 停靠点，可用方向键、Home / End 在标题间移动
 
 3. 性能监控
    - 使用 Ctrl + Shift + P 快捷键显示/隐藏性能统计面板
@@ -96,7 +103,8 @@
 ## 设置
 
 在扩展管理页中打开“扩展程序选项”，可配置：
-- 阅读导航样式：标准目录面板、阅读进度目录
+- 导航类型：标准目录面板、Barcode
+- Barcode 标题预览：滚轮、聚光灯、GPT
 - 展开方式：推荐：悬停预览、点击开关、高级：短按回顶 / 长按展开
 - TOC 显示条件：滚动到指定屏幕数后显示、最少标题数量
 - 浮层位置：左下角 / 右下角
@@ -111,7 +119,7 @@
 - `theme-light`：用于深色或中色背景页面
 - `theme-auto`：保留为跟随系统偏好的兼容类
 - 旧版 `theme-blue / theme-green / theme-purple` 仍保留兼容映射
-- 阅读进度 rail 会在标准主题之外做局部 surface 采样；该自适应只影响 rail、独立回顶按钮和 `.toc-rail-preview` 的 CSS 变量
+- Barcode 会在标准主题之外做局部 surface 采样；该自适应只影响 rail、独立回顶按钮、`.toc-rail-preview`、`.toc-spotlight-layer` 和 `.toc-gpt-preview` 的 CSS 变量
 
 ## 限制与说明
 
@@ -126,8 +134,8 @@
   - `window.__SMART_TOC_LAST_SKIP__`
   - `window.__SMART_TOC_WIDGET_DIAGNOSTICS__`
   - `window.__SMART_TOC_INSPECT_WIDGETS__()`
-- 阅读进度 rail 视觉调试可使用 `test-pages/rail-hover-performance.html?position=right&surface=lightstrip`，并切换 `position=left/right`、`surface=light/dark/color/lightstrip`、`motion=reduce` 复核镜像方向、预览位置、局部配色与减少动态效果。扫动 toc bar 时，rail wave 应连续响应；预览外框应固定在 rail 纵向中间，内部标题 track 像日期窗口一样滚动，不能出现固定 5 行分片换页感；focus ring 固定在观察窗中心并只在命中新标题时轻微 bounce；点击 rail 跳转后 preview 应短暂保持作为导航确认，随后在指针离开时自动淡出。
-- 该测试页顶部提供 `Rail QA` 控制条，可直接切换 rail 位置、surface 与减少动态效果状态，便于截图审阅和回归。
+- Barcode 视觉调试可使用 `test-pages/rail-hover-performance.html?preview=gpt&position=right&surface=dark`；`preview=wheel/spotlight/gpt` 切换三种预览，`position=left/right`、`surface=light/dark/color/lightstrip`、`motion=reduce` 用于复核镜像方向、局部配色与减少动态效果。
+- 该测试页顶部提供 `Rail QA` 控制条，可直接切换模式、位置、surface 与减少动态效果状态，便于截图审阅和回归。
 - 兼容性检测会优先区分“侧栏导航”和“正文内小目录”，减少误跳过
 
 ## 更新日志
@@ -137,6 +145,7 @@
 ## 产品与路线图
 
 - 产品与体验分析：查看 [PRODUCT_UX_ROADMAP.md](PRODUCT_UX_ROADMAP.md)
+- 性能与代码质量治理：查看 [PERFORMANCE_CODE_QUALITY_PLAN.md](PERFORMANCE_CODE_QUALITY_PLAN.md)
 - Chrome 商店文案草稿：查看 [CHROME_STORE_LISTING.md](CHROME_STORE_LISTING.md)
 
 ## 发布

@@ -26,7 +26,7 @@
   --elevation-2: 0 3px 3px -2px rgba(0,0,0,0.2), 0 3px 4px 0 rgba(0,0,0,0.14), 0 1px 8px 0 rgba(0,0,0,0.12);
   --elevation-3: 0 3px 5px -1px rgba(0,0,0,0.2), 0 6px 10px 0 rgba(0,0,0,0.14), 0 1px 18px 0 rgba(0,0,0,0.12);
 
-  /* 主题预设：default / sspai */
+  /* 导航预设：default / barcode */
   --toc-rail-line: rgba(255, 255, 255, 0.24);
   --toc-rail-line-hover: rgba(255, 255, 255, 0.48);
   --toc-rail-line-active: rgba(255, 255, 255, 0.92);
@@ -125,7 +125,7 @@
   --toc-rail-line: rgba(255, 255, 255, 0.24);
 }
 
-.theme-light.theme-preset-sspai {
+.theme-light.theme-preset-rail {
   --toc-bg: transparent;
   --toc-bg-expanded: transparent;
   --toc-backdrop-filter: none;
@@ -151,7 +151,7 @@
   --toc-rail-preview-shadow: 0 10px 24px rgba(0, 0, 0, 0.28);
 }
 
-.theme-dark.theme-preset-sspai {
+.theme-dark.theme-preset-rail {
   --toc-bg: transparent;
   --toc-bg-expanded: transparent;
   --toc-backdrop-filter: none;
