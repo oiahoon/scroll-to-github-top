@@ -150,8 +150,9 @@
 
 ## 发布
 
-- 本地打包：`./scripts/package_extension.sh`
-- Chrome Web Store 自动发布说明：查看 [CHROME_STORE_RELEASE.md](CHROME_STORE_RELEASE.md)
+- 本地打包与校验：`./scripts/validate_package.sh`
+- GitHub 发布：手动运行 `Package & GitHub Release` 可下载临时 Artifact；推送与 Manifest 一致的 `v*` Tag 会创建带 ZIP 和 SHA-256 附件的 GitHub Release
+- Chrome Web Store：从 GitHub 产物下载 ZIP 后手动上传，详见 `CHROME_STORE_RELEASE.md`
 
 ## 技术栈
 

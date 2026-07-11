@@ -4,12 +4,12 @@ set -euo pipefail
 
 ROOT_DIR="$(cd "$(dirname "$0")/.." && pwd)"
 DIST_DIR="${DIST_DIR:-$ROOT_DIR/dist}"
-VERSION="$(sed -n 's/.*"version": "\(.*\)".*/\1/p' "$ROOT_DIR/manifest.json" | head -n1)"
+VERSION="$(node -p "require('$ROOT_DIR/manifest.json').version")"
 PACKAGE_NAME="smart-toc-scroll-${VERSION}.zip"
 STAGING_DIR="$DIST_DIR/package/smart-toc-scroll-${VERSION}"
 PACKAGE_PATH="$DIST_DIR/$PACKAGE_NAME"
 
-if [[ -z "$VERSION" ]]; then
+if [[ -z "$VERSION" || "$VERSION" == "undefined" ]]; then
   echo "Unable to read version from manifest.json" >&2
   exit 1
 fi

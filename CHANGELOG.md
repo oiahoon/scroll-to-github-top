@@ -5,6 +5,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Changed
+- GitHub Actions 发布链路改为校验、打包并生成 GitHub Release，不再保存凭证或自动调用 Chrome Web Store API
+- 手动工作流产物保留 ZIP 与 SHA-256 30 天；版本 Tag 会校验 Manifest 版本并永久附加产物到 GitHub Release
+- 本地发布检查新增 JavaScript / Shell 语法、ZIP 完整性、Manifest V3、必要文件和意外元数据验证
+
 ## [2.13] - 2026-07-11
 
 ### Changed

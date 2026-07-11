@@ -1,0 +1,104 @@
+name: Package & GitHub Release
+
+on:
+  workflow_dispatch:
+  push:
+    tags:
+      - 'v*'
+
+concurrency:
+  group: extension-release-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  package:
+    name: Validate and package extension
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    outputs:
+      version: ${{ steps.package.outputs.version }}
+      package_name: ${{ steps.package.outputs.package_name }}
+      checksum_name: ${{ steps.package.outputs.checksum_name }}
+      artifact_name: ${{ steps.package.outputs.artifact_name }}
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Validate release tag
+        if: startsWith(github.ref, 'refs/tags/')
+        shell: bash
+        run: |
+          VERSION="$(node -p "require('./manifest.json').version")"
+          EXPECTED_TAG="v${VERSION}"
+          if [[ "$GITHUB_REF_NAME" != "$EXPECTED_TAG" ]]; then
+            echo "Release tag $GITHUB_REF_NAME does not match manifest version $VERSION."
+            echo "Expected tag: $EXPECTED_TAG"
+            exit 1
+          fi
+
+      - name: Package extension
+        id: package
+        shell: bash
+        run: |
+          PACKAGE_FILE="$(./scripts/package_extension.sh)"
+          VERSION="$(node -p "require('./manifest.json').version")"
+          PACKAGE_NAME="$(basename "$PACKAGE_FILE")"
+          CHECKSUM_FILE="${PACKAGE_FILE}.sha256"
+          CHECKSUM_NAME="$(basename "$CHECKSUM_FILE")"
+          (
+            cd "$(dirname "$PACKAGE_FILE")"
+            sha256sum "$PACKAGE_NAME" > "$CHECKSUM_NAME"
+          )
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+          echo "package_name=$PACKAGE_NAME" >> "$GITHUB_OUTPUT"
+          echo "checksum_name=$CHECKSUM_NAME" >> "$GITHUB_OUTPUT"
+          echo "artifact_name=smart-toc-scroll-$VERSION" >> "$GITHUB_OUTPUT"
+
+      - name: Validate packaged extension
+        run: ./scripts/validate_package.sh "dist/${{ steps.package.outputs.package_name }}"
+
+      - name: Upload workflow artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ steps.package.outputs.artifact_name }}
+          path: |
+            dist/${{ steps.package.outputs.package_name }}
+            dist/${{ steps.package.outputs.checksum_name }}
+          if-no-files-found: error
+          retention-days: 30
+
+  release:
+    name: Publish GitHub Release
+    if: startsWith(github.ref, 'refs/tags/')
+    needs: package
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Download packaged extension
+        uses: actions/download-artifact@v4
+        with:
+          name: ${{ needs.package.outputs.artifact_name }}
+          path: dist
+
+      - name: Create or update GitHub Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ZIP_FILE: dist/${{ needs.package.outputs.package_name }}
+          CHECKSUM_FILE: dist/${{ needs.package.outputs.checksum_name }}
+        shell: bash
+        run: |
+          if gh release view "$GITHUB_REF_NAME" >/dev/null 2>&1; then
+            gh release upload "$GITHUB_REF_NAME" "$ZIP_FILE" "$CHECKSUM_FILE" --clobber
+          else
+            gh release create "$GITHUB_REF_NAME" "$ZIP_FILE" "$CHECKSUM_FILE" \
+              --verify-tag \
+              --title "Smart TOC & Scroll $GITHUB_REF_NAME" \
+              --generate-notes
+          fi

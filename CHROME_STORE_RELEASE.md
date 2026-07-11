@@ -1,103 +1,97 @@
-# Chrome Web Store 发布
+# GitHub 打包发布与 Chrome Web Store 手动上架
 
-这个仓库现在已经带上了可复用的自动发布链路，目标是把“打包、上传、提交发布”都放进 GitHub Actions。
+仓库负责自动完成扩展校验、ZIP 打包和 GitHub Release 发布；Chrome Web Store 保持手动上传，不需要在 GitHub 保存商店凭证。
 
-## 适用范围
-
-- 已经在 Chrome Web Store 创建过条目的扩展，后续版本发布可以自动化
-- 第一次上架通常仍需要先在 Chrome Developer Dashboard 完成商店信息、截图、分类和合规字段
-
-## 当前自动化方案
+## 自动化范围
 
 - 打包脚本：`scripts/package_extension.sh`
-- 发布脚本：`scripts/cws_publish.sh`
-- GitHub Actions：`.github/workflows/chrome-store-release.yml`
+- 产物校验：`scripts/validate_package.sh`
+- GitHub Actions：`.github/workflows/github-release.yml`
+- 发布产物：扩展 ZIP 与对应的 SHA-256 校验文件
 
-工作流支持两种触发方式：
+工作流名称为 `Package & GitHub Release`，支持以下触发方式：
 
-- 手动触发 `Chrome Store Release`
-- 推送 tag：`v*` 或 `V*`
+- 手动触发：校验并打包，在本次 Actions 运行的 Artifacts 中保留 30 天
+- 推送 `v*` Tag：校验、打包并创建 GitHub Release，永久附加 ZIP 和 SHA-256 文件
 
-## 一次性准备
+该流程不会调用 Chrome Web Store API，也不需要任何 Chrome Web Store Secret。
 
-### 1. 在 Chrome Developer Dashboard 创建 service account
+## 发布前检查
 
-按照官方文档，为 Chrome Web Store API 创建一个 service account，并把它加入开发者后台可发布该扩展的账号范围。
+1. 更新 `manifest.json` 中的版本号。
+2. 同步 `CHANGELOG.md`、README 和商店文案。
+3. 本地执行完整校验：
 
-你需要拿到：
+   ```bash
+   ./scripts/validate_package.sh
+   ```
 
-- `publisher_id`
-- `extension_id`
-- service account JSON key
+4. 检查生成的 `dist/smart-toc-scroll-<version>.zip`。
 
-### 2. 在 GitHub 仓库里配置 secrets
+当前发布基线为 `2.13`。
 
-在仓库 `Settings -> Secrets and variables -> Actions` 中添加：
+## 手动打包并下载 Artifact
 
-- `CWS_EXTENSION_ID`
-- `CWS_PUBLISHER_ID`
-- `CWS_SERVICE_ACCOUNT_JSON`
+1. 打开 GitHub 仓库的 `Actions`。
+2. 选择 `Package & GitHub Release`。
+3. 点击 `Run workflow`。
+4. 工作流通过后，从该次运行的 `Artifacts` 下载 ZIP 和 SHA-256 文件。
 
-其中 `CWS_SERVICE_ACCOUNT_JSON` 直接保存完整 JSON 内容即可，不需要额外 base64。
+手动触发只生成 Artifact，不会创建 GitHub Release。
 
-## 发布方式
+## 创建 GitHub Release
 
-### 手动一键发布
+Tag 必须严格等于 `v` 加上 `manifest.json` 的版本号。例如 Manifest 版本为 `2.13` 时：
 
-1. 打开 GitHub 仓库的 `Actions`
-2. 选择 `Chrome Store Release`
-3. 点击 `Run workflow`
-4. 选择发布类型：
-   - `DEFAULT_PUBLISH`
-   - `STAGED_PUBLISH`
-5. 如果是 `STAGED_PUBLISH`，可选填写 `deploy_percentage`
-6. 如只想先生成 ZIP 产物，打开 `upload_only`
+```bash
+git tag v2.13
+git push origin v2.13
+```
 
-### Tag 自动发布
+工作流会拒绝 `v2.14` 与 Manifest `2.13` 这类版本不一致的发布。校验通过后，它会：
 
-推送 `v2.13` 或 `V2.13` 这类 tag 后，工作流会自动：
+1. 检查 JavaScript、Shell 和 Manifest。
+2. 创建扩展 ZIP。
+3. 检查 ZIP 完整性、必要文件、版本号和意外元数据。
+4. 生成 SHA-256 校验文件。
+5. 创建 GitHub Release，并自动生成 Release Notes。
+6. 将 ZIP 和 SHA-256 文件附加到 Release。
 
-1. 打包扩展
-2. 上传 ZIP 作为 artifact
-3. 调用 Chrome Web Store API 上传版本
-4. 提交发布
+如果同一个 Tag 的工作流被重新运行，现有 Release 的附件会被覆盖，避免重复 Release。
 
 ## 本地打包
 
-本地也可以直接运行：
+只生成 ZIP：
 
 ```bash
 ./scripts/package_extension.sh
 ```
 
-输出文件会放在 `dist/`。
-
-发布前建议确认 `manifest.json`、`CHANGELOG.md` 和商店文案里的版本说明已经同步；当前发布基线为 `2.13`，包含 Barcode 的滚轮 / 聚光灯 / GPT 二级预览、GPT roving tabindex 键盘导航、90ms rail wave 响应，以及最终运行时性能回归。
-
-## 本地发布
-
-如果本机已经准备好环境变量，也可以直接发布：
+生成 ZIP 并执行完整校验：
 
 ```bash
-export CWS_EXTENSION_ID="your_extension_id"
-export CWS_PUBLISHER_ID="your_publisher_id"
-export CWS_SERVICE_ACCOUNT_JSON="$(cat service-account.json)"
-./scripts/cws_publish.sh
+./scripts/validate_package.sh
 ```
 
-## 注意事项
+产物位于 `dist/`。
 
-- 第一次上架通常不能完全依赖自动化，商店资料仍需先在 Dashboard 配齐
-- `skip_review` 只有在 Chrome Web Store 允许跳过审核时才会生效
-- 如果你希望审核通过后先暂不自动上线，可以用 `STAGED_PUBLISH`
-- 如果以后要做大用户量灰度，可以再补 `setPublishedDeployPercentage` 链路
-- 如果你在 Chrome Web Store 里启用了 verified uploads，后续需要把当前 ZIP 上传流程升级成已签名 CRX 上传流程
-- 当前工作流默认会先上传 artifact，便于回查每次实际发布的 ZIP
+## 手动上传 Chrome Web Store
 
-## 商店文案与截图
+1. 从 GitHub Release 或 Actions Artifact 下载 ZIP。
+2. 可选：使用同名 `.sha256` 文件核对下载完整性。
+3. 登录 Chrome Developer Dashboard。
+4. 选择扩展条目并上传 ZIP。
+5. 更新版本说明、隐私和商店素材后提交审核。
 
-仓库里也已经准备了商店侧素材草稿，可在正式发布前一起整理：
+商店文案与素材位于：
 
-- 文案、定位与截图脚本：`CHROME_STORE_LISTING.md`
-- 商店上传图标：`output/chrome-store-icons/chrome-store-icon-128.png`
-- 商店效果图与可复用生成脚本：`output/chrome-store/`
+- `CHROME_STORE_LISTING.md`
+- `output/chrome-store-icons/chrome-store-icon-128.png`
+- `output/chrome-store/`
+
+## 权限与安全边界
+
+- 校验和打包 Job 仅使用 `contents: read`。
+- 只有 Tag 对应的 GitHub Release Job 使用 `contents: write`。
+- 仓库不保存 Chrome Web Store service account、publisher ID 或 extension ID。
+- 工作流不安装项目依赖，不执行来自扩展页面的远程代码。

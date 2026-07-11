@@ -23,6 +23,9 @@
 - 阅读进度独立回顶按钮使用 `.visible` + `.is-near` + `.is-hovered` 状态：远处几乎透明，桌面 idle 不启用 pointer events 以避免不可见点击遮挡，指针接近时显形并播放轻微水面/箭头回弹，坐标命中/hover/focus-visible 用柔和 accent surface 停止跳动并进入稳定选中态；默认/接近态不显示硬圆形边框
 - 正式 Chrome icon/logo 使用 Codex 生成的符号化 water-rise mark，而不是直接缩放页面/卡片插画；当前选中源为 `output/chrome-store-icons/chrome-compliant-03-1024.png`，同步到 `icons/icon-source.png`、`icons/logo*.png` 和 manifest 引用的 `icons/icon16/32/48/128.png`
 - Chrome Web Store 上传图标单独使用 `output/chrome-store-icons/chrome-store-icon-128.png`：128x128 PNG，Codex 直接生成的 light badge 展示版，不等同于 manifest 的透明 toolbar icon
+- 发布边界：`.github/workflows/github-release.yml` 只负责校验、打包、Actions Artifact 和 GitHub Release；Chrome Web Store 始终从 ZIP 手动上传，仓库不保存 CWS service account 或调用 CWS API。
+- Release 契约：手动运行 `Package & GitHub Release` 只生成保留 30 天的 Artifact；仅小写 `v<manifest.version>` Tag 创建 GitHub Release，并附带 ZIP 与 SHA-256。Tag 与 Manifest 不一致必须失败。
+- `package.sh` 与 `scripts/validate_package.sh` 是完整本地发布门禁；`scripts/package_extension.sh` 只负责生成 ZIP。发布校验不得绕过 Manifest V3、必要文件、ZIP 完整性与开发元数据检查。
 - v2.6 阅读进度 hover 预览是固定观察窗 + 标题 track 的 spotlight preview：body-level `.toc-rail-preview` 固定在 rail 纵向中心，`.toc-rail-preview-track` 一次性渲染当前 TOC 的全部标题并通过 transform 滚动，当前项滑入固定 `.toc-rail-preview-focus`；观察窗内通常可见当前项上下各 2 个邻近标题，邻近项渐隐作用在整行 surface（背景、文字），普通邻近项不显示边框。
 - Hover 联动防回归契约：rail wave 可以每帧按 pointer Y 连续响应；preview window 不跟随 item 或 pointer 微动，始终以 tocContainer 纵向中心定位；preview track 只在命中新 item 时滚动；focus ring 固定在观察窗中心，只在命中新 item 时 bounce/pulse。不要恢复固定 5 行分片窗口，不要按每 5 项重建预览，不要让普通邻近行出现可见边框。
 - v2.7 rail polish：常驻 toc bar 更细更紧凑（3px rail bar、较窄容器和较小 item hit row）；hover wave 最大延展同步收敛，保持低侵扰但仍有清楚反馈。
