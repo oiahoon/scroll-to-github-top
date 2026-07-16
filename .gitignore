@@ -53,3 +53,7 @@ build-iPhoneSimulator/
 *.zip
 dist/
 output/uiux-v211/
+
+# Website dependencies and local npm cache
+website/node_modules/
+website/.npm-cache/

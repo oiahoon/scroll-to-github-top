@@ -4,6 +4,8 @@
 
 当前版本：`2.13`（Manifest V3）。
 
+官方网站：[https://oiahoon.github.io/scroll-to-github-top/](https://oiahoon.github.io/scroll-to-github-top/)
+
 ## 功能特点
 
 - 智能主题适配
