@@ -106,8 +106,16 @@ function ExternalLink({ href, className = "", children, label }) {
 function ScrollManager() {
   const { pathname } = useLocation();
   useEffect(() => {
+    const basePath = import.meta.env.BASE_URL.replace(/\/+$/, "");
+    const pathnameWithoutBase = pathname.startsWith(`${basePath}/`)
+      ? pathname.slice(basePath.length)
+      : pathname === basePath
+        ? "/"
+        : pathname;
     const normalizedPathname =
-      pathname.length > 1 ? pathname.replace(/\/+$/, "") : pathname;
+      pathnameWithoutBase.length > 1
+        ? pathnameWithoutBase.replace(/\/+$/, "")
+        : pathnameWithoutBase;
     const pageMeta = {
       "/": ["Smart TOC & Scroll — 不打扰的长页面阅读导航", "为长文章、文档和 GitHub 页面提供自适应目录、Barcode 阅读进度、标题预览与快速回顶。"],
       "/features": ["功能 — Smart TOC & Scroll", "了解 Smart TOC & Scroll 的目录识别、Barcode、主题自适应、键盘导航与本地处理能力。"],

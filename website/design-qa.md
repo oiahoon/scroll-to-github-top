@@ -71,8 +71,8 @@ The Options screenshot and left/right rail screenshots are reused directly on Fe
 
 ### Iteration 4
 
-- [P1] GitHub Pages redirects static route directories to trailing-slash URLs, which initially caused known pages to inherit the 404 document title and description.
-  - Fix: normalized trailing slashes before resolving route metadata.
+- [P1] GitHub Pages redirects static route directories to trailing-slash URLs, and the router can expose either basename-prefixed or basename-relative paths; this initially caused known pages to inherit the 404 document title and description.
+  - Fix: removed the configured Vite basename when present, then normalized trailing slashes before resolving route metadata.
   - Post-fix evidence: deployed direct routes render their page-specific title, heading, images, and responsive layout without horizontal overflow.
 
 ## Findings
