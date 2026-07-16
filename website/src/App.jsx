@@ -106,6 +106,8 @@ function ExternalLink({ href, className = "", children, label }) {
 function ScrollManager() {
   const { pathname } = useLocation();
   useEffect(() => {
+    const normalizedPathname =
+      pathname.length > 1 ? pathname.replace(/\/+$/, "") : pathname;
     const pageMeta = {
       "/": ["Smart TOC & Scroll — 不打扰的长页面阅读导航", "为长文章、文档和 GitHub 页面提供自适应目录、Barcode 阅读进度、标题预览与快速回顶。"],
       "/features": ["功能 — Smart TOC & Scroll", "了解 Smart TOC & Scroll 的目录识别、Barcode、主题自适应、键盘导航与本地处理能力。"],
@@ -114,7 +116,7 @@ function ScrollManager() {
       "/privacy": ["隐私 — Smart TOC & Scroll", "了解 Smart TOC & Scroll 的本地页面分析、扩展权限与设置存储方式。"],
       "/support": ["支持 — Smart TOC & Scroll", "查看常见问题、版本下载，并向 Smart TOC & Scroll 提交建议或问题。"],
     };
-    const [title, description] = pageMeta[pathname] || ["页面未找到 — Smart TOC & Scroll", "返回 Smart TOC & Scroll 官网继续浏览。"];
+    const [title, description] = pageMeta[normalizedPathname] || ["页面未找到 — Smart TOC & Scroll", "返回 Smart TOC & Scroll 官网继续浏览。"];
     document.title = title;
     document.querySelector('meta[name="description"]')?.setAttribute("content", description);
     window.scrollTo({ top: 0, behavior: "instant" });

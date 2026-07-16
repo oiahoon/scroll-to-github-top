@@ -69,6 +69,12 @@ The Options screenshot and left/right rail screenshots are reused directly on Fe
   - Fix: added deterministic static entry points for every known route during the production build while preserving `404.html` for unknown paths.
   - Post-fix evidence: a static-server check returned HTTP 200 for `/`, `/features`, `/modes`, `/guide`, `/privacy`, and `/support`, and HTTP 404 for `/does-not-exist`.
 
+### Iteration 4
+
+- [P1] GitHub Pages redirects static route directories to trailing-slash URLs, which initially caused known pages to inherit the 404 document title and description.
+  - Fix: normalized trailing slashes before resolving route metadata.
+  - Post-fix evidence: deployed direct routes render their page-specific title, heading, images, and responsive layout without horizontal overflow.
+
 ## Findings
 
 No actionable P0, P1, or P2 differences remain.
