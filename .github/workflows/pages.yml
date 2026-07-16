@@ -35,8 +35,6 @@ jobs:
       - name: Build website
         working-directory: website
         run: npm run build
-      - name: Add SPA fallback
-        run: cp website/dist/index.html website/dist/404.html
       - name: Configure Pages
         uses: actions/configure-pages@v5
       - name: Upload Pages artifact

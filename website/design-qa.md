@@ -36,7 +36,7 @@ The Options screenshot and left/right rail screenshots are reused directly on Fe
 ## Interaction and browser checks
 
 - Desktop and mobile navigation: passed.
-- Direct routes `/`, `/features`, `/modes`, `/guide`, `/privacy`, `/support`, and the 404 route: passed.
+- Direct routes `/`, `/features`, `/modes`, `/guide`, `/privacy`, and `/support`: passed with HTTP 200; unknown routes retain HTTP 404.
 - Theme toggle and local persistence: passed.
 - Home mode tabs and Barcode selector: passed.
 - FAQ disclosure: passed.
@@ -63,6 +63,12 @@ The Options screenshot and left/right rail screenshots are reused directly on Fe
   - Fix: changed the light-theme accent from `#2f7cc4` to `#2169aa` and its strong token to `#17558b`.
   - Post-fix evidence: Lighthouse accessibility improved from 96 to 100 with no remaining contrast audit failure.
 
+### Iteration 3
+
+- [P1] GitHub Pages initially served known SPA routes with an HTTP 404 status through the generic fallback.
+  - Fix: added deterministic static entry points for every known route during the production build while preserving `404.html` for unknown paths.
+  - Post-fix evidence: a static-server check returned HTTP 200 for `/`, `/features`, `/modes`, `/guide`, `/privacy`, and `/support`, and HTTP 404 for `/does-not-exist`.
+
 ## Findings
 
 No actionable P0, P1, or P2 differences remain.
@@ -77,7 +83,7 @@ None for the requested GitHub Pages release. Chrome Web Store listing publicatio
 - [x] Six requested product/support pages implemented.
 - [x] Desktop, mobile, light, dark, and interaction states verified.
 - [x] Accessibility and dependency audit issues resolved.
-- [x] GitHub Pages build and SPA fallback configured.
+- [x] GitHub Pages build, static route entry points, and unknown-route fallback configured.
 
 ## Follow-up polish
 
