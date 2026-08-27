@@ -1,5 +1,35 @@
 # Barcode Preview — Design QA
 
+## v2.15 五主题 UI/UX 打磨与发布验收（2026-08-27）
+
+### Target flow
+
+`测试长文 / Options → 选择、悬停或聚焦导航主题 → 得到差异明确、可读、自适应且键盘可用的导航状态`
+
+### Audit steps
+
+| Step | Experience | Result | Health |
+|---|---|---|---|
+| 1 | Standard：局部明暗采样、条目数、当前章节、移动底部面板 | Passed | 73 项；390 × 844 面板宽 358px；无横向溢出 |
+| 2 | Wheel：柔和焦点带、邻项密度、左右镜像 | Passed | 4 个左右/明暗组合均位于视口内 |
+| 3 | Spotlight：五行上下文、当前项层级、邻项渐隐 | Passed | 4 个左右/明暗组合均位于视口内 |
+| 4 | GPT：OUTLINE 标题、数量、当前位置、内部滚动与键盘 | Passed | 73 项；唯一 Tab 停靠点；ArrowDown 19 → 20 |
+| 5 | SSPAI：固定按钮、红色当前项、刻度稳定、Esc 释放 | Passed | 图钉 fill 为主题红；固定后移开仍展开，Esc 后收起 |
+| 6 | Options：四主题 2 × 2 选择器、焦点态、响应式高度 | Passed | 1280 × 900 控件完全落在行内；390 × 844 无横向溢出，保存按钮 44px |
+
+### Matrix and evidence
+
+- Desktop theme matrix: Standard / Wheel / Spotlight / GPT / SSPAI × left / right × light / dark，共 20 个展开状态，全部通过存在、展开、视口内、正确侧边和无横向溢出检查。
+- Current-run screenshots: `/private/tmp/smart-toc-v215-audit/13-standard-expanded-after.png` 至 `/private/tmp/smart-toc-v215-audit/20-options-desktop-after.png`。
+- Generated visual system reference: `/Users/huangyuyao/.codex/generated_images/01a04309-3155-72e1-9e70-491ab671004f/exec-03dcaba8-874a-429e-b0a0-d990d50619ce.png`。
+- Browser console: theme, settings and interaction checks produced no warning or error.
+
+## Final result
+
+final result: passed
+
+---
+
 ## Scope
 
 - Reference idle: `/var/folders/0f/6sngn17x1xx3y65117n2md3r0000gp/T/codex-clipboard-2dbf5a19-4d04-4299-9361-550033c76b12.png`

@@ -31,7 +31,7 @@ The Options screenshot and live Standard / Wheel / Spotlight / GPT / SSPAI captu
 - Spacing and layout rhythm: passed. Desktop sections use a consistent 1180 px shell; cards, frames, navigation, footer, and mobile menu align to the same spacing scale. No horizontal overflow was found at 1440, 1280, 500, or 390 px.
 - Colors and visual tokens: passed. Light and dark surfaces, blue actions, muted copy, borders, and state colors map to the existing options and rail visual language. The light-theme accent was darkened during QA to pass small-text contrast.
 - Image quality and asset fidelity: passed. All product images are original 1280 × 800 PNG assets from the current extension; no CSS art, placeholder illustration, handcrafted SVG, or generated substitute is used.
-- Copy and content: passed for v2.14. Feature names, two navigation types, Wheel / Spotlight / GPT / SSPAI behavior, keyboard commands, permissions, local processing, and SPA support were checked against `manifest.json`, `README.md`, `FEATURE_INVENTORY.md`, and the current screenshots.
+- Copy and content: passed for v2.15. Feature names, two navigation types, Wheel / Spotlight / GPT / SSPAI behavior, keyboard commands, permissions, local processing, and SPA support were checked against `manifest.json`, `README.md`, `FEATURE_INVENTORY.md`, and the current screenshots.
 
 ## Interaction and browser checks
 
@@ -94,7 +94,7 @@ None for the requested GitHub Pages release. Chrome Web Store listing publicatio
 ## Iteration 5
 
 - [P1] The homepage still described three Barcode previews after SSPAI became the fourth option.
-  - Fix: updated the hero, FAQ, guide language, and mode selector to reflect the current v2.14 implementation.
+  - Fix: updated the hero, FAQ, guide language, and mode selector to reflect the current v2.15 implementation.
 - [P1] The Options page used fixed-height mobile rows, causing the two-column preview control to overlap the next card at 390 px.
   - Fix: changed mobile rows to content-sized layout, made the interaction choice span the available grid, and returned the footer to normal document flow.
 - [P2] The homepage and Modes page did not visually distinguish all current navigation experiences.

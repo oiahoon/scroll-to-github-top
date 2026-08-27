@@ -7,6 +7,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.15] - 2026-08-27
+
+### Changed
+- Standard 目录面板加入局部明暗背景采样，在深色文章中使用一体化深色表面，并让条目数量与当前章节状态持续可见
+- Wheel 降低当前项强描边与阴影，改用更柔和的焦点带；Spotlight 收敛邻项透明度，并用紧凑强调面与侧边标记建立独立层级
+- GPT 完整目录增加 `OUTLINE` 标题、条目数量和更明确的当前位置标记，同时保留内部滚动与 roving tabindex 键盘模型
+- SSPAI 固定按钮扩大为清晰的 32px 控件，修复深色页面图钉填充色，并为当前标题增加轻量红色强调面
+- Options 的 Barcode 四主题选择改为桌面 2 × 2 网格，补充 focus-within 状态，并修复桌面与移动端选择区域高度和溢出
+
+### Verified
+- 五种主题在 1280 × 800 下通过左右侧、明暗背景共 20 个展开状态矩阵，无横向溢出且均保持在视口内
+- Standard 在 390 × 844 下展开为 358px 宽底部面板；Options 在 390 × 844 下四种 Barcode 预览均可选择，保存按钮保持 44px 高
+- GPT ArrowDown 保持唯一 Tab 停靠点并移动焦点；SSPAI 图钉固定、移开保持、Esc 释放均通过真实浏览器验证
+
 ## [2.14] - 2026-08-12
 
 ### Added

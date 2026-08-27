@@ -1135,10 +1135,53 @@
   }
 
   function applyAdaptiveRailPalette(palette, sample) {
-    const nextSignature = `${palette.tone}:${Math.round(palette.luminance * 100)}`;
+    const nextSignature = `${settings.themePreset}:${palette.tone}:${Math.round(palette.luminance * 100)}`;
     if (nextSignature === lastAdaptiveThemeApplied) return;
 
-    [tocContainer, scrollTopButton, tocRailPreview, tocSpotlightLayer, tocGptPreview].forEach((element) => {
+    if (!isRailPreset() && tocContainer) {
+      const standardVars = palette.tone === 'dark-surface'
+        ? {
+            '--toc-bg': 'rgba(22, 25, 31, 0.90)',
+            '--toc-bg-expanded': 'rgba(24, 27, 34, 0.96)',
+            '--toc-bg-fallback': 'rgb(24, 27, 34)',
+            '--toc-text': 'rgba(248, 250, 252, 0.92)',
+            '--toc-text-muted': 'rgba(226, 232, 240, 0.58)',
+            '--toc-text-hover': '#ffffff',
+            '--toc-accent': '#58a6ff',
+            '--toc-highlight': 'rgba(255, 255, 255, 0.065)',
+            '--toc-highlight-active': 'rgba(88, 166, 255, 0.13)',
+            '--toc-border': 'rgba(255, 255, 255, 0.12)',
+            '--toc-border-hover': 'rgba(255, 255, 255, 0.22)',
+            '--toc-divider': 'rgba(255, 255, 255, 0.085)',
+            '--toc-scrollbar-thumb': 'rgba(255, 255, 255, 0.20)',
+            '--toc-elevation-expanded': '0 16px 44px rgba(0, 0, 0, 0.34)'
+          }
+        : {
+            '--toc-bg': 'rgba(255, 255, 255, 0.90)',
+            '--toc-bg-expanded': 'rgba(255, 255, 255, 0.97)',
+            '--toc-bg-fallback': 'rgb(255, 255, 255)',
+            '--toc-text': 'rgba(15, 23, 42, 0.92)',
+            '--toc-text-muted': 'rgba(51, 65, 85, 0.62)',
+            '--toc-text-hover': '#0f172a',
+            '--toc-accent': '#0969da',
+            '--toc-highlight': 'rgba(15, 23, 42, 0.055)',
+            '--toc-highlight-active': 'rgba(9, 105, 218, 0.10)',
+            '--toc-border': 'rgba(15, 23, 42, 0.12)',
+            '--toc-border-hover': 'rgba(15, 23, 42, 0.22)',
+            '--toc-divider': 'rgba(15, 23, 42, 0.08)',
+            '--toc-scrollbar-thumb': 'rgba(15, 23, 42, 0.20)',
+            '--toc-elevation-expanded': '0 16px 44px rgba(15, 23, 42, 0.18)'
+          };
+      Object.entries(standardVars).forEach(([name, value]) => {
+        tocContainer.style.setProperty(name, value);
+      });
+      tocContainer.dataset.adaptiveTone = palette.tone;
+    }
+
+    const railTargets = isRailPreset()
+      ? [tocContainer, scrollTopButton, tocRailPreview, tocSpotlightLayer, tocGptPreview]
+      : [];
+    railTargets.forEach((element) => {
       if (!element) return;
       Object.entries(palette.vars).forEach(([name, value]) => {
         element.style.setProperty(name, value);
@@ -1155,7 +1198,7 @@
   }
 
   function updateAdaptiveRailTheme() {
-    if (!isRailPreset() || !tocContainer || !tocContainer.isConnected) return;
+    if (!tocContainer || !tocContainer.isConnected) return;
     const points = getAdaptiveThemeSamplePoints();
     const fallback = getFallbackPageBackground();
     const colors = points.map((point) => (
@@ -1173,7 +1216,6 @@
   }
 
   function scheduleAdaptiveRailThemeUpdate(force = false) {
-    if (!isRailPreset()) return;
     const now = Date.now();
     if (!force && now - lastAdaptiveThemeSampleAt < 180) return;
     if (adaptiveThemeFrame) return;
@@ -2267,6 +2309,21 @@
 
       tocGptPreview.textContent = '';
       gptCurrentIndex = -1;
+      const header = document.createElement('div');
+      header.className = 'toc-gpt-preview-header';
+      header.setAttribute('aria-hidden', 'true');
+
+      const title = document.createElement('span');
+      title.className = 'toc-gpt-preview-title';
+      title.textContent = 'OUTLINE';
+
+      const count = document.createElement('span');
+      count.className = 'toc-gpt-preview-count';
+      count.textContent = String(items.length);
+
+      header.append(title, count);
+      tocGptPreview.appendChild(header);
+
       const list = document.createElement('div');
       list.className = 'toc-gpt-preview-list';
       tocGptPreview.appendChild(list);

@@ -1,6 +1,6 @@
 # Chrome Web Store Listing Copy
 
-Updated: 2026-08-12 for v2.14
+Updated: 2026-08-27 for v2.15
 
 ## Short Description
 
@@ -68,10 +68,10 @@ Smart TOC & Scroll 为长文、博客和文档站点提供轻量阅读导航。
 
 适合希望在不打断阅读的前提下，快速掌握长文结构和当前位置的用户。
 
-## Release Note — v2.14
+## Release Note — v2.15
 
-Added a fourth Barcode preview inspired by SSPAI: slim vertical ticks reveal the complete outline on hover, highlight the current section in red, and include a pin button. Ticks stay anchored beside the article when space allows, fall back to the viewport edge on narrow pages, and no longer slide horizontally on hover. Spotlight now uses a clearer five-row context window with larger type and more breathing room.
+Polished all five navigation experiences. Standard TOC now blends with light and dark article surfaces and keeps the item count and active section visible. Wheel uses a softer focus band, Spotlight has a clearer compact focus hierarchy, GPT adds an OUTLINE header, item count, and stronger current-position marker, and SSPAI improves pin visibility and active-title feedback. The settings page now presents all four Barcode previews in a clearer 2 × 2 selector with improved keyboard focus and responsive spacing.
 
-## 中文更新说明 — v2.14
+## 中文更新说明 — v2.15
 
-新增第四种 Barcode「少数派」预览：悬停展开完整大纲、当前章节红色强调，并支持图钉固定。竖刻度优先停在正文外侧，空间不足时贴近屏幕边缘，hover 时不再横向滑动；聚光灯也调整为更清晰的五行上下文。
+全面打磨五种导航体验：标准目录会融入页面明暗背景并持续显示条目数和当前章节；滚轮改用更柔和的焦点带；聚光灯建立更清晰的五行聚焦层级；GPT 增加 OUTLINE 标题、条目数和当前位置标记；少数派提升图钉可见性与当前标题反馈。设置页将四种 Barcode 预览整理为更清晰的 2 × 2 选择器，并优化键盘焦点和响应式间距。

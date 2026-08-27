@@ -1,5 +1,5 @@
 /* =============================================
-   Smart TOC & Scroll — 主组件样式 v2.14
+   Smart TOC & Scroll — 主组件样式 v2.15
    设计规范：UI_DESIGN_SPEC.md §3-§6、§11
    ============================================= */
 
@@ -303,11 +303,15 @@
   transition: opacity 0.16s ease, transform 0.16s ease;
 }
 
-.github-toc.expanded.is-pinned .toc-count-badge {
+.github-toc.expanded .toc-count-badge {
   color: var(--toc-text);
-  border-color: var(--toc-border-hover, var(--toc-border));
+  border-color: var(--toc-border);
   opacity: 1;
   transform: scale(1);
+}
+
+.github-toc.expanded.is-pinned .toc-count-badge {
+  border-color: var(--toc-border-hover, var(--toc-border));
 }
 
 /* === Top 按钮（幽灵按钮样式） === */
@@ -546,6 +550,8 @@
 /* 激活链接强调色 */
 .github-toc .toc-item.active > a {
   color: var(--toc-accent, var(--toc-text-active, #0969da)) !important;
+  background: var(--toc-highlight-active, rgba(9,105,218,0.08)) !important;
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--toc-accent, #0969da) 10%, transparent);
   font-weight: 500 !important;
 }
 
@@ -929,12 +935,12 @@
   right: 0;
   left: 0;
   height: 30px;
-  border: 1px solid color-mix(in srgb, var(--toc-accent, #0969da) 42%, var(--toc-rail-preview-border, var(--toc-rail-top-border)));
+  border: 1px solid color-mix(in srgb, var(--toc-accent, #0969da) 20%, var(--toc-rail-preview-border, var(--toc-rail-top-border)));
   border-radius: 8px;
   background: transparent;
   box-shadow:
-    0 6px 16px color-mix(in srgb, var(--toc-accent, #0969da) 8%, transparent),
-    inset 0 0 0 1px color-mix(in srgb, var(--toc-accent, #0969da) 6%, transparent);
+    0 6px 16px color-mix(in srgb, var(--toc-accent, #0969da) 5%, transparent),
+    inset 2px 0 0 color-mix(in srgb, var(--toc-accent, #0969da) 70%, transparent);
   opacity: var(--toc-rail-focus-opacity);
   pointer-events: none;
   transform: translate3d(0, var(--toc-rail-focus-y), 0);
@@ -1040,17 +1046,17 @@
 .toc-rail-preview.theme-preview-wheel .toc-rail-preview-row.is-current {
   --preview-row-opacity: 1;
   --preview-row-scale: 1;
-  --preview-row-bg: color-mix(in srgb, var(--toc-accent, #0969da) 8%, var(--toc-rail-preview-bg, var(--toc-rail-top-bg-hover)));
-  box-shadow: var(--toc-rail-preview-shadow, 0 10px 24px rgba(15, 23, 42, 0.14));
+  --preview-row-bg: color-mix(in srgb, var(--toc-accent, #0969da) 11%, var(--toc-rail-preview-bg, var(--toc-rail-top-bg-hover)));
+  box-shadow: 0 5px 14px color-mix(in srgb, #000 10%, transparent);
 }
 
 .toc-rail-preview.theme-preview-wheel .toc-rail-preview-row.distance-1 {
-  --preview-row-opacity: 0.82;
+  --preview-row-opacity: 0.74;
   --preview-row-scale: 0.985;
 }
 
 .toc-rail-preview.theme-preview-wheel .toc-rail-preview-row.distance-2 {
-  --preview-row-opacity: 0.56;
+  --preview-row-opacity: 0.42;
   --preview-row-scale: 0.955;
 }
 
@@ -1172,13 +1178,13 @@
   box-sizing: border-box;
   display: block;
   max-width: min(270px, calc(100vw - 128px));
-  min-height: 26px;
-  padding: 4px 9px;
+  min-height: 28px;
+  padding: 5px 10px;
   overflow: hidden;
   border: 0;
-  border-radius: 7px;
-  background: color-mix(in srgb, var(--toc-rail-preview-bg, var(--toc-bg-fallback)) 86%, transparent);
-  box-shadow: 0 3px 12px color-mix(in srgb, #000 9%, transparent);
+  border-radius: 6px;
+  background: color-mix(in srgb, var(--toc-rail-preview-bg, var(--toc-bg-fallback)) 62%, transparent);
+  box-shadow: 0 2px 10px color-mix(in srgb, #000 6%, transparent);
   color: var(--toc-rail-label-active) !important;
   font-family: "Roboto", "Segoe UI", "Arial", "Helvetica Neue", Arial, sans-serif !important;
   font-size: 12px !important;
@@ -1223,18 +1229,20 @@
 }
 
 .toc-spotlight-row.distance-0 .toc-spotlight-text {
-  background: color-mix(in srgb, var(--toc-accent, #0969da) 14%, var(--toc-rail-preview-bg, var(--toc-bg-fallback)));
-  box-shadow: 0 5px 16px color-mix(in srgb, #000 14%, transparent);
+  background: color-mix(in srgb, var(--toc-accent, #0969da) 12%, var(--toc-rail-preview-bg, var(--toc-bg-fallback)));
+  box-shadow:
+    inset 2px 0 0 var(--toc-accent, #0969da),
+    0 5px 16px color-mix(in srgb, #000 10%, transparent);
   font-weight: 650 !important;
 }
 
 .toc-spotlight-row.distance-1 {
-  --toc-spotlight-label-opacity: 0.58;
+  --toc-spotlight-label-opacity: 0.48;
   --toc-spotlight-label-scale: 0.99;
 }
 
 .toc-spotlight-row.distance-2 {
-  --toc-spotlight-label-opacity: 0.28;
+  --toc-spotlight-label-opacity: 0.18;
   --toc-spotlight-label-scale: 0.98;
 }
 
@@ -1265,7 +1273,7 @@
   box-sizing: border-box;
   width: min(320px, calc(100vw - 96px));
   max-height: min(446px, calc(100vh - 48px));
-  padding: 8px;
+  padding: 0 8px 8px;
   border: 1px solid var(--toc-rail-preview-border, rgba(255, 255, 255, 0.18));
   border-radius: 16px;
   background: color-mix(in srgb, var(--toc-rail-preview-bg, rgba(17, 24, 39, 0.94)) 96%, transparent);
@@ -1323,12 +1331,43 @@
 
 .toc-gpt-preview-list {
   box-sizing: border-box;
-  max-height: min(428px, calc(100vh - 66px));
+  max-height: min(382px, calc(100vh - 112px));
   overflow-x: hidden;
   overflow-y: auto;
   overscroll-behavior: contain;
   scrollbar-color: color-mix(in srgb, currentColor 34%, transparent) transparent;
   scrollbar-width: thin;
+}
+
+.toc-gpt-preview-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 46px;
+  padding: 0 8px;
+  border-bottom: 1px solid var(--toc-rail-preview-border, rgba(255, 255, 255, 0.16));
+  color: var(--toc-rail-label, rgba(255, 255, 255, 0.58));
+}
+
+.toc-gpt-preview-title {
+  font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Segoe UI", sans-serif !important;
+  font-size: 10px !important;
+  font-weight: 700 !important;
+  letter-spacing: 0.1em;
+}
+
+.toc-gpt-preview-count {
+  min-width: 26px;
+  height: 22px;
+  padding: 0 7px;
+  border: 1px solid var(--toc-rail-preview-border, rgba(255, 255, 255, 0.16));
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--toc-rail-label-active, rgba(255, 255, 255, 0.92));
+  font-size: 10px !important;
+  font-weight: 650 !important;
 }
 
 .toc-gpt-preview-list::-webkit-scrollbar {
@@ -1385,6 +1424,8 @@
 
 .toc-gpt-preview-row.is-current {
   background: color-mix(in srgb, currentColor 13%, transparent);
+  box-shadow: inset 2px 0 0 var(--toc-accent, #0969da);
+  color: var(--toc-accent, #58a6ff) !important;
   font-weight: 650 !important;
 }
 
@@ -1592,6 +1633,8 @@
 }
 
 .github-toc.theme-preset-rail.theme-preview-sspai .toc-item.active .toc-rail-label {
+  border-radius: 5px;
+  background: color-mix(in srgb, var(--toc-sspai-accent) 9%, transparent);
   color: var(--toc-sspai-accent) !important;
   font-weight: 600 !important;
 }
@@ -1601,17 +1644,18 @@
   top: -30px;
   display: inline-grid;
   place-items: center;
-  width: 28px;
-  height: 28px;
+  width: 32px;
+  height: 32px;
   padding: 0;
-  border: 0;
-  border-radius: 8px;
-  background: transparent;
+  border: 1px solid var(--toc-rail-preview-border, var(--toc-rail-top-border));
+  border-radius: 9px;
+  background: color-mix(in srgb, var(--toc-rail-preview-bg, rgba(17, 24, 39, 0.92)) 94%, transparent);
   color: var(--toc-rail-label-active);
   cursor: pointer;
   opacity: 0;
   pointer-events: none;
   visibility: hidden;
+  box-shadow: 0 5px 16px color-mix(in srgb, #000 16%, transparent);
   transition:
     background-color 0.16s ease,
     color 0.16s ease,
@@ -1620,11 +1664,11 @@
 }
 
 .github-toc.theme-preset-rail.theme-preview-sspai.position-right .toc-sspai-pin {
-  right: 8px;
+  right: 6px;
 }
 
 .github-toc.theme-preset-rail.theme-preview-sspai.position-left .toc-sspai-pin {
-  left: 8px;
+  left: 6px;
 }
 
 .github-toc.theme-preset-rail.theme-preview-sspai:hover .toc-sspai-pin,
@@ -1650,6 +1694,12 @@
 
 .github-toc.theme-preset-rail.theme-preview-sspai .toc-sspai-pin.is-pinned svg {
   transform: rotate(-24deg);
+}
+
+.github-toc.theme-preset-rail.theme-preview-sspai .toc-sspai-pin svg,
+.github-toc.theme-preset-rail.theme-preview-sspai .toc-sspai-pin path {
+  fill: currentColor !important;
+  color: currentColor !important;
 }
 
 .github-sst {
