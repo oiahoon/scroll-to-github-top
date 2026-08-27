@@ -48,8 +48,9 @@ const navigationTypeDescriptions = {
 
 const barcodePreviewDescriptions = {
   wheel: '标题在固定观察窗中像滚轮一样滑动。',
-  spotlight: '悬停时显示完整标题列，命中项向上下邻近标题渐隐扩散。',
-  gpt: '悬停时展开带背景和边框的完整标题面板，可在面板内滚动。'
+  spotlight: '悬停时显示命中标题与上下文，邻近标题保持舒展的渐隐层级。',
+  gpt: '悬停时展开带背景和边框的完整标题面板，可在面板内滚动。',
+  sspai: '少数派风格大纲：悬停展开完整标题，当前章节红色高亮，并可固定大纲。'
 };
 
 function normalizeSettings(input = {}) {
@@ -64,7 +65,7 @@ function normalizeSettings(input = {}) {
   if (!['default', 'barcode'].includes(normalized.themePreset)) {
     normalized.themePreset = defaultSettings.themePreset;
   }
-  if (!['wheel', 'spotlight', 'gpt'].includes(normalized.barcodePreview)) {
+  if (!['wheel', 'spotlight', 'gpt', 'sspai'].includes(normalized.barcodePreview)) {
     normalized.barcodePreview = defaultSettings.barcodePreview;
   }
   return normalized;

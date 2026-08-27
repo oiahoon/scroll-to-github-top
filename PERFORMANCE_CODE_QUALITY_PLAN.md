@@ -1,8 +1,8 @@
 # Smart TOC & Scroll — 性能与代码质量治理方案
 
-> 日期：2026-07-11
-> 实现基线：v2.13
-> 范围：注入主流程、三种 Barcode 预览、标准目录、主题同步、Options、本地 QA 与发布产物
+> 日期：2026-08-12
+> 实现基线：v2.14
+> 范围：注入主流程、四种 Barcode 预览、标准目录、主题同步、Options、本地 QA 与发布产物
 
 ## 1. 测量边界
 
@@ -33,7 +33,7 @@
 | P3 | 标准面板图标与标题使用 `transition: all` | 宿主样式变化可能带动无关属性进入动画计算 | 只声明 opacity / transform |
 | P3 | `catalog.js` 仍是 3,000 行左右的单文件 | 维护边界仍偏大，但一次性拆模块会提高 MV3 注入和回归风险 | 本轮先建立 rail/controller 边界；后续按 detection / rail / lifecycle 分阶段拆分 |
 
-## 3. Barcode 的三种标题预览
+## 3. Barcode 的四种标题预览
 
 `Barcode`（internal preset: `barcode`）是一级导航类型，标题预览由 `barcodePreview` 控制：
 

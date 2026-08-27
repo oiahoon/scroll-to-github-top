@@ -1,5 +1,5 @@
 /* =============================================
-   Smart TOC & Scroll — Options 设置页面样式 v2.11
+   Smart TOC & Scroll — Options 设置页面样式 v2.14
    ============================================= */
 
 :root {
@@ -235,8 +235,8 @@ textarea {
 }
 
 .segmented-control--barcode-preview button {
-  min-width: 108px;
-  padding-inline: 16px;
+  min-width: 86px;
+  padding-inline: 12px;
 }
 
 .segmented-control button:hover {
@@ -513,15 +513,18 @@ button#save:active {
 @media (max-width: 560px) {
   .page {
     width: 100%;
-    height: 100dvh;
+    height: auto;
+    min-height: 100dvh;
     margin: 0;
   }
 
   .settings-panel {
+    display: block;
     min-height: 100vh;
     border-width: 0;
     border-radius: 0;
     box-shadow: none;
+    overflow: visible;
   }
 
   .page-header {
@@ -535,10 +538,13 @@ button#save:active {
 
   .settings-list {
     gap: 14px;
-    padding: 22px 18px 0;
+    padding: 22px 18px 24px;
+    overflow: visible;
   }
 
   .setting-row {
+    gap: 16px;
+    min-height: 0;
     padding: 18px;
   }
 
@@ -550,8 +556,8 @@ button#save:active {
 
   .segmented-control {
     display: grid;
-    grid-template-columns: 1fr;
-    gap: 10px;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
   }
 
   .segmented-control button,
@@ -561,17 +567,39 @@ button#save:active {
     width: 100%;
   }
 
+  .segmented-control button {
+    min-width: 0;
+    min-height: 42px;
+    padding-inline: 10px;
+    white-space: normal;
+  }
+
+  .segmented-control--wide button:last-child {
+    grid-column: 1 / -1;
+  }
+
+  .segmented-control--barcode-preview {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
   .compact-field {
     grid-template-columns: 1fr 80px;
   }
 
   .settings-footer {
+    position: static;
     align-items: stretch;
     flex-direction: column;
+    gap: 12px;
     margin-inline: 18px;
+    padding: 14px 0 max(18px, env(safe-area-inset-bottom));
   }
 
   .actions {
     justify-content: space-between;
+  }
+
+  button#save {
+    min-height: 44px;
   }
 }

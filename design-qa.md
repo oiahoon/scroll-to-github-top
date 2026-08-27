@@ -1,4 +1,4 @@
-# Barcode GPT — Design QA
+# Barcode Preview — Design QA
 
 ## Scope
 
@@ -34,6 +34,72 @@
 - A 16px bridge plus 96ms pointer-exit grace prevents the rail-to-panel gap from closing the panel during normal cursor movement.
 - Browser QA uses a rail click to establish the same expanded state because the automation surface does not expose hover directly. The blue ring visible around the selected bar is the deliberate `:focus-visible` accessibility state, not the normal pointer-hover treatment.
 - GPT uses roving tabindex: hidden rows and non-current visible rows stay at `-1`; the current row is the sole `0` entry and supports Arrow / Home / End navigation.
+
+## Final result
+
+final result: passed
+
+---
+
+## v2.14 全主题与移动设置页复核（2026-08-27）
+
+### Scope
+
+- Live themes: Standard, Wheel, Spotlight, GPT, SSPAI
+- Theme states: light / dark; rail positions: left / right where applicable
+- Options viewport: 1280 × 800 and 390 × 844
+- Browser evidence: `/private/tmp/smart-toc-audit/18-options-standard-desktop-after.png`, `/private/tmp/smart-toc-audit/23-options-barcode-mobile-after.png`, and the five website mode captures under `website/public/product/`
+
+### Findings and fixes
+
+| Check | Result | Evidence |
+|---|---|---|
+| All five navigation experiences render with current styling | Passed | Dedicated current captures were produced for Standard, Wheel, Spotlight, GPT, and SSPAI |
+| Barcode preview switching works | Passed | Wheel / Spotlight / GPT / SSPAI controls update the active state and preview |
+| SSPAI pin state remains visible and reachable | Passed | Pin label and active styling remain legible on both sides and both themes |
+| Mobile settings layout remains readable | Passed | Fixed row heights were removed; controls no longer overlap at 390 px |
+| Mobile save action remains reachable | Passed | Footer follows document flow and the 44 px save button remains visible after scrolling |
+| Console health | Passed | No application warning or error during theme, route, and control interaction checks |
+
+## Final result
+
+final result: passed
+
+---
+
+## SSPAI / 固定大纲（2026-08-12）
+
+### Scope
+
+- Reference expanded: `/var/folders/0f/6sngn17x1xx3y65117n2md3r0000gp/T/codex-clipboard-53df2570-572c-4020-901a-13c9d1b0ad76.png`
+- Reference idle: `/var/folders/0f/6sngn17x1xx3y65117n2md3r0000gp/T/codex-clipboard-d1b84939-dfcc-4754-9c8b-2e147f26051f.png`
+- Implementation expanded: browser-verified local SSPAI test page
+- Primary QA viewport: 1280 × 720
+- Tested state: Barcode / SSPAI, right and left rail, dark and light surface, 73 TOC rows
+
+### Comparison
+
+| Check | Result | Evidence |
+|---|---|---|
+| Idle is reduced to vertical ticks | Passed | Labels have zero visible width and opacity; each bar measures 2 × 6px |
+| Hover expands the outline in place | Passed | The container keeps a stable edge anchor; rows become 33px without opening a detached panel |
+| Typography remains compact and readable | Passed | 13px labels use 21px line-height, single-line ellipsis and 14px inner spacing |
+| Current section uses SSPAI red | Passed | Exactly one active row uses `#e6242f` for both label and 2 × 21px bar |
+| Pin keeps the outline open | Passed | Native button changes to `aria-pressed=true`; pointer leave preserves the visible labels |
+| Unpin restores idle state | Passed | Button returns to `aria-pressed=false`; pointer leave hides all labels while the tick anchor remains fixed |
+| Tick/text order matches the reference | Passed | Right rail uses tick then text; left rail mirrors to text then tick |
+| Tick anchor remains stable | Passed | Hover changes label opacity and row height without changing the tick's horizontal coordinate; idle transparent space does not capture page clicks |
+| Light/dark surfaces remain readable | Passed | Both sampled surfaces preserve label contrast and the same red active state |
+| Long outlines remain bounded | Passed | 73 rows reuse the existing rail scroll viewport and do not overflow the browser viewport |
+| Settings hierarchy is correct | Passed | SSPAI appears as the fourth Barcode-only preview option and persists through the existing settings path |
+| Keyboard and accessible state | Passed | Pin exposes a dynamic accessible name, `aria-pressed`, focus-visible styling and Escape release |
+| Reduced-motion coverage | Passed | The existing `.github-toc *` override disables all SSPAI transitions and animations |
+| Navigation state | Passed | Clicking a title scrolls to the target, assigns the only active/`aria-current` row and keeps the red indicator aligned |
+| Console health | Passed | Fresh pin, unpin, title jump and settings runs report no warning or error |
+
+### Source alignment
+
+The live article assets were inspected before implementation. SSPAI's current directory uses 244px title content, 15px source text, 33px expanded rows, 2 × 6px idle ticks, 2 × 21px expanded ticks, a brand-red active state, and a pin-controlled `pinned` wrapper state. The extension keeps those structural behaviors while using 13px labels to fit its denser cross-site TOC sample and existing rail proportions.
 
 ## Final result
 

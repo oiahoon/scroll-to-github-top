@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
     inputs:
       release_tag:
-        description: Optional existing tag to publish or repair (for example v2.13)
+        description: Optional existing tag to publish or repair (for example v2.14)
         required: false
         default: ''
         type: string

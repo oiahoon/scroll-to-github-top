@@ -3,8 +3,9 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="icon" href="data:,">
   <title>Smart TOC Rail Navigation Performance Sample</title>
-  <link rel="stylesheet" href="../toc.css?sample=barcode-preview-v1">
+  <link rel="stylesheet" href="../toc.css?sample=barcode-preview-v2">
   <link rel="stylesheet" href="../themes.css?sample=barcode-preview-v1">
   <style>
     :root {
@@ -47,6 +48,10 @@
     :root[data-position="left"] .sample-toolbar {
       right: 16px;
       left: auto;
+    }
+
+    :root[data-capture="true"] .sample-toolbar {
+      display: none;
     }
 
     :root[data-surface="light"] .sample-toolbar {
@@ -249,6 +254,10 @@
       main {
         padding-top: 148px;
       }
+
+      :root[data-capture="true"] main {
+        padding-top: 72px;
+      }
     }
   </style>
   <script>
@@ -258,13 +267,17 @@
       ? sampleParams.get('surface')
       : 'dark';
     const sampleReducedMotion = sampleParams.get('motion') === 'reduce';
+    const sampleNavigation = sampleParams.get('navigation') === 'standard' ? 'standard' : 'barcode';
+    const sampleCapture = sampleParams.get('capture') === '1';
     const legacyMode = sampleParams.get('mode');
     const requestedPreview = sampleParams.get('preview');
-    const samplePreview = ['wheel', 'spotlight', 'gpt'].includes(requestedPreview)
+    const samplePreview = ['wheel', 'spotlight', 'gpt', 'sspai'].includes(requestedPreview)
       ? requestedPreview
       : legacyMode === 'glimmer' ? 'spotlight' : 'wheel';
     document.documentElement.dataset.surface = sampleSurface;
     document.documentElement.dataset.position = samplePosition;
+    document.documentElement.dataset.navigation = sampleNavigation;
+    document.documentElement.dataset.capture = sampleCapture ? 'true' : 'false';
 
     if (sampleReducedMotion && typeof window.matchMedia === 'function') {
       const nativeMatchMedia = window.matchMedia.bind(window);
@@ -290,7 +303,7 @@
           get(defaults, callback) {
             callback({
               ...defaults,
-              themePreset: 'barcode',
+              themePreset: sampleNavigation === 'standard' ? 'default' : 'barcode',
               barcodePreview: samplePreview,
               expandMode: 'hover',
               minHeaders: 1,
@@ -314,10 +327,15 @@
 <body>
   <div class="sample-toolbar" role="toolbar" aria-label="Rail QA controls">
     <span class="sample-toolbar-title">Rail QA</span>
+    <div class="sample-control-group" role="group" aria-label="Navigation type">
+      <button type="button" data-param="navigation" data-value="standard" aria-pressed="false">Standard</button>
+      <button class="is-active" type="button" data-param="navigation" data-value="barcode" aria-pressed="true">Barcode</button>
+    </div>
     <div class="sample-control-group" role="group" aria-label="Barcode title preview">
       <button class="is-active" type="button" data-param="preview" data-value="wheel" aria-pressed="true">Wheel</button>
       <button type="button" data-param="preview" data-value="spotlight" aria-pressed="false">Spotlight</button>
       <button type="button" data-param="preview" data-value="gpt" aria-pressed="false">GPT</button>
+      <button type="button" data-param="preview" data-value="sspai" aria-pressed="false">SSPAI</button>
     </div>
     <div class="sample-control-group" role="group" aria-label="Rail position">
       <button class="is-active" type="button" data-param="position" data-value="right" aria-pressed="true">Right</button>
@@ -342,8 +360,8 @@
   <main id="sample-content">
     <h1>Rail Navigation Performance Sample</h1>
     <p class="sample-note">
-      This page loads the extension content script directly and switches between all three Barcode title preview styles.
-      It generates many headings so hover labels, wave response, active section, and scroll-to-top behavior can be tested locally.
+      This page loads the extension content script directly and switches between the standard TOC and all four Barcode title preview styles.
+      It generates many headings so expansion, pinning, wave response, active section, keyboard navigation, and scroll-to-top behavior can be tested locally.
     </p>
   </main>
   <script>
@@ -374,6 +392,7 @@
 
     toolbar.querySelectorAll('button[data-param][data-value]').forEach((button) => {
       const isActive =
+        (button.dataset.param === 'navigation' && button.dataset.value === sampleNavigation) ||
         (button.dataset.param === 'preview' && button.dataset.value === samplePreview) ||
         (button.dataset.param === 'position' && button.dataset.value === samplePosition) ||
         (button.dataset.param === 'surface' && button.dataset.value === sampleSurface);
@@ -395,7 +414,7 @@
       window.location.href = nextUrl.toString();
     });
   </script>
-  <script src="../catalog.js?sample=barcode-preview-gpt-v1"></script>
-  <script src="../theme.js?sample=barcode-preview-gpt-v1"></script>
+  <script src="../catalog.js?sample=barcode-preview-gpt-v2"></script>
+  <script src="../theme.js?sample=barcode-preview-gpt-v2"></script>
 </body>
 </html>

@@ -1,6 +1,6 @@
 # Chrome Web Store Listing Copy
 
-> Updated: 2026-07-11
+> Updated: 2026-08-12 for v2.14
 > Use for Chrome Web Store title, short description, long description, screenshot captions, and release notes.
 
 ## Positioning
@@ -10,7 +10,7 @@ Smart TOC & Scroll is a lightweight reading navigation extension for long articl
 It provides two navigation types:
 
 - `Standard TOC Panel`: full outline, active-section highlighting, quick heading jumps, and a compact Top action.
-- `Barcode`: a transparent edge rail with subtle hover waves and low-intrusion scroll-to-top. Choose a Wheel window, Spotlight column, or GPT-style scrollable title panel.
+- `Barcode`: a transparent edge rail with subtle hover feedback and low-intrusion scroll-to-top. Choose Wheel, Spotlight, GPT, or a pin-able SSPAI-style outline.
 
 ## Short Description
 
@@ -23,10 +23,11 @@ Smart TOC & Scroll adds lightweight reading navigation to long articles, blogs, 
 It gives you two navigation types for different reading contexts:
 
 - Standard TOC Panel: a full outline with active-section highlighting, quick heading jumps, and a compact Top action.
-- Barcode: a transparent progress rail for immersive long-form reading, with three title previews:
+- Barcode: a transparent progress rail for immersive long-form reading, with four title previews:
   - Wheel: headings move through a fixed observation window.
-  - Spotlight: all visible headings stay aligned with their bars while focus fades through the nearest one or two neighbors.
+  - Spotlight: a compact five-row context window keeps the current heading readable without crowding the article.
   - GPT: the idle rail stays minimal, then hover opens a bordered, scrollable panel containing the complete outline.
+  - SSPAI: slim vertical ticks stay anchored beside the content or viewport edge; hover reveals the outline without moving the ticks, and a pin keeps it open.
 
 Key features:
 
@@ -54,10 +55,11 @@ Smart TOC & Scroll 为长文、博客和文档站点提供轻量阅读导航。
 它提供两种导航类型：
 
 - 标准目录面板：展示完整目录、当前章节高亮、快速标题跳转和紧凑的 Top 回顶操作。
-- Barcode：以透明短横线表达长文结构，悬停时产生柔和延展，并提供三种标题预览：
+- Barcode：以透明边缘刻度表达长文结构，并提供四种标题预览：
   - 滚轮：标题在固定观察窗中滑动。
-  - 聚光灯：所有当前可见标题保持对齐，命中项向上下 1–2 项渐隐扩散。
+  - 聚光灯：以当前项上下各 2 项组成紧凑上下文，减少密集文字遮挡。
   - GPT：平时保持纯条形码，悬停后展开带背景和边框的完整可滚动标题面板。
+  - 少数派：细竖刻度稳定停在正文外侧或屏幕边缘，悬停时刻度不横移；图钉可固定或释放完整大纲。
 
 核心能力：
 
@@ -75,7 +77,7 @@ Smart TOC & Scroll 为长文、博客和文档站点提供轻量阅读导航。
 ## Screenshot Captions
 
 1. Full outline panel for documentation and technical pages.
-2. Barcode GPT opens the complete outline in a compact scrollable hover panel.
+2. SSPAI-style Barcode keeps its vertical ticks stable while revealing a pin-able outline.
 3. Left-side progress outline with mirrored preview placement.
 4. Adaptive contrast on light pages without adding a panel background.
 5. Simple settings for navigation type, Barcode preview, placement, and compatibility.
@@ -93,6 +95,10 @@ Smart TOC & Scroll 为长文、博客和文档站点提供轻量阅读导航。
 
 Smart TOC & Scroll does not upload page content or collect browsing history. Outline detection and interactions run locally, and preferences are stored in the browser.
 
-## Release Note
+## Release Note — v2.14
 
-Added a third Barcode preview named GPT. The rail stays minimal at rest, then opens a bordered, scrollable complete outline with current-row highlighting, automatic reveal, left/right mirroring, and heading jumps. Keyboard navigation now uses a single Tab stop with Arrow, Home, and End controls, while rail hover animation responds more directly with less trailing. Wheel and Spotlight remain available.
+Added a fourth Barcode preview inspired by SSPAI: slim vertical ticks reveal the complete outline on hover, highlight the current section in red, and include a pin button to keep or release the outline. The ticks now stay anchored beside the article when space allows, fall back to the viewport edge on narrow pages, and no longer slide horizontally on hover. Spotlight was also redesigned as a clearer five-row context window with larger type and more breathing room.
+
+## 中文更新说明 — v2.14
+
+新增第四种 Barcode「少数派」预览：常驻细竖刻度，悬停展开完整大纲，当前章节以红色强调，并可用图钉固定或释放。竖刻度现在优先停在正文外侧留白，空间不足时贴近屏幕边缘，hover 时不再横向滑动；聚光灯预览也收敛为更清晰的五行上下文，并提升字号与留白。

@@ -8,14 +8,14 @@
   - `../output/chrome-store/03-left-rail-hover-preview.png`
   - `../output/chrome-store/04-light-page-adaptive-rail.png`
   - `../output/chrome-store/05-options-reading-navigation.png`
-- Rendered implementation: `http://localhost:4174/scroll-to-github-top/`
-- Browser-rendered screenshot evidence: `/private/tmp/smart-toc-lighthouse-final.json` (`audits.final-screenshot.details.data`) plus the Chrome DevTools full-page, viewport, and focused-node captures from this QA run.
+- Rendered implementation: `http://127.0.0.1:5173/scroll-to-github-top/`
+- Browser-rendered screenshot evidence: `/private/tmp/smart-toc-audit/26-home-final-desktop.png`, `/private/tmp/smart-toc-audit/24-modes-sspai-desktop-after.png`, and the route/mobile captures from this QA run.
 - Viewports: 1280 × 800 desktop, 1440 × 1000 desktop, and 390 × 844 mobile.
 - States: home light, home dark, mobile navigation open, all six routes, 404, mode selectors, theme toggle, and FAQ expanded.
 
 ## Full-view comparison evidence
 
-The current 2.13 Barcode screenshot and the rendered hero product image were opened in the same comparison input at the same 1280 × 800 desktop state. The final implementation preserves the source image without redrawing, relabeling, or obscuring it. The surrounding website continues the source system: cool off-white and near-black surfaces, restrained blue accent, system UI typography, compact radii, thin borders, and low-intrusion controls.
+The current Barcode screenshot and the rendered hero product image were opened in the same comparison input at the same 1280 × 800 desktop state. The final implementation preserves the source image without redrawing, relabeling, or obscuring it. The surrounding website continues the source system: cool off-white and near-black surfaces, restrained blue accent, system UI typography, compact radii, thin borders, and low-intrusion controls.
 
 The full homepage was also inspected in light and dark themes. The page hierarchy remains clear, product imagery is sharp, and the call-to-action remains visible without competing with the extension interface.
 
@@ -23,7 +23,7 @@ The full homepage was also inspected in light and dark themes. The page hierarch
 
 Focused comparison was required for the hero product visual because it contains the product-specific typography, rail geometry, current-section label, and back-to-top control. The final focused node capture retains the complete 16:10 source crop, unmodified text, rail position, bar lengths, active line, preview label, and back-to-top control.
 
-The Options screenshot and left/right rail screenshots are reused directly on Features and Modes, so there are no generated or code-drawn substitutes to compare.
+The Options screenshot and live Standard / Wheel / Spotlight / GPT / SSPAI captures are used directly on Features and Modes, so there are no generated or code-drawn substitutes in the shipped site.
 
 ## Required fidelity surfaces
 
@@ -31,14 +31,14 @@ The Options screenshot and left/right rail screenshots are reused directly on Fe
 - Spacing and layout rhythm: passed. Desktop sections use a consistent 1180 px shell; cards, frames, navigation, footer, and mobile menu align to the same spacing scale. No horizontal overflow was found at 1440, 1280, 500, or 390 px.
 - Colors and visual tokens: passed. Light and dark surfaces, blue actions, muted copy, borders, and state colors map to the existing options and rail visual language. The light-theme accent was darkened during QA to pass small-text contrast.
 - Image quality and asset fidelity: passed. All product images are original 1280 × 800 PNG assets from the current extension; no CSS art, placeholder illustration, handcrafted SVG, or generated substitute is used.
-- Copy and content: passed. Feature names, two navigation types, Wheel / Spotlight / GPT behavior, keyboard commands, permissions, local processing, SPA support, and version 2.13 were checked against `manifest.json`, `README.md`, `FEATURE_INVENTORY.md`, and the current screenshots.
+- Copy and content: passed for v2.14. Feature names, two navigation types, Wheel / Spotlight / GPT / SSPAI behavior, keyboard commands, permissions, local processing, and SPA support were checked against `manifest.json`, `README.md`, `FEATURE_INVENTORY.md`, and the current screenshots.
 
 ## Interaction and browser checks
 
 - Desktop and mobile navigation: passed.
 - Direct routes `/`, `/features`, `/modes`, `/guide`, `/privacy`, and `/support`: passed with HTTP 200; unknown routes retain HTTP 404.
 - Theme toggle and local persistence: passed.
-- Home mode tabs and Barcode selector: passed.
+- Home mode tabs and all five experience selectors: passed.
 - FAQ disclosure: passed.
 - Broken loaded images: none.
 - Browser console errors: none.
@@ -91,8 +91,17 @@ None for the requested GitHub Pages release. Chrome Web Store listing publicatio
 - [x] Accessibility and dependency audit issues resolved.
 - [x] GitHub Pages build, static route entry points, and unknown-route fallback configured.
 
+## Iteration 5
+
+- [P1] The homepage still described three Barcode previews after SSPAI became the fourth option.
+  - Fix: updated the hero, FAQ, guide language, and mode selector to reflect the current v2.14 implementation.
+- [P1] The Options page used fixed-height mobile rows, causing the two-column preview control to overlap the next card at 390 px.
+  - Fix: changed mobile rows to content-sized layout, made the interaction choice span the available grid, and returned the footer to normal document flow.
+- [P2] The homepage and Modes page did not visually distinguish all current navigation experiences.
+  - Fix: added dedicated live 1280 × 800 captures for Standard, Wheel, Spotlight, GPT, and SSPAI and connected every selector to its matching image.
+
 ## Follow-up polish
 
-- [P3] A future release could add dedicated current screenshots for Spotlight and GPT instead of representing those modes through verified copy and the shared Barcode screenshot.
+No remaining release-blocking visual issue was found in the current scope.
 
 final result: passed

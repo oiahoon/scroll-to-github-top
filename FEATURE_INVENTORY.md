@@ -1,6 +1,6 @@
 # Smart TOC & Scroll — 功能清单（Feature Inventory）
 
-> **版本**：2.13
+> **版本**：2.14
 > **用途**：本文档记录扩展主要行为、交互、配置项与边界情况，作为后续重构和回归验证的功能基线。
 > **更新日期**：2026-07-10
 
@@ -158,7 +158,7 @@
 
 ### 1.8 Barcode 本地 QA 控制条
 
-**功能描述**：`test-pages/rail-hover-performance.html` 提供固定的 `Rail QA` 控制条，用于在本地页面内切换 Wheel / Spotlight / GPT、rail 位置、surface 和 reduced motion 状态，并同步到 URL 参数。
+**功能描述**：`test-pages/rail-hover-performance.html` 提供固定的 `Rail QA` 控制条，用于在本地页面内切换 Wheel / Spotlight / GPT / SSPAI、rail 位置、surface 和 reduced motion 状态，并同步到 URL 参数。
 
 **用户故事**：作为维护扩展交互体验的开发者，我希望不用手动编辑 URL 就能快速切换 rail 验收场景，以便通过 Chrome/Computer 截图复核镜像方向、局部配色和减少动态效果。
 
@@ -220,6 +220,18 @@
 
 - 完整标题 button 在当前 TOC 生命周期内一次建立并复用；hover 命中只更新旧/新 current row、ARIA、roving tabindex 与必要的 `scrollTop`。
 - `.toc-gpt-preview` 参与局部 surface token，但被主题与内容 MutationObserver 视为扩展自有 DOM。
+
+### 1.11 Barcode / 少数派固定大纲
+
+**功能描述**：`少数派`预览采用少数派风格的文章大纲结构。idle 只显示竖向刻度，hover / focus 展开全部标题，并提供图钉固定。
+
+- Given 用户尚未 hover rail，When 页面处于 idle，Then 标题不可见且每项只显示 2px × 6px 刻度。
+- Given 用户 hover 或聚焦 rail，When 大纲展开，Then 行高为 33px、刻度高 21px，当前章节文字和刻度使用红色强调。
+- Given 用户点击或键盘触发图钉，When 指针离开 rail，Then 大纲继续显示且按钮 `aria-pressed=true`。
+- Given 用户取消固定并移开指针，When 收起完成，Then 标题不可见且刻度仍保持展开前的水平位置。
+- Given rail 位于左侧或右侧，When 大纲展开，Then 标题始终朝正文内侧展开且不越过视口。
+- Given rail 位于右侧，When 大纲展开，Then 每行按“刻度在左、文字在右”排列；位于左侧时该关系水平镜像。
+- Given 用户 hover rail，When 标题从隐藏变为可见，Then 同一刻度的水平坐标不发生变化，且 idle 透明占位不阻挡正文点击。
 
 ---
 
@@ -929,7 +941,7 @@
 | 配置项 | 默认值 | 合法值 | 非法时行为 |
 |---|---|---|---|
 | `themePreset` | `'default'` | `'default' \| 'barcode'` | 重置为 `'default'`；旧 `sspai/glimmer` 自动迁移 |
-| `barcodePreview` | `'wheel'` | `'wheel' \| 'spotlight' \| 'gpt'` | 重置为 `'wheel'` |
+| `barcodePreview` | `'wheel'` | `'wheel' \| 'spotlight' \| 'gpt' \| 'sspai'` | 重置为 `'wheel'` |
 | `expandMode` | `'hover'` | `'hover' \| 'press' \| 'click'` | 重置为 `'hover'` |
 | `minHeaders` | `3` | 有限正数或 0 | 非有限数重置为 3；负数截断为 0 |
 | `showAfterScrollScreens` | `1` | 有限正数或 0 | 非有限数重置为 1；负数截断为 0 |
@@ -944,7 +956,7 @@
 
 - **Manifest 版本**：3
 - **扩展名称**：Smart TOC & Scroll
-- **版本号**：2.13
+- **版本号**：2.14
 - **所需权限**：`activeTab`、`storage`
 - **主机权限**：`<all_urls>`（所有 HTTP/HTTPS 页面）
 - **Options 页面**：`options.html`
@@ -955,4 +967,4 @@
 
 ---
 
-*本文档基于源码分析整理，已按 v2.13 当前行为更新，日期：2026-07-11。*
+*本文档基于源码分析整理，已按 v2.14 当前行为更新，日期：2026-08-12。*

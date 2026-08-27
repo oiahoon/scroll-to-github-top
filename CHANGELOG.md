@@ -7,7 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.14] - 2026-08-12
+
+### Added
+- Barcode 新增 `少数派` 标题预览：idle 使用 2px 竖刻度，hover 后展开完整标题大纲，当前章节以品牌红强调
+- `少数派` 预览新增可访问的图钉按钮，可在当前页面会话内固定或释放文字大纲，并支持左右 rail 与明暗页面自适应
+- `少数派` 竖刻度改为稳定锚定：优先落在正文外侧留白，空间不足时贴近视口边缘；hover 只展开文字，不再横向移动刻度，透明留白也不会拦截正文点击
+
 ### Changed
+- 聚光灯标题从当前可见的密集全列收敛为命中项上下各 2 行的上下文窗口，提升字号、行高和文字留白
 - GitHub Actions 发布链路改为校验、打包并生成 GitHub Release，不再保存凭证或自动调用 Chrome Web Store API
 - 手动工作流产物保留 ZIP 与 SHA-256 30 天；版本 Tag 会校验 Manifest 版本并永久附加产物到 GitHub Release
 - 手动工作流支持通过现有 `release_tag` 修复失败发布，并显式向 GitHub CLI 传递仓库上下文

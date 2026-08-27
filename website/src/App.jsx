@@ -119,7 +119,7 @@ function ScrollManager() {
     const pageMeta = {
       "/": ["Smart TOC & Scroll — 不打扰的长页面阅读导航", "为长文章、文档和 GitHub 页面提供自适应目录、Barcode 阅读进度、标题预览与快速回顶。"],
       "/features": ["功能 — Smart TOC & Scroll", "了解 Smart TOC & Scroll 的目录识别、Barcode、主题自适应、键盘导航与本地处理能力。"],
-      "/modes": ["阅读模式 — Smart TOC & Scroll", "探索标准目录面板，以及 Wheel、Spotlight、GPT 三种 Barcode 标题预览。"],
+      "/modes": ["阅读模式 — Smart TOC & Scroll", "探索标准目录面板，以及 Wheel、Spotlight、GPT、SSPAI 四种 Barcode 标题预览。"],
       "/guide": ["使用指南 — Smart TOC & Scroll", "安装并设置 Smart TOC & Scroll，快速开始长页面阅读导航。"],
       "/privacy": ["隐私 — Smart TOC & Scroll", "了解 Smart TOC & Scroll 的本地页面分析、扩展权限与设置存储方式。"],
       "/support": ["支持 — Smart TOC & Scroll", "查看常见问题、版本下载，并向 Smart TOC & Scroll 提交建议或问题。"],
@@ -226,41 +226,59 @@ function ProductFrame({ src, alt, label, priority = false }) {
 function ModePreview() {
   const modes = [
     {
-      id: "barcode",
-      label: "Barcode",
-      title: "安静时只是进度，靠近时才给出方向",
-      description:
-        "透明 rail 贴近阅读边缘，短横线代表章节。当前段落与附近标题在 hover 时自然显形。",
-      image: "product/02-right-rail-hover-preview.png",
-      alt: "深色长文章右侧的 Barcode 阅读进度 rail 与标题预览",
-    },
-    {
       id: "standard",
       label: "标准目录",
       title: "结构复杂时，展开一张完整地图",
       description:
-        "完整目录面板保留层级、当前章节和快速回顶，适合文档、教程和技术内容。",
-      image: "product/01-standard-toc-panel.png",
+        "完整目录保留标题层级、当前章节和快速回顶，适合文档、教程与技术内容。",
+      image: "product/standard-live.png",
       alt: "浅色长文章右侧展开的标准目录面板",
     },
     {
-      id: "adaptive",
-      label: "自适应",
-      title: "同一套导航，自然融入明暗页面",
+      id: "wheel",
+      label: "滚轮",
+      title: "安静时只是进度，靠近时才给出方向",
       description:
-        "局部背景采样只调整必要的对比度，不给 rail 强加一块笨重的固定底板。",
-      image: "product/04-light-page-adaptive-rail.png",
-      alt: "浅色长文章右侧的自适应 Barcode rail",
+        "标题在固定观察窗里滚动，当前项始终停在稳定焦点位置。",
+      image: "product/wheel-live.png",
+      alt: "深色长文章右侧的 Wheel Barcode 标题预览",
+    },
+    {
+      id: "spotlight",
+      label: "聚光灯",
+      title: "只照亮当前标题与必要的上下文",
+      description:
+        "标题列保持不动，清晰度和亮度沿指针移动，阅读位置不会跳。",
+      image: "product/spotlight-live.png",
+      alt: "深色长文章右侧的 Spotlight Barcode 标题预览",
+    },
+    {
+      id: "gpt",
+      label: "GPT",
+      title: "需要全量标题时，打开可滚动面板",
+      description:
+        "hover 后显示完整标题列表，支持面板滚动与键盘方向导航。",
+      image: "product/gpt-live.png",
+      alt: "深色长文章右侧的 GPT Barcode 完整标题面板",
+    },
+    {
+      id: "sspai",
+      label: "少数派",
+      title: "把可固定的大纲放在正文之外",
+      description:
+        "竖刻度不横移，展开后当前章节使用红色强调，并可用图钉保持大纲。",
+      image: "product/sspai-live.png",
+      alt: "浅色长文章右侧的少数派风格固定大纲",
     },
   ];
-  const [activeId, setActiveId] = useState("barcode");
+  const [activeId, setActiveId] = useState("wheel");
   const active = modes.find((mode) => mode.id === activeId);
 
   return (
     <section className="mode-preview section-shell" aria-labelledby="mode-preview-title">
       <div className="section-heading split-heading">
         <div>
-          <p className="eyebrow">TWO NAVIGATION STYLES</p>
+          <p className="eyebrow">FIVE READING EXPERIENCES</p>
           <h2 id="mode-preview-title">按内容密度选择阅读方式</h2>
         </div>
         <Link className="text-link" to="/modes">
@@ -299,10 +317,6 @@ function HomePage() {
       <main>
         <section className="hero section-shell">
           <div className="hero-copy">
-            <div className="version-chip">
-              <span>v2.13</span>
-              为长文而生的阅读导航
-            </div>
             <h1>
               给长页面一条
               <span>不打扰的阅读路径。</span>
@@ -320,7 +334,7 @@ function HomePage() {
               </Link>
             </div>
             <p className="hero-note">
-              <Check size={16} weight="bold" /> 免费使用 · 正文内容不上传 · Manifest V3
+              <Check size={16} weight="bold" /> v2.14 · 4 种 Barcode 预览 · 正文内容不上传
             </p>
           </div>
 
@@ -338,15 +352,6 @@ function HomePage() {
           </div>
         </section>
 
-        <section className="proof-strip" aria-label="产品能力概览">
-          <div className="section-shell proof-grid">
-            <div><strong>2</strong><span>种导航形态</span></div>
-            <div><strong>3</strong><span>种 Barcode 预览</span></div>
-            <div><strong>0</strong><span>正文云端上传</span></div>
-            <div><strong>MV3</strong><span>Chrome 扩展架构</span></div>
-          </div>
-        </section>
-
         <section className="feature-overview section-shell">
           <div className="section-heading split-heading">
             <div>
@@ -357,7 +362,7 @@ function HomePage() {
               只在需要时出现，尽量避开网页已有目录和回顶控件，让导航成为阅读的一部分。
             </p>
           </div>
-          <div className="feature-card-grid feature-card-grid-three">
+          <div className="feature-editorial-list">
             {featureGroups.slice(0, 3).map((feature) => (
               <FeatureCard key={feature.title} {...feature} />
             ))}
@@ -421,7 +426,7 @@ function FeaturesPage() {
           <h2>把选择留给你，把复杂度留在设置页。</h2>
           <ul className="check-list">
             <li><Check size={18} weight="bold" /> 标准目录与 Barcode 两种导航类型</li>
-            <li><Check size={18} weight="bold" /> Wheel、Spotlight、GPT 三种标题预览</li>
+            <li><Check size={18} weight="bold" /> Wheel、Spotlight、GPT、SSPAI 四种标题预览</li>
             <li><Check size={18} weight="bold" /> 显示阈值、左右位置与禁用域名</li>
             <li><Check size={18} weight="bold" /> 自动避开已有目录，也可强制显示</li>
             <li><Check size={18} weight="bold" /> 明暗系统配色与明确保存状态</li>
@@ -442,18 +447,28 @@ const barcodeModes = [
     number: "01",
     title: "Wheel / 滚轮",
     description: "标题 track 在固定观察窗内滚动，鼠标沿 rail 移动时像机械表日期窗一样切换焦点。",
+    image: "product/wheel-live.png",
   },
   {
     id: "spotlight",
     number: "02",
     title: "Spotlight / 聚光灯",
-    description: "标题列保持稳定，只用亮度与轻微缩放移动焦点；附近 1–2 项自然渐隐。",
+    description: "只显示当前标题与上下各 2 项，用更大字号和留白形成清晰的五行上下文。",
+    image: "product/spotlight-live.png",
   },
   {
     id: "gpt",
     number: "03",
     title: "GPT / 完整面板",
     description: "hover 后展开可滚动标题面板，支持单一 Tab 停靠点与方向键、Home、End 导航。",
+    image: "product/gpt-live.png",
+  },
+  {
+    id: "sspai",
+    number: "04",
+    title: "SSPAI / 固定大纲",
+    description: "竖刻度固定在正文外侧或屏幕边缘，hover 时不横移；当前章节红色强调，并可用图钉固定或释放大纲。",
+    image: "product/sspai-live.png",
   },
 ];
 
@@ -482,7 +497,7 @@ function ModesPage() {
           </ul>
         </div>
         <ProductFrame
-          src="product/01-standard-toc-panel.png"
+          src="product/standard-live.png"
           alt="标准目录面板显示文章章节层级和当前章节"
           label="Standard TOC panel"
         />
@@ -516,8 +531,8 @@ function ModesPage() {
           </div>
         </div>
         <ProductFrame
-          src="product/02-right-rail-hover-preview.png"
-          alt="Barcode 模式在深色长文章右侧显示阅读进度和标题预览"
+          src={active.image}
+          alt={`${active.title} 在长文章右侧显示阅读进度和标题预览`}
           label={`Barcode · ${active.title.split(" /")[0]}`}
         />
       </section>
@@ -561,7 +576,7 @@ const guideSteps = [
   {
     number: "04",
     title: "开始阅读与跳转",
-    description: "hover 或聚焦导航，点击标题跳转；使用 Top 按钮返回页面顶部。设置会自动保存到 Chrome 扩展存储。",
+    description: "hover 或聚焦导航，点击标题跳转；使用 Top 按钮返回页面顶部。调整偏好后点击“保存更改”即可同步到 Chrome 扩展存储。",
   },
 ];
 
@@ -661,7 +676,7 @@ function PrivacyPage() {
 const faqs = [
   ["为什么短页面没有出现导航？", "默认需要页面达到最少标题数与滚动距离。可以在 Options 中调整“最少标题”和“滚动屏数”，或开启强制显示。"],
   ["为什么某些网站会自动跳过？", "扩展会检测页面已有的目录或回顶控件，避免重复干扰。可在兼容策略中关闭自动避让。"],
-  ["Barcode 的三个预览有什么区别？", "Wheel 强调沿 rail 滚动的焦点；Spotlight 展示当前可见标题并渐隐邻项；GPT 展开完整、可滚动且支持键盘的标题面板。"],
+  ["Barcode 的四种预览有什么区别？", "Wheel 强调沿 rail 滚动的焦点；Spotlight 保持标题列稳定并渐隐邻项；GPT 展开完整、可滚动且支持键盘的标题面板；SSPAI 使用竖刻度和红色当前章节，并可固定大纲。"],
   ["动态页面切换后还会更新吗？", "会。扩展监听常见 SPA 生命周期、DOM 变化以及 GitHub 的页面导航事件，在内容结构变化后重建目录。"],
   ["扩展会上传我阅读的内容吗？", "不会。页面结构识别在本地浏览器完成，正文不会发送到开发者服务器。"],
 ];

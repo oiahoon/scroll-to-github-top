@@ -34,6 +34,8 @@
   let tocRailPreview = null;
   let tocSpotlightLayer = null;
   let tocGptPreview = null;
+  let tocSspaiPinButton = null;
+  let isSspaiDirectoryPinned = false;
 
   let longPressTimer = null;
   let longPressTriggered = false;
@@ -81,7 +83,7 @@
 
   const defaultSettings = {
     themePreset: 'default',
-    barcodePreview: 'wheel', // 'wheel' | 'spotlight' | 'gpt'
+    barcodePreview: 'wheel', // 'wheel' | 'spotlight' | 'gpt' | 'sspai'
     expandMode: 'hover', // 'press' | 'hover' | 'click'
     minHeaders: 3,
     showAfterScrollScreens: 1,
@@ -490,7 +492,7 @@
     if (!['default', 'barcode'].includes(normalized.themePreset)) {
       normalized.themePreset = defaultSettings.themePreset;
     }
-    if (!['wheel', 'spotlight', 'gpt'].includes(normalized.barcodePreview)) {
+    if (!['wheel', 'spotlight', 'gpt', 'sspai'].includes(normalized.barcodePreview)) {
       normalized.barcodePreview = defaultSettings.barcodePreview;
     }
     if (!['left', 'right'].includes(normalized.position)) {
@@ -553,6 +555,35 @@
 
   function isGptPreview() {
     return isBarcodePreset() && settings.barcodePreview === 'gpt';
+  }
+
+  function isSspaiPreview() {
+    return isBarcodePreset() && settings.barcodePreview === 'sspai';
+  }
+
+  function updateSspaiRailAnchor() {
+    if (!isSspaiPreview() || !tocContainer || !contentContainer) return;
+
+    const viewportWidth = Math.max(window.innerWidth, 1);
+    const contentRect = contentContainer.getBoundingClientRect();
+    const edgeGap = viewportWidth <= 767 ? 6 : 24;
+    const contentGap = 12;
+    const minimumRailWidth = 190;
+    const isLeft = tocContainer.classList.contains('position-left');
+    const availableGap = isLeft ? contentRect.left : viewportWidth - contentRect.right;
+    const availableRailWidth = Math.floor(availableGap - contentGap - edgeGap);
+    const canUseContentMargin = viewportWidth > 767 && availableRailWidth >= minimumRailWidth;
+
+    if (canUseContentMargin) {
+      tocContainer.style.setProperty('--toc-sspai-edge-offset', `${edgeGap}px`);
+      tocContainer.style.setProperty('--toc-sspai-width', `${Math.min(278, availableRailWidth)}px`);
+      tocContainer.dataset.sspaiAnchor = 'content-margin';
+      return;
+    }
+
+    tocContainer.style.setProperty('--toc-sspai-edge-offset', `${edgeGap}px`);
+    tocContainer.style.setProperty('--toc-sspai-width', '30px');
+    tocContainer.dataset.sspaiAnchor = 'viewport-edge';
   }
 
   function isRailPreset() {
@@ -622,6 +653,16 @@
       tocGptPreview.setAttribute('aria-label', '文章标题预览');
       tocGptPreview.setAttribute('aria-hidden', 'true');
       document.body.appendChild(tocGptPreview);
+    }
+
+    if (isSspaiPreview()) {
+      tocSspaiPinButton = document.createElement('button');
+      tocSspaiPinButton.type = 'button';
+      tocSspaiPinButton.className = 'toc-sspai-pin';
+      tocSspaiPinButton.setAttribute('aria-label', '固定文字大纲');
+      tocSspaiPinButton.setAttribute('aria-pressed', 'false');
+      tocSspaiPinButton.innerHTML = '<svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M15.8 4.2l4 4-2.15 2.15-1.05-1.05-3.25 3.25v3.05l-1.4 1.4-2.7-2.7-4.55 4.55-1.4-1.4 4.55-4.55-2.7-2.7 1.4-1.4h3.05l3.25-3.25L11.8 4.5l2.15-2.15 1.85 1.85z"/></svg>';
+      tocContainer.appendChild(tocSspaiPinButton);
     }
 
     scrollTopButton = document.createElement('button');
@@ -885,6 +926,7 @@
     activeHeaderHoldUntil = 0;
     activeHeaderHoldId = null;
     lastTocVisibility = null;
+    isSspaiDirectoryPinned = false;
   }
 
   function ensureUiMounted() {
@@ -1460,6 +1502,30 @@
     return { a, headerId };
   }
 
+  function setSspaiDirectoryPinned(pinned) {
+    if (!isSspaiPreview() || !tocContainer) return;
+    isSspaiDirectoryPinned = Boolean(pinned);
+    tocContainer.classList.toggle('is-directory-pinned', isSspaiDirectoryPinned);
+    tocContainer.setAttribute('data-directory-pinned', String(isSspaiDirectoryPinned));
+    if (tocSspaiPinButton) {
+      tocSspaiPinButton.classList.toggle('is-pinned', isSspaiDirectoryPinned);
+      tocSspaiPinButton.setAttribute('aria-pressed', String(isSspaiDirectoryPinned));
+      tocSspaiPinButton.setAttribute('aria-label', isSspaiDirectoryPinned ? '取消固定文字大纲' : '固定文字大纲');
+      if (!isSspaiDirectoryPinned && tocSspaiPinButton.matches(':focus')) {
+        tocSspaiPinButton.blur();
+      }
+    }
+    if (isSspaiDirectoryPinned) {
+      railPointerInside = true;
+      if (railPointerExitTimer) {
+        window.clearTimeout(railPointerExitTimer);
+        railPointerExitTimer = null;
+      }
+      clearHoverTimers();
+      toggleExpanded(true);
+    }
+  }
+
   function primeRailPostClickHoldFromLink(link) {
     if (!isRailPreset() || !link) return;
 
@@ -1886,6 +1952,7 @@
       const nextContainer = findContentContainer();
       const containerChanged = nextContainer !== contentContainer;
       contentContainer = nextContainer;
+      updateSspaiRailAnchor();
 
       if (containerChanged || !observer) {
         setupObserver();
@@ -1897,6 +1964,7 @@
 
   function initialize() {
     contentContainer = findContentContainer();
+    updateSspaiRailAnchor();
     setupObserver();
     setupHistoryListener();
     setupGitHubListener();
@@ -1999,6 +2067,7 @@
     }
 
     function scheduleRailPointerExit() {
+      if (isSspaiDirectoryPinned) return;
       if (railPointerExitTimer) return;
       railPointerExitTimer = window.setTimeout(() => {
         railPointerExitTimer = null;
@@ -2154,20 +2223,32 @@
         refreshRailWaveLayout();
       }
       const layoutByItem = new Map(railWaveLayout.map((entry) => [entry.item, entry]));
-      const railRect = tocContainer.getBoundingClientRect();
       const isLeft = tocContainer.classList.contains('position-left');
+      const contextStart = Math.max(0, currentIndex - railPreviewContextRadius);
+      const contextEnd = Math.min(rows.length - 1, currentIndex + railPreviewContextRadius);
+      const currentLayout = layoutByItem.get(item);
+      const spotlightRowStep = 30;
+      const viewportPadding = 20;
+      const rowsBefore = currentIndex - contextStart;
+      const rowsAfter = contextEnd - currentIndex;
+      const minCenterY = viewportPadding + rowsBefore * spotlightRowStep;
+      const maxCenterY = window.innerHeight - viewportPadding - rowsAfter * spotlightRowStep;
+      const contextCenterY = currentLayout
+        ? clampNumber(currentLayout.centerY, minCenterY, maxCenterY)
+        : window.innerHeight / 2;
+
       rows.forEach(({ item: railItem, row }, index) => {
         const distance = Math.abs(index - currentIndex);
         const distanceClass = distance <= railPreviewContextRadius ? `distance-${distance}` : 'distance-far';
         const layout = layoutByItem.get(railItem);
-        const isVisible = layout && layout.centerY >= railRect.top && layout.centerY <= railRect.bottom;
+        const isVisible = layout && index >= contextStart && index <= contextEnd;
         if (!isVisible) {
           row.className = `toc-spotlight-row ${isLeft ? 'position-left' : 'position-right'}`;
           return;
         }
 
         row.className = `toc-spotlight-row is-visible ${distanceClass} ${isLeft ? 'position-left' : 'position-right'}`;
-        row.style.top = `${layout.centerY}px`;
+        row.style.top = `${contextCenterY + (index - currentIndex) * spotlightRowStep}px`;
         if (isLeft) {
           row.style.left = `${layout.previewEdge + railPreviewGap}px`;
           row.style.right = 'auto';
@@ -2514,6 +2595,14 @@
       railWaveLayout = [];
     }
 
+    if (tocSspaiPinButton) {
+      tocSspaiPinButton.addEventListener('click', (event) => {
+        event.preventDefault();
+        event.stopPropagation();
+        setSspaiDirectoryPinned(!isSspaiDirectoryPinned);
+      });
+    }
+
     function updateRailWave(pointerY) {
       if (!tocList) return;
 
@@ -2664,6 +2753,7 @@
 
     function handleRailDocumentPointerMove(event) {
       scheduleScrollTopProximity(event);
+      if (isSspaiDirectoryPinned) return;
       if ((!isSpotlightPreview() && !isGptPreview()) || !railPreviewItem) return;
       const target = event.target;
       if (tocContainer.contains(target) || tocSpotlightLayer?.contains(target) || tocGptPreview?.contains(target)) {
@@ -2689,6 +2779,7 @@
     });
     tocContainer.addEventListener('pointermove', scheduleRailWave);
     tocContainer.addEventListener('pointerleave', (event) => {
+      if (isSspaiDirectoryPinned) return;
       if (
         (isSpotlightPreview() && tocSpotlightLayer?.contains(event.relatedTarget)) ||
         (isGptPreview() && tocGptPreview?.contains(event.relatedTarget))
@@ -2712,6 +2803,11 @@
       if (isWheelPreview()) {
         positionRailPreview(item);
       }
+    });
+    tocContainer.addEventListener('keydown', (event) => {
+      if (!isSspaiPreview() || event.key !== 'Escape' || !isSspaiDirectoryPinned) return;
+      event.preventDefault();
+      setSspaiDirectoryPinned(false);
     });
 
     if (tocSpotlightLayer) {
@@ -2779,6 +2875,7 @@
       });
     }
     tocContainer.addEventListener('focusout', (e) => {
+      if (isSspaiDirectoryPinned) return;
       if (!tocContainer.contains(e.relatedTarget) && !tocGptPreview?.contains(e.relatedTarget)) {
         clearRailPostClickHold();
         resetRailWave();
@@ -2805,6 +2902,7 @@
 
     window.addEventListener('resize', () => {
       railWaveLayout = [];
+      updateSspaiRailAnchor();
       if (isSpotlightPreview() || isGptPreview()) {
         setRailPreviewItem(null);
       }

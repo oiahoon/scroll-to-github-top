@@ -1,8 +1,8 @@
 # Smart TOC & Scroll
 
-一个面向长文与文档站点的 Chrome 扩展，为网页提供轻量阅读导航。当前提供两种导航类型：`标准目录面板` 与 `Barcode`；Barcode 可进一步选择`滚轮`、`聚光灯`或`GPT`标题预览。扩展支持主题自适应、hover 标题预览、已有控件避让与 SPA 页面更新，并提供平滑回顶能力。
+一个面向长文与文档站点的 Chrome 扩展，为网页提供轻量阅读导航。当前提供两种导航类型：`标准目录面板` 与 `Barcode`；Barcode 可进一步选择`滚轮`、`聚光灯`、`GPT`或`少数派`标题预览。扩展支持主题自适应、hover 标题预览、已有控件避让与 SPA 页面更新，并提供平滑回顶能力。
 
-当前版本：`2.13`（Manifest V3）。
+当前版本：`2.14`（Manifest V3）。
 
 官方网站：[https://oiahoon.github.io/scroll-to-github-top/](https://oiahoon.github.io/scroll-to-github-top/)
 
@@ -39,6 +39,7 @@
     - `滚轮`：标题在固定观察窗内滚动，当前项进入固定焦点位置
     - `聚光灯`：hover 时显示当前可见的完整标题列；命中项最清晰，高亮向上下各 1–2 项渐隐，不使用边框
     - `GPT`：idle 保留纯条形码；hover 时展开带背景和边框的完整标题面板，支持面板内滚动与标题跳转
+    - `少数派`：idle 保留固定在正文外侧或屏幕边缘的 2px 竖刻度；hover 后按 33px 行高展开完整标题且刻度不横移，当前章节红色高亮，并可用图钉固定或释放大纲
 
 - 性能监控
   - 实时监控目录生成性能
@@ -106,7 +107,7 @@
 
 在扩展管理页中打开“扩展程序选项”，可配置：
 - 导航类型：标准目录面板、Barcode
-- Barcode 标题预览：滚轮、聚光灯、GPT
+- Barcode 标题预览：滚轮、聚光灯、GPT、少数派
 - 展开方式：推荐：悬停预览、点击开关、高级：短按回顶 / 长按展开
 - TOC 显示条件：滚动到指定屏幕数后显示、最少标题数量
 - 浮层位置：左下角 / 右下角
@@ -136,7 +137,7 @@
   - `window.__SMART_TOC_LAST_SKIP__`
   - `window.__SMART_TOC_WIDGET_DIAGNOSTICS__`
   - `window.__SMART_TOC_INSPECT_WIDGETS__()`
-- Barcode 视觉调试可使用 `test-pages/rail-hover-performance.html?preview=gpt&position=right&surface=dark`；`preview=wheel/spotlight/gpt` 切换三种预览，`position=left/right`、`surface=light/dark/color/lightstrip`、`motion=reduce` 用于复核镜像方向、局部配色与减少动态效果。
+- Barcode 视觉调试可使用 `test-pages/rail-hover-performance.html?preview=sspai&position=right&surface=dark`；`preview=wheel/spotlight/gpt/sspai` 切换四种预览，`position=left/right`、`surface=light/dark/color/lightstrip`、`motion=reduce` 用于复核镜像方向、局部配色与减少动态效果。
 - 该测试页顶部提供 `Rail QA` 控制条，可直接切换模式、位置、surface 与减少动态效果状态，便于截图审阅和回归。
 - 兼容性检测会优先区分“侧栏导航”和“正文内小目录”，减少误跳过
 

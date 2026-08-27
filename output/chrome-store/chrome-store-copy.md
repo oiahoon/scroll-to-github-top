@@ -1,6 +1,6 @@
 # Chrome Web Store Listing Copy
 
-Updated: 2026-07-10
+Updated: 2026-08-12 for v2.14
 
 ## Short Description
 
@@ -13,7 +13,7 @@ Smart TOC & Scroll adds lightweight reading navigation to long articles, blogs, 
 It gives you two navigation styles for different reading contexts:
 
 - Standard TOC Panel: a full outline with active-section highlighting, quick heading jumps, and a compact Top action.
-- Reading Progress Outline: a transparent progress rail for immersive long-form reading, with subtle hover waves and title previews that appear outside the rail.
+- Barcode: a transparent progress rail for immersive long-form reading, with Wheel, Spotlight, GPT, and a pin-able SSPAI-style outline.
 
 Key features:
 
@@ -31,7 +31,7 @@ Built for readers who want a clear sense of place without adding clutter to ever
 ## Screenshot Captions
 
 1. Full outline panel for documentation and technical pages.
-2. Hover preview and progress wave for long-form reading.
+2. SSPAI-style Barcode keeps its vertical ticks stable while revealing a pin-able outline.
 3. Left-side progress outline with mirrored preview placement.
 4. Adaptive contrast on light pages without adding a panel background.
 5. Simple settings for style, placement, compatibility, and appearance.
@@ -53,7 +53,7 @@ Smart TOC & Scroll 为长文、博客和文档站点提供轻量阅读导航。
 它提供两种互补的导航方式：
 
 - 标准目录面板：展示完整目录、当前章节高亮、快速标题跳转和紧凑的 Top 回顶操作。
-- 阅读进度目录：以透明短横线表达长文结构，悬停时产生柔和延展，并在 rail 外侧显示标题预览。
+- Barcode：提供滚轮、聚光灯、GPT 与少数派四种标题预览；少数派模式使用固定竖刻度并支持图钉固定完整大纲。
 
 核心能力：
 
@@ -68,6 +68,10 @@ Smart TOC & Scroll 为长文、博客和文档站点提供轻量阅读导航。
 
 适合希望在不打断阅读的前提下，快速掌握长文结构和当前位置的用户。
 
-## Release Note
+## Release Note — v2.14
 
-Improved the reading progress outline with smoother hover behavior, stable preview placement, transparent rail styling, and subtle adaptive contrast for different page surfaces. The settings page also has shorter Chinese copy, a sticky save area, and clearer dark-mode selection states.
+Added a fourth Barcode preview inspired by SSPAI: slim vertical ticks reveal the complete outline on hover, highlight the current section in red, and include a pin button. Ticks stay anchored beside the article when space allows, fall back to the viewport edge on narrow pages, and no longer slide horizontally on hover. Spotlight now uses a clearer five-row context window with larger type and more breathing room.
+
+## 中文更新说明 — v2.14
+
+新增第四种 Barcode「少数派」预览：悬停展开完整大纲、当前章节红色强调，并支持图钉固定。竖刻度优先停在正文外侧，空间不足时贴近屏幕边缘，hover 时不再横向滑动；聚光灯也调整为更清晰的五行上下文。

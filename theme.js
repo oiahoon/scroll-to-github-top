@@ -21,7 +21,7 @@
     if (!['default', 'barcode'].includes(normalized.themePreset)) {
       normalized.themePreset = defaultSettings.themePreset;
     }
-    if (!['wheel', 'spotlight', 'gpt'].includes(normalized.barcodePreview)) {
+    if (!['wheel', 'spotlight', 'gpt', 'sspai'].includes(normalized.barcodePreview)) {
       normalized.barcodePreview = defaultSettings.barcodePreview;
     }
     return normalized;
@@ -124,6 +124,7 @@
     'theme-preview-wheel',
     'theme-preview-spotlight',
     'theme-preview-gpt',
+    'theme-preview-sspai',
     'theme-preset-sspai',
     'theme-preset-glimmer'
   ];

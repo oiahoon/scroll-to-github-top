@@ -1,8 +1,8 @@
 # Smart TOC & Scroll — UI/UX 优化设计规范
 
-> **版本**：v2.13 当前落地参考版
+> **版本**：v2.14 当前落地参考版
 > **更新日期**：2026-07-10
-> **说明**：本文保留 v2.2 基线问题分析，并汇总 v2.5–v2.13 已落地的 rail、主题和 Options 视觉决策；标注“需补充”的条目仍属于后续 backlog。
+> **说明**：本文保留 v2.2 基线问题分析，并汇总 v2.5–v2.14 已落地的 rail、主题和 Options 视觉决策；标注“需补充”的条目仍属于后续 backlog。
 > **适用文件**：toc.css、themes.css、options.html、options.css
 
 ---
@@ -95,7 +95,7 @@
 
 ### 2.3 Barcode 结构
 
-`Barcode` 不使用标准展开面板，而是由透明 rail、短横线 item、独立回顶按钮和 body-level 标题预览组成；`barcodePreview` 决定使用滚轮、聚光灯或 GPT：
+`Barcode` 不使用标准展开面板，而是由透明 rail、短横线 item、独立回顶按钮和标题预览组成；`barcodePreview` 决定使用滚轮、聚光灯、GPT 或少数派：
 
 ```
 #github-toc.github-toc.theme-preset-barcode
@@ -127,6 +127,7 @@ body
 
 body
 └── .toc-gpt-preview.theme-preview-gpt ← GPT：fixed 完整标题浮层
+└── #github-toc.theme-preview-sspai    ← 少数派：rail 内完整标题与图钉
     └── .toc-gpt-preview-list           ← 内部独立滚动
         ├── button.toc-gpt-preview-row
         ├── button.toc-gpt-preview-row.is-current
@@ -200,6 +201,16 @@ body
 - dark surface 使用接近 `rgba(48, 48, 48, 0.97)` 的面板底色；light surface 使用接近白色的高不透明底色，文字继续由局部主题 token 控制。
 - reduced motion 下关闭面板和内部 row 的过渡；滚动、键盘 focus 与标题跳转保持可用。
 
+#### 2.3.4 Barcode / 少数派固定大纲契约
+
+- idle 时仅显示 2px × 6px 竖向刻度，标题保持不可见。
+- hover 或 focus-within 后，每行扩展到 33px，刻度高度增长到 21px，完整标题在刻度内侧显示。
+- 二级及更深标题额外缩进 16px；当前章节的刻度和文字使用 `#e6242f`。
+- 右侧 rail 使用“刻度在左、文字在右”的源码排列；左侧 rail 镜像为“文字在左、刻度在右”。
+- 展开前后刻度的水平锚点必须保持不变；透明留白不得拦截宿主页面点击。窄视口空间不足时，刻度固定在屏幕边缘并允许文字朝页面内侧展开。
+- 图钉按钮仅在展开时出现，使用原生 button、`aria-pressed` 与动态可访问名称；固定状态只属于当前页面会话。
+- 固定后鼠标离开仍保持完整大纲；取消固定并移开后仅隐藏标题，刻度继续保持原水平锚点。
+
 ### 2.4 设置页面结构
 
 ```
@@ -211,7 +222,7 @@ body
         │   └── p.page-subtitle
         ├── .settings-list
         │   ├── section.setting-row  (导航类型：标准目录面板 / Barcode)
-        │   ├── section.setting-row  (Barcode 标题预览：滚轮 / 聚光灯 / GPT，条件显示)
+        │   ├── section.setting-row  (Barcode 标题预览：滚轮 / 聚光灯 / GPT / 少数派，条件显示)
         │   ├── section.setting-row  (标准面板交互方式，条件显示)
         │   ├── section.setting-row  (显示条件)
         │   ├── section.setting-row  (位置)
@@ -1497,4 +1508,4 @@ max-height：min(480px, calc(100vh - 64px))
 
 ---
 
-*本规范基于 Smart TOC & Scroll v2.2 基线问题分析形成，并已按 v2.13 当前落地状态整理，日期：2026-07-11。*
+*本规范基于 Smart TOC & Scroll v2.2 基线问题分析形成，并已按 v2.14 当前落地状态整理，日期：2026-08-12。*
