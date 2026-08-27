@@ -1,5 +1,5 @@
 /* =============================================
-   Smart TOC & Scroll — 主组件样式 v2.15
+   Smart TOC & Scroll — 主组件样式 v2.16
    设计规范：UI_DESIGN_SPEC.md §3-§6、§11
    ============================================= */
 
@@ -551,8 +551,8 @@
 .github-toc .toc-item.active > a {
   color: var(--toc-accent, var(--toc-text-active, #0969da)) !important;
   background: var(--toc-highlight-active, rgba(9,105,218,0.08)) !important;
-  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--toc-accent, #0969da) 10%, transparent);
-  font-weight: 500 !important;
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--toc-accent, #0969da) 8%, transparent);
+  font-weight: 600 !important;
 }
 
 /* === 全局 focus-visible 保护（确保不被宿主页面 outline:none 污染） === */
@@ -852,7 +852,7 @@
   --toc-rail-focus-opacity: 0;
   --toc-rail-track-y: 0px;
   box-sizing: border-box;
-  width: min(260px, calc(100vw - 96px));
+  width: min(242px, calc(100vw - 96px));
   height: 174px;
   padding: 4px;
   border: 0;
@@ -935,12 +935,12 @@
   right: 0;
   left: 0;
   height: 30px;
-  border: 1px solid color-mix(in srgb, var(--toc-accent, #0969da) 20%, var(--toc-rail-preview-border, var(--toc-rail-top-border)));
+  border: 1px solid transparent;
   border-radius: 8px;
   background: transparent;
   box-shadow:
-    0 6px 16px color-mix(in srgb, var(--toc-accent, #0969da) 5%, transparent),
-    inset 2px 0 0 color-mix(in srgb, var(--toc-accent, #0969da) 70%, transparent);
+    0 6px 18px color-mix(in srgb, #000 12%, transparent),
+    inset 2px 0 0 color-mix(in srgb, var(--toc-accent, #0969da) 82%, transparent);
   opacity: var(--toc-rail-focus-opacity);
   pointer-events: none;
   transform: translate3d(0, var(--toc-rail-focus-y), 0);
@@ -949,6 +949,12 @@
     transform 0.22s cubic-bezier(0.22, 1.18, 0.36, 1),
     border-color 0.16s ease,
     box-shadow 0.16s ease;
+}
+
+.toc-rail-preview.theme-preview-wheel.position-right .toc-rail-preview-focus {
+  box-shadow:
+    0 6px 18px color-mix(in srgb, #000 12%, transparent),
+    inset -2px 0 0 color-mix(in srgb, var(--toc-accent, #0969da) 82%, transparent);
 }
 
 .toc-rail-preview.theme-preview-wheel .toc-rail-preview-focus.is-bouncing {
@@ -968,9 +974,9 @@
 }
 
 .toc-rail-preview.theme-preview-wheel .toc-rail-preview-row {
-  --preview-row-opacity: 0.42;
-  --preview-row-scale: 0.96;
-  --preview-row-bg: color-mix(in srgb, var(--toc-rail-preview-bg, var(--toc-rail-top-bg-hover)) 88%, transparent);
+  --preview-row-opacity: 0.34;
+  --preview-row-scale: 0.95;
+  --preview-row-bg: color-mix(in srgb, var(--toc-rail-preview-bg, var(--toc-rail-top-bg-hover)) 76%, transparent);
 
   box-sizing: border-box;
   position: relative;
@@ -1046,23 +1052,24 @@
 .toc-rail-preview.theme-preview-wheel .toc-rail-preview-row.is-current {
   --preview-row-opacity: 1;
   --preview-row-scale: 1;
-  --preview-row-bg: color-mix(in srgb, var(--toc-accent, #0969da) 11%, var(--toc-rail-preview-bg, var(--toc-rail-top-bg-hover)));
-  box-shadow: 0 5px 14px color-mix(in srgb, #000 10%, transparent);
+  --preview-row-bg: color-mix(in srgb, var(--toc-accent, #0969da) 12%, var(--toc-rail-preview-bg, var(--toc-rail-top-bg-hover)));
+  box-shadow: 0 5px 16px color-mix(in srgb, #000 12%, transparent);
+  font-weight: 650 !important;
 }
 
 .toc-rail-preview.theme-preview-wheel .toc-rail-preview-row.distance-1 {
-  --preview-row-opacity: 0.74;
-  --preview-row-scale: 0.985;
+  --preview-row-opacity: 0.62;
+  --preview-row-scale: 0.98;
 }
 
 .toc-rail-preview.theme-preview-wheel .toc-rail-preview-row.distance-2 {
-  --preview-row-opacity: 0.42;
-  --preview-row-scale: 0.955;
+  --preview-row-opacity: 0.3;
+  --preview-row-scale: 0.95;
 }
 
 .toc-rail-preview.theme-preview-wheel .toc-rail-preview-row.distance-far {
-  --preview-row-opacity: 0.2;
-  --preview-row-scale: 0.94;
+  --preview-row-opacity: 0.12;
+  --preview-row-scale: 0.92;
 }
 
 .toc-rail-preview.theme-preview-wheel .toc-rail-preview-text {
@@ -1160,7 +1167,7 @@
   box-sizing: border-box;
   position: fixed;
   display: block;
-  width: max-content;
+  width: min(246px, calc(100vw - 128px));
   overflow: visible;
   opacity: 0;
   pointer-events: none;
@@ -1177,14 +1184,15 @@
 .toc-spotlight-text {
   box-sizing: border-box;
   display: block;
-  max-width: min(270px, calc(100vw - 128px));
+  width: 100%;
+  max-width: min(246px, calc(100vw - 128px));
   min-height: 28px;
   padding: 5px 10px;
   overflow: hidden;
   border: 0;
   border-radius: 6px;
-  background: color-mix(in srgb, var(--toc-rail-preview-bg, var(--toc-bg-fallback)) 62%, transparent);
-  box-shadow: 0 2px 10px color-mix(in srgb, #000 6%, transparent);
+  background: color-mix(in srgb, var(--toc-rail-preview-bg, var(--toc-bg-fallback)) 72%, transparent);
+  box-shadow: 0 2px 10px color-mix(in srgb, #000 5%, transparent);
   color: var(--toc-rail-label-active) !important;
   font-family: "Roboto", "Segoe UI", "Arial", "Helvetica Neue", Arial, sans-serif !important;
   font-size: 12px !important;
@@ -1229,21 +1237,34 @@
 }
 
 .toc-spotlight-row.distance-0 .toc-spotlight-text {
-  background: color-mix(in srgb, var(--toc-accent, #0969da) 12%, var(--toc-rail-preview-bg, var(--toc-bg-fallback)));
+  display: -webkit-box;
+  max-height: 44px;
+  background: color-mix(in srgb, var(--toc-accent, #0969da) 13%, var(--toc-rail-preview-bg, var(--toc-bg-fallback)));
   box-shadow:
     inset 2px 0 0 var(--toc-accent, #0969da),
     0 5px 16px color-mix(in srgb, #000 10%, transparent);
+  color: var(--toc-accent, #58a6ff) !important;
+  font-size: 13px !important;
   font-weight: 650 !important;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  white-space: normal;
+}
+
+.toc-spotlight-row.position-right.distance-0 .toc-spotlight-text {
+  box-shadow:
+    inset -2px 0 0 var(--toc-accent, #0969da),
+    0 5px 16px color-mix(in srgb, #000 10%, transparent);
 }
 
 .toc-spotlight-row.distance-1 {
-  --toc-spotlight-label-opacity: 0.48;
-  --toc-spotlight-label-scale: 0.99;
+  --toc-spotlight-label-opacity: 0.42;
+  --toc-spotlight-label-scale: 0.985;
 }
 
 .toc-spotlight-row.distance-2 {
-  --toc-spotlight-label-opacity: 0.18;
-  --toc-spotlight-label-scale: 0.98;
+  --toc-spotlight-label-opacity: 0.14;
+  --toc-spotlight-label-scale: 0.97;
 }
 
 .toc-spotlight-row.distance-far {
@@ -1423,10 +1444,14 @@
 }
 
 .toc-gpt-preview-row.is-current {
-  background: color-mix(in srgb, currentColor 13%, transparent);
+  background: color-mix(in srgb, currentColor 15%, transparent);
   box-shadow: inset 2px 0 0 var(--toc-accent, #0969da);
   color: var(--toc-accent, #58a6ff) !important;
   font-weight: 650 !important;
+}
+
+.toc-gpt-preview.position-right .toc-gpt-preview-row.is-current {
+  box-shadow: inset -2px 0 0 var(--toc-accent, #0969da);
 }
 
 .toc-gpt-preview-text {
@@ -1445,7 +1470,7 @@
 .github-toc.theme-preset-rail.theme-preview-sspai {
   --toc-sspai-accent: #e6242f;
   --toc-sspai-edge-offset: 24px;
-  --toc-sspai-width: min(310px, calc(100vw - 48px));
+  --toc-sspai-width: min(252px, calc(100vw - 48px));
   --toc-sspai-label-width: calc(var(--toc-sspai-width) - 34px);
   width: var(--toc-sspai-width);
   pointer-events: none;
@@ -1688,7 +1713,7 @@
 }
 
 .github-toc.theme-preset-rail.theme-preview-sspai .toc-sspai-pin:focus-visible {
-  outline: 2px solid var(--toc-sspai-accent);
+  outline: 2px solid var(--toc-sspai-accent) !important;
   outline-offset: 2px;
 }
 
@@ -1901,9 +1926,19 @@
     left: 8px;
   }
 
+  .toc-rail-preview.theme-preview-wheel {
+    width: min(210px, calc(100vw - 76px));
+  }
+
+  .toc-spotlight-row,
+  .toc-spotlight-text {
+    width: min(210px, calc(100vw - 76px));
+    max-width: min(210px, calc(100vw - 76px));
+  }
+
   .github-toc.theme-preset-rail.theme-preview-sspai {
     --toc-sspai-width: 30px;
-    --toc-sspai-label-width: min(226px, calc(100vw - 80px));
+    --toc-sspai-label-width: min(210px, calc(100vw - 80px));
   }
 
   .github-toc.theme-preset-rail.theme-preview-sspai.position-right .toc-list,

@@ -576,7 +576,7 @@
 
     if (canUseContentMargin) {
       tocContainer.style.setProperty('--toc-sspai-edge-offset', `${edgeGap}px`);
-      tocContainer.style.setProperty('--toc-sspai-width', `${Math.min(278, availableRailWidth)}px`);
+      tocContainer.style.setProperty('--toc-sspai-width', `${Math.min(252, availableRailWidth)}px`);
       tocContainer.dataset.sspaiAnchor = 'content-margin';
       return;
     }
@@ -1098,6 +1098,7 @@
         tone: 'light-surface',
         luminance,
         vars: {
+          '--toc-accent': '#0969da',
           '--toc-rail-line': 'rgba(15, 23, 42, 0.22)',
           '--toc-rail-line-hover': 'rgba(15, 23, 42, 0.38)',
           '--toc-rail-line-active': 'rgba(15, 23, 42, 0.74)',
@@ -1118,6 +1119,7 @@
       tone: 'dark-surface',
       luminance,
       vars: {
+        '--toc-accent': '#58a6ff',
         '--toc-rail-line': 'rgba(255, 255, 255, 0.22)',
         '--toc-rail-line-hover': 'rgba(255, 255, 255, 0.42)',
         '--toc-rail-line-active': 'rgba(255, 255, 255, 0.88)',
@@ -2269,7 +2271,7 @@
       const contextStart = Math.max(0, currentIndex - railPreviewContextRadius);
       const contextEnd = Math.min(rows.length - 1, currentIndex + railPreviewContextRadius);
       const currentLayout = layoutByItem.get(item);
-      const spotlightRowStep = 30;
+      const spotlightRowStep = 36;
       const viewportPadding = 20;
       const rowsBefore = currentIndex - contextStart;
       const rowsAfter = contextEnd - currentIndex;

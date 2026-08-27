@@ -224,7 +224,7 @@ for (const [name, content] of Object.entries(files)) {
 
 const copy = `# Chrome Web Store Listing Copy
 
-Updated: 2026-08-27 for v2.15
+Updated: 2026-08-28 for v2.16
 
 ## Short Description
 
@@ -292,13 +292,13 @@ Smart TOC & Scroll 为长文、博客和文档站点提供轻量阅读导航。
 
 适合希望在不打断阅读的前提下，快速掌握长文结构和当前位置的用户。
 
-## Release Note — v2.15
+## Release Note — v2.16
 
-Polished all five navigation experiences. Standard TOC now blends with light and dark article surfaces and keeps the item count and active section visible. Wheel uses a softer focus band, Spotlight has a clearer compact focus hierarchy, GPT adds an OUTLINE header, item count, and stronger current-position marker, and SSPAI improves pin visibility and active-title feedback. The settings page now presents all four Barcode previews in a clearer 2 × 2 selector with improved keyboard focus and responsive spacing.
+Refined all five navigation experiences around low-interruption reading. Barcode previews now adapt their blue accent correctly on dark pages. Wheel is narrower and removes the heavy focus outline, Spotlight is a clearly distinct five-item context with a readable two-line current title, GPT improves current-row contrast, and SSPAI keeps its red focus language while using available page margins. High-frequency Wheel and Spotlight layers avoid backdrop blur, mobile preview width is reduced, and Settings adds clearer accessible descriptions and keyboard-only focus treatment.
 
-## 中文更新说明 — v2.15
+## 中文更新说明 — v2.16
 
-全面打磨五种导航体验：标准目录会融入页面明暗背景并持续显示条目数和当前章节；滚轮改用更柔和的焦点带；聚光灯建立更清晰的五行聚焦层级；GPT 增加 OUTLINE 标题、条目数和当前位置标记；少数派提升图钉可见性与当前标题反馈。设置页将四种 Barcode 预览整理为更清晰的 2 × 2 选择器，并优化键盘焦点和响应式间距。
+围绕“低打扰阅读”继续打磨五种导航体验：暗色页面上的功能蓝对比得到修复；滚轮更窄并移除强矩形描边；聚光灯成为差异明确的五项上下文，当前标题最多显示两行；GPT 提升当前位置对比；少数派统一使用主题红并优先利用正文外侧留白。滚轮与聚光灯的高频标题层不再使用背景模糊，移动端预览进一步收窄，设置页补齐动态说明与键盘焦点语义。
 `;
 
 await writeFile(path.join(outDir, 'chrome-store-copy.md'), copy, 'utf8');

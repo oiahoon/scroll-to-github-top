@@ -334,7 +334,7 @@ function HomePage() {
               </Link>
             </div>
             <p className="hero-note">
-              <Check size={16} weight="bold" /> v2.15 · 4 种 Barcode 预览 · 正文内容不上传
+              <Check size={16} weight="bold" /> v2.16 · 4 种 Barcode 预览 · 正文内容不上传
             </p>
           </div>
 

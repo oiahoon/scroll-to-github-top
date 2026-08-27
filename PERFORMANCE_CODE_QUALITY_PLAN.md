@@ -1,7 +1,7 @@
 # Smart TOC & Scroll — 性能与代码质量治理方案
 
-> 日期：2026-08-12
-> 实现基线：v2.15
+> 日期：2026-08-28
+> 实现基线：v2.16
 > 范围：注入主流程、四种 Barcode 预览、标准目录、主题同步、Options、本地 QA 与发布产物
 
 ## 1. 测量边界
@@ -14,6 +14,12 @@
 - 内置 `Ctrl + Shift + P` 性能面板
 - in-app Browser 的真实 scroll、pointer、left/right、mixed-surface、键盘与 console 回归
 - 源码静态审阅、语法检查、打包体积与 ZIP manifest 校验
+
+### v2.16 视觉性能约束
+
+- Wheel 与 Spotlight 的高频标题层不使用 `backdrop-filter`，避免指针连续移动时叠加多层模糊合成成本。
+- rail wave 与标题切换继续以 `transform`、`opacity` 和必要的 class 更新为主，不引入常驻循环动画。
+- 73 项样本当前实测：Wheel Rail Pointer 平均 `2.17ms`、Spotlight `0.12ms`、GPT `0.92ms`；Adaptive Theme 平均区间 `0.40–0.70ms`。
 
 ## 2. 审阅结论与优先级
 

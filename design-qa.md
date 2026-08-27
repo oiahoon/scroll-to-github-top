@@ -1,5 +1,39 @@
 # Barcode Preview — Design QA
 
+## v2.16 低干扰与性能导向 UI/UX 验收（2026-08-28）
+
+### Target flow
+
+`长文 / Options → 默认低存在感导航 → 用户主动靠近、聚焦、点击或固定 → 获得可读且不长期遮挡正文的章节反馈`
+
+### Audit steps
+
+| Step | Experience | Result | Health |
+|---|---|---|---|
+| 1 | 默认干扰度：折叠入口、透明 rail、按需预览 | Passed | 非交互状态只保留低透明度入口或刻度；无新增常驻面板 |
+| 2 | 颜色纪律：中性色、功能蓝、SSPAI 红 | Passed | 暗色功能蓝 `#58a6ff`；浅色 `#0969da`；SSPAI focus/current 均为 `#e6242f` |
+| 3 | Standard：当前项层级与局部背景融合 | Passed | 当前项字重 600；面板 260 × 420，位于 1280 × 720 视口内 |
+| 4 | Wheel：窄观察窗、低成本焦点、移动端宽度 | Passed | 桌面 242px；移动 210px；无 backdrop-filter；左右侧均无溢出 |
+| 5 | Spotlight：与 Wheel 的辨识度、两行标题、五项上下文 | Passed | 固定 5 项；36px 节奏；当前项 44px 高且可显示两行 |
+| 6 | GPT：暗色对比、数量、内部滚动、镜像标记 | Passed | 73 项；暗色当前项 `#58a6ff`；320px 面板在视口内 |
+| 7 | SSPAI：留白锚定、固定、长标题与主题焦点 | Passed | 桌面按可用留白收敛；移动标签 210px；图钉焦点为主题红 |
+| 8 | Options：选择语义、动态说明、桌面与移动布局 | Passed | `aria-describedby` + `aria-live=polite`；390 × 844 无横向溢出 |
+| 9 | 高频路径性能 | Passed | Wheel `2.17ms`、Spotlight `0.12ms`、GPT `0.92ms` 平均 Rail Pointer |
+| 10 | 控制台与源码健康 | Passed | 当前主题、设置和交互测试无 console warning/error；JS syntax 与 diff check 通过 |
+
+### Visual comparison and evidence
+
+- Generated visual target: `/Users/huangyuyao/.codex/generated_images/01a04309-3155-72e1-9e70-491ab671004f/exec-4d2bb686-eb09-43ae-9d4c-f6d3feb4676f.png`。
+- Current-run implementation captures: `/private/tmp/smart-toc-v216-audit/09-standard-expanded-v216.png`、`10-wheel-v216.png`、`11-spotlight-v216.png`、`12-gpt-v216.png`、`13-sspai-v216.png`、`14-options-desktop-v216.png`、`15-options-mobile-v216.png`、`16-wheel-left-light-v216.png`、`17-wheel-mobile-v216.png`。
+- The concept and latest implementation renders were inspected in one comparison pass. The implementation follows the concept's restrained palette, narrower Wheel, stationary Spotlight context, high-contrast GPT current state, SSPAI red language, and unchanged settings hierarchy.
+- Intentional deviations: Wheel and Spotlight omit the concept's background blur to protect pointer-path performance; SSPAI uses the actual available article margin rather than forcing the concept width; all copy remains native DOM text instead of generated-image text.
+
+## Final result
+
+final result: passed
+
+---
+
 ## v2.15 五主题 UI/UX 打磨与发布验收（2026-08-27）
 
 ### Target flow

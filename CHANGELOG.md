@@ -7,6 +7,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.16] - 2026-08-28
+
+### Changed
+- 将五种导航体验统一收敛到“阅读优先、按需增强”的设计原则：默认保持低存在感，只在用户靠近、聚焦、点击或固定时显示更强反馈
+- Barcode 的局部配色补齐功能蓝变量，修复暗色文章上 GPT 与 Spotlight 当前标题对比不足；SSPAI 键盘焦点继续使用主题红，避免混入额外蓝色
+- Wheel 桌面观察窗收窄到 242px、移动端限制为 210px，降低邻项透明度并取消强矩形描边；高频标题层不再使用背景模糊
+- Spotlight 改为更明确的静态五项上下文，36px 节奏、可显示两行的当前标题和更弱的邻项层级，与 Wheel 的滚动轨道形成清晰差异
+- GPT 当前行提升暗色对比并按左右 rail 镜像侧边标记；SSPAI 宽度上限收敛到 252px，同时继续优先使用正文外侧可用留白
+- Options 补齐动态说明的 `aria-live` 与 `aria-describedby`，仅在真实键盘焦点时强调设置卡片，并强化四主题选中态
+
+### Performance
+- Wheel 与 Spotlight 的动态预览不使用 `backdrop-filter`，高频指针路径保持 transform / opacity 与必要的 class 更新
+- 73 项本地样本中，Wheel Rail Pointer 平均 `2.17ms`、Spotlight `0.12ms`、GPT `0.92ms`；Adaptive Theme 观测平均 `0.40–0.70ms`
+
+### Verified
+- Standard、Wheel、Spotlight、GPT、SSPAI 与 Options 均通过当前浏览器截图和组件尺寸复核；暗色功能蓝为 `#58a6ff`，浅色为 `#0969da`
+- Wheel 左侧浅色、右侧暗色均在视口内；Spotlight 固定显示 5 个上下文项；GPT 73 项内部滚动与 SSPAI 图钉固定状态保持可用
+- 390 × 844 下 Wheel 预览宽 210px、SSPAI 标签宽 210px、Options 无横向溢出；浏览器控制台无警告或错误
+
 ## [2.15] - 2026-08-27
 
 ### Changed

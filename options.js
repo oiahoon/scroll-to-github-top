@@ -43,14 +43,14 @@ const expandModeDescriptions = {
 
 const navigationTypeDescriptions = {
   default: '完整目录，适合文档站和技术长文。',
-  barcode: '用页面边缘的短横线表达长文结构，再选择标题预览方式。'
+  barcode: '用低透明度的边缘短横线表达长文结构，再选择按需出现的标题预览。'
 };
 
 const barcodePreviewDescriptions = {
-  wheel: '标题在固定观察窗中像滚轮一样滑动。',
-  spotlight: '悬停时显示命中标题与上下文，邻近标题保持舒展的渐隐层级。',
-  gpt: '悬停时展开带背景和边框的完整标题面板，可在面板内滚动。',
-  sspai: '少数派风格大纲：悬停展开完整标题，当前章节红色高亮，并可固定大纲。'
+  wheel: '标题在窄幅观察窗中滚动，只在靠近时强调当前标题。',
+  spotlight: '靠近时显示当前标题与上下各两项，当前标题最多显示两行。',
+  gpt: '靠近时展开带背景和边框的完整目录，可在面板内滚动。',
+  sspai: '悬停展开固定在页面边缘的标题大纲，当前章节使用红色，并可固定显示。'
 };
 
 function normalizeSettings(input = {}) {
