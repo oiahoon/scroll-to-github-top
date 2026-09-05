@@ -1,6 +1,6 @@
 # Chrome Web Store Listing Copy
 
-> Updated: 2026-09-05 for v2.17
+> Updated: 2026-09-05 for v2.18
 > Use for Chrome Web Store title, short description, long description, screenshot captions, and release notes.
 
 ## Positioning
@@ -10,7 +10,7 @@ Smart TOC & Scroll is a lightweight reading navigation extension for long articl
 It provides two navigation types:
 
 - `Standard TOC Panel`: full outline, active-section highlighting, quick heading jumps, and a compact Top action.
-- `Barcode`: a transparent edge rail with subtle hover feedback and low-intrusion scroll-to-top. Choose Wheel, Spotlight, GPT, or a pin-able SSPAI-style outline.
+- `Barcode`: a transparent edge rail with subtle hover feedback and low-intrusion scroll-to-top. Choose Nearby, Search, or a pinnable Margin outline.
 
 ## Short Description
 
@@ -23,11 +23,11 @@ Smart TOC & Scroll adds lightweight reading navigation to long articles, blogs, 
 It gives you two navigation types for different reading contexts:
 
 - Standard TOC Panel: a full outline with active-section highlighting, quick heading jumps, and a compact Top action.
-- Barcode: a transparent progress rail for immersive long-form reading, with four title previews:
-  - Wheel: headings move through a fixed observation window.
-  - Spotlight: a compact five-row context window keeps the current heading readable without crowding the article.
-  - GPT: the idle rail stays minimal, then hover opens a bordered, scrollable panel containing the complete outline.
-  - SSPAI: slim vertical ticks stay anchored beside the content or viewport edge; hover reveals the outline without moving the ticks, and a pin keeps it open.
+- Barcode: a transparent progress rail for immersive long-form reading, with three task-specific styles:
+  - Nearby: shows the target heading and one neighbor on each side, with three reused labels and no moving track.
+  - Search: filters page headings locally using one or more keywords; arrow keys select results and Enter jumps to the section.
+  - Margin: a pinnable outline beside the article, with wrapped titles and a single red location accent.
+
 
 Key features:
 
@@ -55,11 +55,11 @@ Smart TOC & Scroll 为长文、博客和文档站点提供轻量阅读导航。
 它提供两种导航类型：
 
 - 标准目录面板：展示完整目录、当前章节高亮、快速标题跳转和紧凑的 Top 回顶操作。
-- Barcode：以透明边缘刻度表达长文结构，并提供四种标题预览：
-  - 滚轮：标题在固定观察窗中滑动。
-  - 聚光灯：以当前项上下各 2 项组成紧凑上下文，减少密集文字遮挡。
-  - GPT：平时保持纯条形码，悬停后展开带背景和边框的完整可滚动标题面板。
-  - 少数派：细竖刻度稳定停在正文外侧或屏幕边缘，悬停时刻度不横移；图钉可固定或释放完整大纲。
+- 边缘导航提供三种用途清晰的样式：
+  - 邻节预览：目标标题与前后各一项，移开收起；原滚轮与聚光灯已合并。
+  - 检索目录：按多关键词筛选本页标题，方向键选结果、Enter 跳转，不发网络请求。
+  - 页边大纲：在页边展开可固定的大纲，长标题换行，红色标记阅读位置。
+
 
 核心能力：
 
@@ -95,10 +95,10 @@ Smart TOC & Scroll 为长文、博客和文档站点提供轻量阅读导航。
 
 Smart TOC & Scroll does not upload page content or collect browsing history. Outline detection and interactions run locally, and preferences are stored in the browser.
 
-## Release Note — v2.17
+## Release Note — v2.18
 
-All five navigation styles now wait for deliberate hover, keep keyboard navigation stable, and dismiss previews consistently with Escape. Back-to-top is a quiet, directly clickable control without looping motion or document-wide proximity sampling. Panels no longer use backdrop blur; SSPAI uses one adaptive red accent. Reduced motion now covers section jumps. Standard adds a visible Close button, and Settings validates display thresholds and preserves edits when saving fails.
+Reading styles now have distinct jobs: Standard for occasional jumps, Nearby for neighboring sections, Search for keyword lookup, and Margin for pinned reference. Wheel and Spotlight merge into Nearby with existing preferences preserved. Search is local, supports multiple keywords and keyboard navigation, and includes an empty state. Long titles wrap in full outlines. Removed the moving title track and per-heading wave updates; Nearby reuses only three labels.
 
-## 中文更新说明 — v2.17
+## 中文更新说明 — v2.18
 
-五种主题进一步围绕阅读导航打磨：停留后再展开、键盘焦点稳定、Esc 同步收起预览；回顶改为静态可点击入口，移除循环动效与全页距离采样；所有浮层取消背景模糊，少数派统一使用明暗自适应红色。减少动态效果覆盖章节跳转，标准目录增加关闭入口，设置页校验显示阈值并在保存失败时保留更改。
+按阅读任务重整四种模式：标准面板用于偶尔跳转、邻节预览用于附近定位、检索目录用于关键词查找、页边大纲用于固定对照。原滚轮与聚光灯合并并兼容旧设置；新增本地多关键词搜索、空结果提示与结果键盘导航。完整目录支持长标题换行，移除滚轮轨道与逐项波动计算，邻节预览只复用三个节点。

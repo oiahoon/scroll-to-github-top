@@ -31,7 +31,6 @@
   let tocTopButton = null;
   let tocCountBadge = null;
   let scrollTopButton = null;
-  let tocRailPreview = null;
   let tocSpotlightLayer = null;
   let tocGptPreview = null;
   let tocSspaiPinButton = null;
@@ -51,23 +50,14 @@
   let railWaveItems = [];
   let railWaveLayout = [];
   let railPreviewItem = null;
-  let railPreviewRenderedItem = null;
-  let railPreviewRenderedMeta = { rowCount: 0, currentRowIndex: 0 };
   let railPointerInside = false;
   let railPointerExitTimer = null;
   let railPostClickHoldTimer = null;
   let railPostClickHoldUntil = 0;
-  const railWaveAffectedItems = new Set();
   const railWaveMaxDistance = 78;
-  const railWaveMaxWidth = 20;
-  const railWaveMaxShift = 2;
   const railPreviewGap = 8;
   const railPostClickHoldMs = 1800;
   const activeHeaderHoldMs = 900;
-  const railPreviewContextRadius = 2;
-  const railPreviewRowHeight = 30;
-  const railPreviewRowGap = 4;
-  const railPreviewPaddingY = 4;
   const reducedMotionQuery = window.matchMedia
     ? window.matchMedia('(prefers-reduced-motion: reduce)')
     : { matches: false };
@@ -83,7 +73,7 @@
 
   const defaultSettings = {
     themePreset: 'default',
-    barcodePreview: 'wheel', // 'wheel' | 'spotlight' | 'gpt' | 'sspai'
+    barcodePreview: 'spotlight', // 'spotlight' | 'gpt' | 'sspai' (wheel migrates to spotlight)
     expandMode: 'hover', // 'press' | 'hover' | 'click'
     minHeaders: 3,
     showAfterScrollScreens: 1,
@@ -478,7 +468,7 @@
     const normalized = { ...defaultSettings, ...input };
     if (input?.themePreset === 'sspai') {
       normalized.themePreset = 'barcode';
-      normalized.barcodePreview = 'wheel';
+      normalized.barcodePreview = 'spotlight';
     } else if (input?.themePreset === 'glimmer') {
       normalized.themePreset = 'barcode';
       normalized.barcodePreview = 'spotlight';
@@ -492,7 +482,9 @@
     if (!['default', 'barcode'].includes(normalized.themePreset)) {
       normalized.themePreset = defaultSettings.themePreset;
     }
-    if (!['wheel', 'spotlight', 'gpt', 'sspai'].includes(normalized.barcodePreview)) {
+    // Legacy wheel preferences now use the shared, static nearby preview.
+    if (normalized.barcodePreview === 'wheel') normalized.barcodePreview = 'spotlight';
+    if (!['spotlight', 'gpt', 'sspai'].includes(normalized.barcodePreview)) {
       normalized.barcodePreview = defaultSettings.barcodePreview;
     }
     if (!['left', 'right'].includes(normalized.position)) {
@@ -543,10 +535,6 @@
 
   function isBarcodePreset() {
     return settings.themePreset === 'barcode';
-  }
-
-  function isWheelPreview() {
-    return isBarcodePreset() && settings.barcodePreview === 'wheel';
   }
 
   function isSpotlightPreview() {
@@ -630,13 +618,6 @@
     tocTree.appendChild(tocList);
     tocContainer.appendChild(tocTree);
 
-    if (isWheelPreview()) {
-      tocRailPreview = document.createElement('div');
-      tocRailPreview.className = 'toc-rail-preview theme-light theme-preset-rail theme-preset-barcode theme-preview-wheel';
-      tocRailPreview.setAttribute('aria-hidden', 'true');
-      document.body.appendChild(tocRailPreview);
-    }
-
     if (isSpotlightPreview()) {
       tocSpotlightLayer = document.createElement('div');
       tocSpotlightLayer.className = 'toc-spotlight-layer theme-light theme-preset-rail theme-preset-barcode theme-preview-spotlight';
@@ -648,7 +629,7 @@
       tocGptPreview = document.createElement('div');
       tocGptPreview.className = 'toc-gpt-preview theme-light theme-preset-rail theme-preset-barcode theme-preview-gpt';
       tocGptPreview.setAttribute('role', 'navigation');
-      tocGptPreview.setAttribute('aria-label', '文章标题预览');
+      tocGptPreview.setAttribute('aria-label', '检索目录');
       tocGptPreview.setAttribute('aria-hidden', 'true');
       document.body.appendChild(tocGptPreview);
     }
@@ -962,10 +943,6 @@
       document.body.appendChild(scrollTopButton);
     }
 
-    if (isWheelPreview() && tocRailPreview && !tocRailPreview.isConnected) {
-      document.body.appendChild(tocRailPreview);
-    }
-
     if (isSpotlightPreview() && tocSpotlightLayer && !tocSpotlightLayer.isConnected) {
       document.body.appendChild(tocSpotlightLayer);
     }
@@ -1203,7 +1180,7 @@
     }
 
     const railTargets = isRailPreset()
-      ? [tocContainer, scrollTopButton, tocRailPreview, tocSpotlightLayer, tocGptPreview]
+      ? [tocContainer, scrollTopButton, tocSpotlightLayer, tocGptPreview]
       : [];
     railTargets.forEach((element) => {
       if (!element) return;
@@ -1610,9 +1587,6 @@
     }
     railPreviewItem = item;
     railPreviewItem.classList.add('is-previewed');
-    if (isWheelPreview() && tocRailPreview) {
-      tocRailPreview.classList.add('is-visible');
-    }
   }
 
   function createTocItem(header) {
@@ -1637,9 +1611,6 @@
     tocList.innerHTML = '';
     railWaveItems = [];
     railWaveLayout = [];
-    if (tocRailPreview) {
-      tocRailPreview.classList.remove('is-visible');
-    }
     if (tocSpotlightLayer) {
       tocSpotlightLayer.querySelectorAll('.toc-spotlight-row').forEach((row) => {
         row.classList.remove('is-visible', 'distance-0', 'distance-1', 'distance-2', 'distance-far');
@@ -1653,8 +1624,6 @@
       });
     }
     railPreviewItem = null;
-    railPreviewRenderedItem = null;
-    railPreviewRenderedMeta = { rowCount: 0, currentRowIndex: 0 };
     if (railPostClickHoldTimer) {
       window.clearTimeout(railPostClickHoldTimer);
       railPostClickHoldTimer = null;
@@ -2150,7 +2119,6 @@
 
     previewRailKeyboardItem = (item) => {
       setRailPreviewItem(item);
-      if (isWheelPreview()) positionRailPreview(item);
     };
 
     resetRailInteraction = () => {
@@ -2210,25 +2178,16 @@
         .map(({ item, target }) => {
           const rect = target.getBoundingClientRect();
           const previewEdge = isLeft
-            ? rect.right + railWaveMaxWidth + railWaveMaxShift
-            : rect.left - railWaveMaxWidth - railWaveMaxShift;
+            ? railRect.right
+            : railRect.left;
           return {
             item,
             centerY: rect.top + rect.height / 2,
-            baseWidth: getRailBaseWidth(item),
             previewEdge,
             visible: rect.bottom >= minY && rect.top <= maxY
           };
         })
         .filter(({ visible }) => visible);
-    }
-
-    function getRailBaseWidth(item) {
-      const level = item.dataset.level;
-      if (level === '1') return 26;
-      if (level === '2') return 20;
-      if (level === '3') return 16;
-      return 12;
     }
 
     function getRailPreviewLayout(item) {
@@ -2239,36 +2198,15 @@
       if (!bar) return null;
 
       const rect = bar.getBoundingClientRect();
+      const railRect = tocContainer.getBoundingClientRect();
       const isLeft = tocContainer.classList.contains('position-left');
       return {
         item,
         centerY: rect.top + rect.height / 2,
         previewEdge: isLeft
-          ? rect.right + railWaveMaxWidth + railWaveMaxShift
-          : rect.left - railWaveMaxWidth - railWaveMaxShift
+          ? railRect.right
+          : railRect.left
       };
-    }
-
-    function getClampedRailPreviewTop(centerY, currentRowIndex, rowCount) {
-      if (!tocRailPreview) return centerY;
-
-      const viewportPadding = 12;
-      const previewHeight =
-        railPreviewPaddingY * 2 +
-        rowCount * railPreviewRowHeight +
-        Math.max(0, rowCount - 1) * railPreviewRowGap;
-      const currentRowCenter =
-        railPreviewPaddingY +
-        currentRowIndex * (railPreviewRowHeight + railPreviewRowGap) +
-        railPreviewRowHeight / 2;
-      const minTop = viewportPadding;
-      const maxTop = window.innerHeight - viewportPadding - previewHeight;
-
-      if (maxTop < minTop) {
-        return viewportPadding;
-      }
-
-      return clampNumber(centerY - currentRowCenter, minTop, maxTop);
     }
 
     function getRailItemText(item) {
@@ -2276,88 +2214,58 @@
       return label?.textContent?.trim() || '';
     }
 
+    // Reuse three labels even on documents with hundreds of headings.
     function ensureSpotlightRows() {
       if (!tocSpotlightLayer) return [];
-      const items = getRailWaveItems().map(({ item }) => item);
-      const canReuse = spotlightRows.length === items.length && spotlightRows.every((entry, index) => entry.item === items[index]);
-      if (canReuse) return spotlightRows;
-
-      tocSpotlightLayer.textContent = '';
-      spotlightRows = items.map((item) => {
+      if (spotlightRows.length) return spotlightRows;
+      spotlightRows = Array.from({ length: 3 }, () => {
         const row = document.createElement('span');
         row.className = 'toc-spotlight-row';
         row.setAttribute('aria-hidden', 'true');
         const text = document.createElement('span');
         text.className = 'toc-spotlight-text';
-        text.textContent = getRailItemText(item);
         row.appendChild(text);
-        const link = item.querySelector('.toc-rail-link');
+        const entry = { item: null, row, text };
         row.addEventListener('click', (event) => {
           event.preventDefault();
           event.stopPropagation();
-          link?.click();
+          entry.item?.querySelector('.toc-rail-link')?.click();
         });
         tocSpotlightLayer.appendChild(row);
-        return { item, row };
+        return entry;
       });
       return spotlightRows;
     }
 
     function hideSpotlightLabels() {
-      ensureSpotlightRows().forEach(({ row }) => {
-        row.classList.remove('is-visible', 'distance-0', 'distance-1', 'distance-2', 'distance-far');
-      });
+      spotlightRows.forEach(({ row }) => { row.className = 'toc-spotlight-row'; });
     }
 
     function updateSpotlightLabelContext(item) {
       if (!isSpotlightPreview()) return;
-      const rows = ensureSpotlightRows();
-      if (!item) {
-        hideSpotlightLabels();
-        return;
-      }
-
-      const items = getRailWaveItems().map(({ item: railItem }) => railItem);
+      if (!item) { hideSpotlightLabels(); return; }
+      const items = getRailWaveItems().map((entry) => entry.item);
       const currentIndex = items.indexOf(item);
       if (currentIndex === -1) return;
-
-      if (railWaveLayout.length === 0) {
-        refreshRailWaveLayout();
-      }
-      const layoutByItem = new Map(railWaveLayout.map((entry) => [entry.item, entry]));
+      const layout = getRailPreviewLayout(item);
+      if (!layout) return;
+      const start = Math.max(0, currentIndex - 1);
+      const end = Math.min(items.length - 1, currentIndex + 1);
+      const step = 54;
+      const centerY = clampNumber(layout.centerY,
+        28 + (currentIndex - start) * step,
+        window.innerHeight - 28 - (end - currentIndex) * step);
       const isLeft = tocContainer.classList.contains('position-left');
-      const contextStart = Math.max(0, currentIndex - railPreviewContextRadius);
-      const contextEnd = Math.min(rows.length - 1, currentIndex + railPreviewContextRadius);
-      const currentLayout = layoutByItem.get(item);
-      const spotlightRowStep = 36;
-      const viewportPadding = 20;
-      const rowsBefore = currentIndex - contextStart;
-      const rowsAfter = contextEnd - currentIndex;
-      const minCenterY = viewportPadding + rowsBefore * spotlightRowStep;
-      const maxCenterY = window.innerHeight - viewportPadding - rowsAfter * spotlightRowStep;
-      const contextCenterY = currentLayout
-        ? clampNumber(currentLayout.centerY, minCenterY, maxCenterY)
-        : window.innerHeight / 2;
-
-      rows.forEach(({ item: railItem, row }, index) => {
-        const distance = Math.abs(index - currentIndex);
-        const distanceClass = distance <= railPreviewContextRadius ? `distance-${distance}` : 'distance-far';
-        const layout = layoutByItem.get(railItem);
-        const isVisible = layout && index >= contextStart && index <= contextEnd;
-        if (!isVisible) {
-          row.className = `toc-spotlight-row ${isLeft ? 'position-left' : 'position-right'}`;
-          return;
-        }
-
-        row.className = `toc-spotlight-row is-visible ${distanceClass} ${isLeft ? 'position-left' : 'position-right'}`;
-        row.style.top = `${contextCenterY + (index - currentIndex) * spotlightRowStep}px`;
-        if (isLeft) {
-          row.style.left = `${layout.previewEdge + railPreviewGap}px`;
-          row.style.right = 'auto';
-        } else {
-          row.style.left = 'auto';
-          row.style.right = `${window.innerWidth - layout.previewEdge + railPreviewGap}px`;
-        }
+      ensureSpotlightRows().forEach((entry, slot) => {
+        const index = start + slot;
+        if (index > end) { entry.row.className = 'toc-spotlight-row'; entry.item = null; return; }
+        entry.item = items[index];
+        entry.text.textContent = getRailItemText(entry.item);
+        entry.row.title = entry.text.textContent;
+        entry.row.className = `toc-spotlight-row is-visible distance-${Math.abs(index - currentIndex)} ${isLeft ? 'position-left' : 'position-right'}`;
+        entry.row.style.top = `${centerY + (index - currentIndex) * step}px`;
+        entry.row.style.left = isLeft ? `${layout.previewEdge + railPreviewGap}px` : 'auto';
+        entry.row.style.right = isLeft ? 'auto' : `${window.innerWidth - layout.previewEdge + railPreviewGap}px`;
       });
     }
 
@@ -2371,22 +2279,33 @@
       gptCurrentIndex = -1;
       const header = document.createElement('div');
       header.className = 'toc-gpt-preview-header';
-      header.setAttribute('aria-hidden', 'true');
 
-      const title = document.createElement('span');
-      title.className = 'toc-gpt-preview-title';
-      title.textContent = 'OUTLINE';
+      const search = document.createElement('input');
+      search.type = 'search';
+      search.className = 'toc-gpt-search';
+      search.placeholder = '查找标题';
+      search.setAttribute('aria-label', '查找文章标题');
+      search.autocomplete = 'off';
+      search.spellcheck = false;
+      search.addEventListener('input', filterGptRows);
 
       const count = document.createElement('span');
       count.className = 'toc-gpt-preview-count';
       count.textContent = String(items.length);
 
-      header.append(title, count);
+      count.setAttribute('role', 'status');
+      count.setAttribute('aria-live', 'polite');
+      header.append(search, count);
       tocGptPreview.appendChild(header);
 
       const list = document.createElement('div');
       list.className = 'toc-gpt-preview-list';
       tocGptPreview.appendChild(list);
+      const empty = document.createElement('p');
+      empty.className = 'toc-gpt-empty';
+      empty.textContent = '没有匹配的标题，试试其他关键词。';
+      empty.hidden = true;
+      tocGptPreview.appendChild(empty);
 
       gptRows = items.map((item) => {
         const row = document.createElement('button');
@@ -2407,15 +2326,34 @@
           link?.click();
         });
         list.appendChild(row);
-        return { item, row };
+        return { item, row, searchText: text.textContent.normalize('NFKC').toLocaleLowerCase() };
       });
       return gptRows;
+    }
+
+    function filterGptRows() {
+      const query = tocGptPreview.querySelector('.toc-gpt-search').value.trim().normalize('NFKC').toLocaleLowerCase();
+      const words = query.split(/\s+/).filter(Boolean);
+      gptRows.forEach(({ row, searchText }) => {
+        row.hidden = !words.every((word) => searchText.includes(word));
+      });
+      const matches = gptRows.filter(({ row }) => !row.hidden);
+      tocGptPreview.querySelector('.toc-gpt-preview-count').textContent = query ? `${matches.length}/${gptRows.length}` : String(gptRows.length);
+      tocGptPreview.querySelector('.toc-gpt-empty').hidden = matches.length !== 0;
+      if (gptCurrentIndex < 0 || gptRows[gptCurrentIndex]?.row.hidden) {
+        setGptRowCurrent(gptCurrentIndex, false);
+        gptCurrentIndex = gptRows.findIndex(({ row }) => !row.hidden);
+        setGptRowCurrent(gptCurrentIndex, true);
+      }
+      tocGptPreview.querySelector('.toc-gpt-preview-list').scrollTop = 0;
     }
 
     function hideGptPreview() {
       if (!tocGptPreview) return;
       tocGptPreview.classList.remove('is-visible');
       tocGptPreview.setAttribute('aria-hidden', 'true');
+      const search = tocGptPreview.querySelector('.toc-gpt-search');
+      if (search) { search.value = ''; search.tabIndex = -1; filterGptRows(); }
       gptRows.forEach(({ row }) => {
         row.tabIndex = -1;
         row.classList.remove('is-current');
@@ -2439,9 +2377,8 @@
     function positionGptPreview(item, layout = getRailPreviewLayout(item)) {
       if (!tocGptPreview || !item || !layout) return;
       const rows = ensureGptPreviewRows();
-      const currentIndex = rows.findIndex((entry) => entry.item === item);
-      if (currentIndex === -1) return;
-
+      const requestedIndex = rows.findIndex((entry) => entry.item === item);
+      const currentIndex = rows[requestedIndex]?.row.hidden ? gptCurrentIndex : requestedIndex;
       const isLeft = tocContainer.classList.contains('position-left');
       tocGptPreview.classList.toggle('position-left', isLeft);
       tocGptPreview.classList.toggle('position-right', !isLeft);
@@ -2460,9 +2397,10 @@
       }
       tocGptPreview.classList.add('is-visible');
       tocGptPreview.setAttribute('aria-hidden', 'false');
+      tocGptPreview.querySelector('.toc-gpt-search').tabIndex = 0;
 
       const list = tocGptPreview.querySelector('.toc-gpt-preview-list');
-      const currentRow = rows[currentIndex].row;
+      const currentRow = rows[currentIndex]?.row;
       if (!list || !currentRow) return;
       const rowTop = currentRow.offsetTop;
       const rowBottom = rowTop + currentRow.offsetHeight;
@@ -2470,139 +2408,6 @@
         list.scrollTop = rowTop;
       } else if (rowBottom > list.scrollTop + list.clientHeight) {
         list.scrollTop = rowBottom - list.clientHeight;
-      }
-    }
-
-    function getRailPreviewContext(item) {
-      const items = getRailWaveItems().map(({ item: railItem }) => railItem);
-      const index = items.indexOf(item);
-      if (index === -1) {
-        return { rows: [], currentRowIndex: 0, currentIndex: -1, visibleRowCount: 0 };
-      }
-
-      const centerSlot = Math.min(railPreviewContextRadius, Math.max(0, items.length - 1));
-      const visibleRowCount = Math.min(items.length, railPreviewContextRadius * 2 + 1);
-      const rows = items.map((railItem, rowIndex) => ({
-        item: railItem,
-        text: getRailItemText(railItem),
-        distance: Math.abs(rowIndex - index),
-        isCurrent: railItem === item,
-        isBefore: rowIndex < index
-      })).filter((row) => row.text);
-
-      return {
-        rows,
-        currentRowIndex: centerSlot,
-        currentIndex: index,
-        visibleRowCount
-      };
-    }
-
-    function renderRailPreviewContext(item) {
-      if (!tocRailPreview) return { rowCount: 0, currentRowIndex: 0 };
-      if (
-        railPreviewRenderedItem === item &&
-        tocRailPreview.querySelector('.toc-rail-preview-row')
-      ) {
-        return railPreviewRenderedMeta;
-      }
-
-      const { rows, currentRowIndex, currentIndex, visibleRowCount } = getRailPreviewContext(item);
-      let list = tocRailPreview.querySelector('.toc-rail-preview-list');
-      let track = tocRailPreview.querySelector('.toc-rail-preview-track');
-      let focus = tocRailPreview.querySelector('.toc-rail-preview-focus');
-
-      if (!list) {
-        tocRailPreview.textContent = '';
-        list = document.createElement('div');
-        list.className = 'toc-rail-preview-list';
-        tocRailPreview.appendChild(list);
-      }
-
-      if (!track) {
-        track = document.createElement('div');
-        track.className = 'toc-rail-preview-track';
-        list.appendChild(track);
-      }
-
-      if (!focus) {
-        focus = document.createElement('div');
-        focus.className = 'toc-rail-preview-focus';
-        focus.setAttribute('aria-hidden', 'true');
-        list.appendChild(focus);
-      }
-
-      const existingRows = track.querySelectorAll('.toc-rail-preview-row');
-      const shouldRebuildRows = existingRows.length !== rows.length;
-
-      if (shouldRebuildRows) {
-        track.textContent = '';
-      }
-
-      const previewRows = Array.from(track.querySelectorAll('.toc-rail-preview-row'));
-      rows.forEach((row, rowIndex) => {
-        let previewRow = previewRows[rowIndex];
-        if (!previewRow) {
-          previewRow = document.createElement('div');
-          previewRow.dataset.previewIndex = String(rowIndex);
-
-          const text = document.createElement('span');
-          text.className = 'toc-rail-preview-text';
-          previewRow.appendChild(text);
-          track.appendChild(previewRow);
-        }
-
-        const distanceClass = row.distance <= railPreviewContextRadius ? `distance-${row.distance}` : 'distance-far';
-        previewRow.className = [
-          'toc-rail-preview-row',
-          distanceClass,
-          row.isCurrent ? 'is-current' : '',
-          row.isCurrent ? '' : row.isBefore ? 'is-before' : 'is-after'
-        ].filter(Boolean).join(' ');
-        previewRow.dataset.distance = String(row.distance);
-        previewRow.dataset.level = row.item.dataset.level || '1';
-        previewRow.querySelector('.toc-rail-preview-text').textContent = row.text;
-      });
-
-      const focusY = currentRowIndex * (railPreviewRowHeight + railPreviewRowGap);
-      const trackY = focusY - currentIndex * (railPreviewRowHeight + railPreviewRowGap);
-      tocRailPreview.style.setProperty('--toc-rail-focus-y', `${focusY}px`);
-      tocRailPreview.style.setProperty('--toc-rail-track-y', `${trackY}px`);
-      tocRailPreview.style.setProperty('--toc-rail-focus-opacity', rows.length > 0 ? '1' : '0');
-
-      railPreviewRenderedItem = item;
-      railPreviewRenderedMeta = {
-        rowCount: visibleRowCount,
-        currentRowIndex: Math.min(currentRowIndex, Math.max(0, rows.length - 1))
-      };
-      return railPreviewRenderedMeta;
-    }
-
-    function positionRailPreview(item, layout = getRailPreviewLayout(item)) {
-      if (!tocRailPreview || !item) return;
-
-      if (!getRailItemText(item) || !layout) return;
-
-      const isLeft = tocContainer.classList.contains('position-left');
-      const { rowCount, currentRowIndex } = renderRailPreviewContext(item);
-      if (rowCount === 0) return;
-      const railRect = tocContainer.getBoundingClientRect();
-      const previewAnchorY = railRect.top + railRect.height / 2;
-
-      tocRailPreview.classList.toggle('position-left', isLeft);
-      tocRailPreview.classList.toggle('position-right', !isLeft);
-      tocRailPreview.style.top = '0';
-      tocRailPreview.style.setProperty(
-        '--toc-rail-preview-y',
-        `${getClampedRailPreviewTop(previewAnchorY, currentRowIndex, rowCount)}px`
-      );
-
-      if (isLeft) {
-        tocRailPreview.style.left = `${layout.previewEdge + railPreviewGap}px`;
-        tocRailPreview.style.right = 'auto';
-      } else {
-        tocRailPreview.style.left = 'auto';
-        tocRailPreview.style.right = `${window.innerWidth - layout.previewEdge + railPreviewGap}px`;
       }
     }
 
@@ -2622,13 +2427,6 @@
       }
       if (railPreviewItem) {
         railPreviewItem.classList.add('is-previewed');
-        if (isWheelPreview() && tocRailPreview) {
-          tocRailPreview.classList.add('is-visible');
-        }
-      } else if (isWheelPreview() && tocRailPreview) {
-        tocRailPreview.classList.remove('is-visible');
-        railPreviewRenderedItem = null;
-        railPreviewRenderedMeta = { rowCount: 0, currentRowIndex: 0 };
       }
     }
 
@@ -2670,19 +2468,9 @@
       const entry = railWaveLayout.find(({ item: railItem }) => railItem === item);
       if (entry) {
         lastRailPointerY = entry.centerY;
-        if (reducedMotionQuery.matches || !isWheelPreview()) {
-          updateReducedMotionRailPreview(entry.centerY);
-        } else {
-          updateRailWave(entry.centerY);
-        }
-        if (isWheelPreview()) {
-          positionRailPreview(item, entry);
-        }
+        updateNearestRailPreview(entry.centerY);
       } else {
         setRailPreviewItem(item);
-        if (isWheelPreview()) {
-          positionRailPreview(item);
-        }
       }
 
       scheduleHoverOpen();
@@ -2697,15 +2485,6 @@
       }
       lastRailPointerY = null;
       setRailPreviewItem(null);
-      getRailWaveItems().forEach(({ item }) => {
-        item.classList.remove('is-wave-active');
-        item.style.removeProperty('--toc-rail-wave-width');
-        item.style.removeProperty('--toc-rail-wave-opacity');
-        item.style.removeProperty('--toc-rail-wave-shift');
-        item.style.removeProperty('--toc-rail-wave-scale-x');
-        item.style.removeProperty('--toc-rail-wave-scale');
-      });
-      railWaveAffectedItems.clear();
       railWaveLayout = [];
     }
 
@@ -2717,72 +2496,7 @@
       });
     }
 
-    function updateRailWave(pointerY) {
-      if (!tocList) return;
-
-      if (railWaveLayout.length === 0) {
-        refreshRailWaveLayout();
-      }
-
-      const items = railWaveLayout;
-      let nearestItem = null;
-      let nearestEntry = null;
-      let nearestDistance = Infinity;
-      const shiftDirection = tocContainer.classList.contains('position-left') ? 1 : -1;
-      const touchedItems = new Set();
-
-      items.forEach((entry) => {
-        const { item, centerY, baseWidth } = entry;
-        touchedItems.add(item);
-        const distance = Math.abs(pointerY - centerY);
-        const rawStrength = Math.max(0, 1 - distance / railWaveMaxDistance);
-        const strength = rawStrength * rawStrength * (3 - 2 * rawStrength);
-        const waveWidth = strength * railWaveMaxWidth;
-
-        if (distance < nearestDistance) {
-          nearestDistance = distance;
-          nearestItem = item;
-          nearestEntry = entry;
-        }
-
-        if (strength > 0) {
-          item.classList.add('is-wave-active');
-          item.style.setProperty('--toc-rail-wave-width', `${waveWidth.toFixed(2)}px`);
-          item.style.setProperty('--toc-rail-wave-opacity', (0.62 + strength * 0.38).toFixed(3));
-          item.style.setProperty('--toc-rail-wave-shift', `${(strength * 2 * shiftDirection).toFixed(2)}px`);
-          item.style.setProperty('--toc-rail-wave-scale-x', ((baseWidth + waveWidth) / baseWidth).toFixed(3));
-          item.style.setProperty('--toc-rail-wave-scale', (1 + strength * 0.24).toFixed(3));
-          railWaveAffectedItems.add(item);
-        } else if (railWaveAffectedItems.has(item)) {
-          item.classList.remove('is-wave-active');
-          item.style.removeProperty('--toc-rail-wave-width');
-          item.style.removeProperty('--toc-rail-wave-opacity');
-          item.style.removeProperty('--toc-rail-wave-shift');
-          item.style.removeProperty('--toc-rail-wave-scale-x');
-          item.style.removeProperty('--toc-rail-wave-scale');
-          railWaveAffectedItems.delete(item);
-        }
-      });
-
-      railWaveAffectedItems.forEach((item) => {
-        if (touchedItems.has(item)) return;
-        item.classList.remove('is-wave-active');
-        item.style.removeProperty('--toc-rail-wave-width');
-        item.style.removeProperty('--toc-rail-wave-opacity');
-        item.style.removeProperty('--toc-rail-wave-shift');
-        item.style.removeProperty('--toc-rail-wave-scale-x');
-        item.style.removeProperty('--toc-rail-wave-scale');
-        railWaveAffectedItems.delete(item);
-      });
-
-      const nextPreviewItem = nearestDistance <= railWaveMaxDistance ? nearestItem : null;
-      setRailPreviewItem(nextPreviewItem);
-      if (isWheelPreview() && railPreviewItem) {
-        positionRailPreview(railPreviewItem, nearestEntry);
-      }
-    }
-
-    function updateReducedMotionRailPreview(pointerY) {
+    function updateNearestRailPreview(pointerY) {
       if (!tocList) return;
 
       if (railWaveLayout.length === 0) {
@@ -2802,9 +2516,6 @@
 
       const nextPreviewItem = nearestDistance <= railWaveMaxDistance ? nearestEntry?.item || null : null;
       setRailPreviewItem(nextPreviewItem);
-      if (isWheelPreview() && railPreviewItem) {
-        positionRailPreview(railPreviewItem, nearestEntry);
-      }
     }
 
     function scheduleRailWave(e) {
@@ -2821,11 +2532,7 @@
         railWaveFrame = null;
         if (lastRailPointerY !== null) {
           measurePerformance('railPointer', () => {
-            if (reducedMotionQuery.matches || !isWheelPreview()) {
-              updateReducedMotionRailPreview(lastRailPointerY);
-            } else {
-              updateRailWave(lastRailPointerY);
-            }
+            updateNearestRailPreview(lastRailPointerY);
           });
         }
       });
@@ -2888,9 +2595,6 @@
       const item = event.target?.closest?.('.toc-item:not(.no-headers)');
       if (!item) return;
       setRailPreviewItem(item);
-      if (isWheelPreview()) {
-        positionRailPreview(item);
-      }
     });
 
 
@@ -2937,19 +2641,21 @@
         }
       });
       tocGptPreview.addEventListener('keydown', (event) => {
+        if (event.isComposing) return;
         if (!['ArrowDown', 'ArrowUp', 'Home', 'End'].includes(event.key)) return;
-        const row = event.target?.closest?.('.toc-gpt-preview-row');
-        const currentIndex = row ? gptRows.findIndex((entry) => entry.row === row) : gptCurrentIndex;
-        if (currentIndex < 0 || gptRows.length === 0) return;
-
+        const isSearch = event.target.matches('.toc-gpt-search');
+        if (isSearch && !['ArrowDown', 'ArrowUp'].includes(event.key)) return;
+        const visible = gptRows.filter(({ row }) => !row.hidden);
+        if (!visible.length) return;
         event.preventDefault();
-        let nextIndex = currentIndex;
-        if (event.key === 'ArrowDown') nextIndex = Math.min(gptRows.length - 1, currentIndex + 1);
-        if (event.key === 'ArrowUp') nextIndex = Math.max(0, currentIndex - 1);
-        if (event.key === 'Home') nextIndex = 0;
-        if (event.key === 'End') nextIndex = gptRows.length - 1;
-        gptRows[nextIndex].row.focus({ preventScroll: true });
-        setRailPreviewItem(gptRows[nextIndex].item);
+        const current = visible.findIndex(({ row }) => row === event.target);
+        let next = current;
+        if (event.key === 'ArrowDown') next = Math.min(visible.length - 1, current + 1);
+        if (event.key === 'ArrowUp') next = current < 0 ? visible.length - 1 : Math.max(0, current - 1);
+        if (event.key === 'Home') next = 0;
+        if (event.key === 'End') next = visible.length - 1;
+        visible[next].row.focus({ preventScroll: true });
+        setRailPreviewItem(visible[next].item);
       });
       tocGptPreview.addEventListener('focusout', (event) => {
         if (tocGptPreview.contains(event.relatedTarget) || tocContainer.contains(event.relatedTarget)) return;
@@ -2983,7 +2689,6 @@
           refreshRailWaveLayout();
           if (isSpotlightPreview()) updateSpotlightLabelContext(focusedItem);
           if (isGptPreview()) positionGptPreview(focusedItem);
-          if (isWheelPreview()) positionRailPreview(focusedItem);
         } else if (isSpotlightPreview() || isGptPreview()) {
           setRailPreviewItem(null);
         }

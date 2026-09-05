@@ -29,7 +29,7 @@
 
 4. 检查生成的 `dist/smart-toc-scroll-<version>.zip`。
 
-当前发布基线为 `2.17`。
+当前发布基线为 `2.18`。
 
 ## 手动打包并下载 Artifact
 
@@ -38,18 +38,18 @@
 3. 点击 `Run workflow`。
 4. 工作流通过后，从该次运行的 `Artifacts` 下载 ZIP 和 SHA-256 文件。
 
-默认不填写 `release_tag` 时，手动触发只生成 Artifact，不会创建 GitHub Release。如果 Tag 自动发布曾失败，可以填写现有 Tag（例如 `v2.17`）安全重试；工作流会 checkout 该 Tag，确保附件内容与 Tag 对应源码一致。
+默认不填写 `release_tag` 时，手动触发只生成 Artifact，不会创建 GitHub Release。如果 Tag 自动发布曾失败，可以填写现有 Tag（例如 `v2.18`）安全重试；工作流会 checkout 该 Tag，确保附件内容与 Tag 对应源码一致。
 
 ## 创建 GitHub Release
 
-Tag 必须严格等于 `v` 加上 `manifest.json` 的版本号。例如 Manifest 版本为 `2.17` 时：
+Tag 必须严格等于 `v` 加上 `manifest.json` 的版本号。例如 Manifest 版本为 `2.18` 时：
 
 ```bash
-git tag v2.17
-git push origin v2.17
+git tag v2.18
+git push origin v2.18
 ```
 
-工作流会拒绝 `v2.18` 与 Manifest `2.17` 这类版本不一致的发布。校验通过后，它会：
+工作流会拒绝 `v2.19` 与 Manifest `2.18` 这类版本不一致的发布。校验通过后，它会：
 
 1. 检查 JavaScript、Shell 和 Manifest。
 2. 创建扩展 ZIP。
@@ -84,7 +84,7 @@ git push origin v2.17
 4. 选择扩展条目并上传 ZIP。
 5. 更新版本说明、隐私和商店素材后提交审核。
 
-`2.17` 建议粘贴 `CHROME_STORE_LISTING.md` 中的 `Release Note — v2.17`；上传前确认 ZIP 文件名为 `smart-toc-scroll-2.17.zip`，且商店后台解析出的版本号为 `2.17`。
+`2.18` 建议粘贴 `CHROME_STORE_LISTING.md` 中的 `Release Note — v2.18`；上传前确认 ZIP 文件名为 `smart-toc-scroll-2.18.zip`，且商店后台解析出的版本号为 `2.18`。
 
 商店文案与素材位于：
 

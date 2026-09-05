@@ -2,7 +2,7 @@
 
 const defaultSettings = {
   themePreset: 'default',
-  barcodePreview: 'wheel',
+  barcodePreview: 'spotlight',
   expandMode: 'hover',
   minHeaders: 3,
   showAfterScrollScreens: 1,
@@ -49,17 +49,16 @@ const navigationTypeDescriptions = {
 };
 
 const barcodePreviewDescriptions = {
-  wheel: '稍作停留后显示滚动标题窗，适合快速扫读；移开收起。',
-  spotlight: '稍作停留后显示目标标题与上下各两项，适合逐节定位。',
-  gpt: '稍作停留后展开完整目录，可独立滚动；方向键选标题，Esc 收起。',
-  sspai: '稍作停留后展开边缘大纲，红色标记阅读位置；图钉固定，Esc 收起。'
+  spotlight: '目标标题与前后各一项，适合附近定位。原滚轮与聚光灯已合并，移开收起。',
+  gpt: '按关键词筛选全文标题，适合查找长文中的特定内容；方向键选结果，Enter 跳转。',
+  sspai: '展开后可固定在页边，适合反复对照文章结构；红色标记阅读位置，Esc 收起。'
 };
 
 function normalizeSettings(input = {}) {
   const normalized = { ...defaultSettings, ...input };
   if (input.themePreset === 'sspai') {
     normalized.themePreset = 'barcode';
-    normalized.barcodePreview = 'wheel';
+    normalized.barcodePreview = 'spotlight';
   } else if (input.themePreset === 'glimmer') {
     normalized.themePreset = 'barcode';
     normalized.barcodePreview = 'spotlight';
@@ -67,7 +66,9 @@ function normalizeSettings(input = {}) {
   if (!['default', 'barcode'].includes(normalized.themePreset)) {
     normalized.themePreset = defaultSettings.themePreset;
   }
-  if (!['wheel', 'spotlight', 'gpt', 'sspai'].includes(normalized.barcodePreview)) {
+  // Legacy wheel preferences now use the shared, static nearby preview.
+  if (normalized.barcodePreview === 'wheel') normalized.barcodePreview = 'spotlight';
+  if (!['spotlight', 'gpt', 'sspai'].includes(normalized.barcodePreview)) {
     normalized.barcodePreview = defaultSettings.barcodePreview;
   }
   return normalized;
@@ -200,7 +201,7 @@ function syncThemePreset() {
   elements.standardInteractionRow.hidden = isBarcode;
   elements.barcodePreview.disabled = !isBarcode;
   elements.expandMode.disabled = isBarcode;
-  elements.barcodePreviewHint.textContent = barcodePreviewDescriptions[elements.barcodePreview.value] || barcodePreviewDescriptions.wheel;
+  elements.barcodePreviewHint.textContent = barcodePreviewDescriptions[elements.barcodePreview.value] || barcodePreviewDescriptions.spotlight;
   syncExpandModeHint();
   syncSegmentedControl('themePreset');
   syncSegmentedControl('barcodePreview');
@@ -252,7 +253,7 @@ elements.save.addEventListener('click', async () => {
 elements.forceShow.addEventListener('change', syncForceShow);
 elements.themePreset.addEventListener('change', syncThemePreset);
 elements.barcodePreview.addEventListener('change', () => {
-  elements.barcodePreviewHint.textContent = barcodePreviewDescriptions[elements.barcodePreview.value] || barcodePreviewDescriptions.wheel;
+  elements.barcodePreviewHint.textContent = barcodePreviewDescriptions[elements.barcodePreview.value] || barcodePreviewDescriptions.spotlight;
   syncSegmentedControl('barcodePreview');
 });
 elements.expandMode.addEventListener('change', () => {

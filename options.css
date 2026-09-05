@@ -250,7 +250,7 @@ textarea {
 
 .segmented-control--barcode-preview {
   display: grid;
-  grid-template-columns: repeat(2, minmax(112px, 1fr));
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   width: min(380px, 100%);
   gap: 8px;
 }
@@ -605,7 +605,11 @@ button#save:active {
   }
 
   .segmented-control--barcode-preview {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .segmented-control--barcode-preview button {
+    padding-inline: 6px;
   }
 
   .compact-field {

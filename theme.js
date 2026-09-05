@@ -3,7 +3,7 @@
 (function() {
   const defaultSettings = {
     themePreset: 'default',
-    barcodePreview: 'wheel'
+    barcodePreview: 'spotlight'
   };
 
   let currentThemePreset = defaultSettings.themePreset;
@@ -13,7 +13,7 @@
     const normalized = { ...defaultSettings, ...input };
     if (input.themePreset === 'sspai') {
       normalized.themePreset = 'barcode';
-      normalized.barcodePreview = 'wheel';
+      normalized.barcodePreview = 'spotlight';
     } else if (input.themePreset === 'glimmer') {
       normalized.themePreset = 'barcode';
       normalized.barcodePreview = 'spotlight';
@@ -21,7 +21,9 @@
     if (!['default', 'barcode'].includes(normalized.themePreset)) {
       normalized.themePreset = defaultSettings.themePreset;
     }
-    if (!['wheel', 'spotlight', 'gpt', 'sspai'].includes(normalized.barcodePreview)) {
+    // Legacy wheel preferences now use the shared, static nearby preview.
+    if (normalized.barcodePreview === 'wheel') normalized.barcodePreview = 'spotlight';
+    if (!['spotlight', 'gpt', 'sspai'].includes(normalized.barcodePreview)) {
       normalized.barcodePreview = defaultSettings.barcodePreview;
     }
     return normalized;

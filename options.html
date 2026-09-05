@@ -4,7 +4,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Smart TOC & Scroll 设置</title>
-    <link rel="stylesheet" href="options.css?v=2.17.0" />
+    <link rel="stylesheet" href="options.css?v=2.18.0" />
   </head>
   <body>
     <main class="page">
@@ -24,33 +24,31 @@
             </div>
             <div class="setting-control">
               <select id="themePreset" class="native-select" tabindex="-1" aria-hidden="true">
-                <option value="default">标准目录面板</option>
-                <option value="barcode">Barcode</option>
+                <option value="default">标准面板</option>
+                <option value="barcode">边缘导航</option>
               </select>
               <div class="segmented-control segmented-control--preset" data-control-for="themePreset" role="group" aria-labelledby="themePreset-label" aria-describedby="themePresetHint">
-                <button class="is-active" type="button" data-value="default" aria-pressed="true">标准目录面板</button>
-                <button type="button" data-value="barcode" aria-pressed="false">Barcode</button>
+                <button class="is-active" type="button" data-value="default" aria-pressed="true">标准面板</button>
+                <button type="button" data-value="barcode" aria-pressed="false">边缘导航</button>
               </div>
             </div>
           </section>
 
           <section id="barcodePreviewRow" class="setting-row" aria-labelledby="barcodePreview-label" hidden>
             <div class="setting-copy">
-              <h2 id="barcodePreview-label">Barcode 标题预览</h2>
-              <p id="barcodePreviewHint" aria-live="polite">标题在窄幅观察窗中滚动，只在靠近时强调当前标题。</p>
+              <h2 id="barcodePreview-label">边缘导航样式</h2>
+              <p id="barcodePreviewHint" aria-live="polite">只显示目标标题和前后各一项，快速确认跳转位置。</p>
             </div>
             <div class="setting-control">
               <select id="barcodePreview" class="native-select" tabindex="-1" aria-hidden="true">
-                <option value="wheel">滚轮</option>
-                <option value="spotlight">聚光灯</option>
-                <option value="gpt">GPT</option>
-                <option value="sspai">少数派</option>
+                <option value="spotlight">邻节预览</option>
+                <option value="gpt">检索目录</option>
+                <option value="sspai">页边大纲</option>
               </select>
               <div class="segmented-control segmented-control--barcode-preview" data-control-for="barcodePreview" role="group" aria-labelledby="barcodePreview-label" aria-describedby="barcodePreviewHint">
-                <button class="is-active" type="button" data-value="wheel" aria-pressed="true">滚轮</button>
-                <button type="button" data-value="spotlight" aria-pressed="false">聚光灯</button>
-                <button type="button" data-value="gpt" aria-pressed="false">GPT</button>
-                <button type="button" data-value="sspai" aria-pressed="false">少数派</button>
+                <button type="button" data-value="spotlight" aria-pressed="false">邻节预览</button>
+                <button type="button" data-value="gpt" aria-pressed="false">检索目录</button>
+                <button type="button" data-value="sspai" aria-pressed="false">页边大纲</button>
               </div>
             </div>
           </section>
@@ -154,6 +152,6 @@
       </section>
     </main>
 
-    <script src="options.js?v=2.17.0"></script>
+    <script src="options.js?v=2.18.0"></script>
   </body>
 </html>
