@@ -1,3 +1,5 @@
+> 当前品牌：抽象蓝色阅读位置标记，透明底、无水波与立体效果。以 [icons/README.md](icons/README.md) 的源图为准。当前官网与商店截图使用四种任务模式，见 [当前截图](output/chrome-store/v2.18/README.md)。下文历史视觉记录中的旧品牌图案不再适用。
+
 # Smart TOC & Scroll — UI/UX 优化设计规范
 
 > **版本**：v2.18 当前设计契约

@@ -76,20 +76,24 @@ Smart TOC & Scroll 为长文、博客和文档站点提供轻量阅读导航。
 
 ## Screenshot Captions
 
-1. Full outline panel for documentation and technical pages.
-2. SSPAI-style Barcode keeps its vertical ticks stable while revealing a pin-able outline.
-3. Left-side progress outline with mirrored preview placement.
-4. Adaptive contrast on light pages without adding a panel background.
-5. Simple settings for navigation type, Barcode preview, placement, and compatibility.
+1. Standard panel — see the whole article structure at a glance. / 标准面板：一眼看清全文结构。
+2. Nearby preview — just the target heading and its neighbors. / 邻节预览：只看附近，保留上下文。
+3. Outline search — find headings with local keywords. / 检索目录：用关键词找回章节。
+4. Pinned margin — keep the outline beside your reading. / 页边大纲：固定结构，安心对照阅读。
+5. Reading settings — choose when and how navigation appears. / 阅读设置：按自己的节奏出现。
 
 ## Screenshot Files
 
+Current set: `output/chrome-store/v2.18/` (five 1280 × 800 RGB PNGs).
+
 - Store icon: `output/chrome-store-icons/chrome-store-icon-128.png`
-- `output/chrome-store/01-standard-toc-panel.png`
-- `output/chrome-store/02-right-rail-hover-preview.png`
-- `output/chrome-store/03-left-rail-hover-preview.png`
-- `output/chrome-store/04-light-page-adaptive-rail.png`
-- `output/chrome-store/05-options-reading-navigation.png`
+- `output/chrome-store/v2.18/01-standard-v218.png`
+- `output/chrome-store/v2.18/02-nearby-v218.png`
+- `output/chrome-store/v2.18/03-search-v218.png`
+- `output/chrome-store/v2.18/04-margin-v218.png`
+- `output/chrome-store/v2.18/05-settings-v218.png`
+
+The article is original sample content rendered with the actual v2.18 content scripts. These are demonstrations, not claims of installation or testing on a third-party website. Older screenshots in the parent directory are historical assets.
 
 ## Privacy Note
 

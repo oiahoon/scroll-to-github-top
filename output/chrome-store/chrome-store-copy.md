@@ -1,3 +1,5 @@
+> 历史素材：当前 v2.18 的文案与截图见 [新版截图说明](v2.18/README.md) 和 [当前商店文案](../../CHROME_STORE_LISTING.md)。下文仅保留作历史记录。
+
 # Chrome Web Store Listing Copy
 
 Updated: 2026-08-28 for v2.16

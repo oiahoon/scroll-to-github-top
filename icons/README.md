@@ -1,24 +1,15 @@
-# Icon Assets
+# Smart TOC & Scroll — 阅读位置标记
 
-The current icon and logo use a Chrome-compliant water-rise mark: a compact TOC
-rail paired with a scroll-to-top ripple arrow on a true transparent background.
-The artwork is a standalone symbol, not a page/card illustration, with enough
-padding to keep the 128px Web Store icon and 16px toolbar icon readable.
+当前图标为简洁的抽象蓝色标记：两列错落的几何形体，以左侧的间断表示阅读中的位置。使用单一蓝色、透明背景，不含文字、箭头、立体高光或水波。
 
-- `logo.png` is the large transparent logo artwork.
-- `logo512.png` and `logo1024.png` are standard logo exports for store and marketing use.
-- `icon-source.png` is the transparent source image used for extension icon exports.
-- `icon16.png`, `icon32.png`, `icon48.png`, and `icon128.png` are the Chrome extension icons referenced by `manifest.json`.
-- `icon.svg` is a legacy vector source and is not the current visual source.
+## 来源
 
-The selected source came from:
+使用 OpenAI ImageGen 于 2026-09-05 生成，随后仅做尺寸导出。生成方向：minimal abstract editorial identity; two stepped vertical forms; one horizontal interruption; three bold rounded shapes; single blue ink; transparent background; no literal arrows or documents.
 
-```text
-output/chrome-store-icons/chrome-compliant-03-1024.png
-```
+- `icon-source.png`：当前 1024 × 1024 RGBA 主源图；这是栅格素材，不是矢量文件。
+- `icon16.png`、`icon32.png`、`icon48.png`、`icon128.png`：Manifest 使用的扩展图标。
+- `logo.png`、`logo1024.png`、`logo512.png`：透明品牌导出。
+- `../website/public/brand/`：官网使用的同步副本。
+- `../output/chrome-store-icons/chrome-store-icon-128.png`：当前商店上传图标。
 
-To regenerate the extension icon sizes from the selected artwork, run:
-
-```bash
-./generate_icons.sh
-```
+运行 `./generate_icons.sh` 从主源图生成所有当前使用尺寸与同步副本。旧 `icon.svg`、仓库根目录 `icon.svg` 和 `output/icon-generation/`、`output/chrome-store-icons/` 中其他候选图保留为历史资料，均不作为当前图标来源。

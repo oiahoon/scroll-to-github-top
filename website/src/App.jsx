@@ -1,3 +1,4 @@
+import { pageMeta } from "./page-meta.mjs";
 import { useEffect, useMemo, useState } from "react";
 import {
   ArrowRight,
@@ -116,16 +117,11 @@ function ScrollManager() {
       pathnameWithoutBase.length > 1
         ? pathnameWithoutBase.replace(/\/+$/, "")
         : pathnameWithoutBase;
-    const pageMeta = {
-      "/": ["Smart TOC & Scroll — 不打扰的长页面阅读导航", "为长文章、文档和 GitHub 页面提供自适应目录、Barcode 阅读进度、标题预览与快速回顶。"],
-      "/features": ["功能 — Smart TOC & Scroll", "了解 Smart TOC & Scroll 的目录识别、Barcode、主题自适应、键盘导航与本地处理能力。"],
-      "/modes": ["阅读模式 — Smart TOC & Scroll", "探索标准目录面板，以及 Wheel、Spotlight、GPT、SSPAI 四种 Barcode 标题预览。"],
-      "/guide": ["使用指南 — Smart TOC & Scroll", "安装并设置 Smart TOC & Scroll，快速开始长页面阅读导航。"],
-      "/privacy": ["隐私 — Smart TOC & Scroll", "了解 Smart TOC & Scroll 的本地页面分析、扩展权限与设置存储方式。"],
-      "/support": ["支持 — Smart TOC & Scroll", "查看常见问题、版本下载，并向 Smart TOC & Scroll 提交建议或问题。"],
-    };
+
     const [title, description] = pageMeta[normalizedPathname] || ["页面未找到 — Smart TOC & Scroll", "返回 Smart TOC & Scroll 官网继续浏览。"];
     document.title = title;
+    document.querySelector('meta[property="og:title"]')?.setAttribute("content", title);
+    document.querySelector('meta[property="og:description"]')?.setAttribute("content", description);
     document.querySelector('meta[name="description"]')?.setAttribute("content", description);
     window.scrollTo({ top: 0, behavior: "instant" });
   }, [pathname]);
@@ -142,7 +138,7 @@ function SiteHeader({ theme, onThemeChange }) {
     <header className="site-header">
       <div className="header-inner">
         <Link className="brand" to="/" aria-label="Smart TOC & Scroll 首页">
-          <img src={`${import.meta.env.BASE_URL}brand/icon128.png`} alt="" />
+          <img src={`${import.meta.env.BASE_URL}brand/icon128-v218.png`} alt="" />
           <span>
             Smart TOC <i>&</i> Scroll
           </span>
@@ -218,67 +214,21 @@ function ProductFrame({ src, alt, label, priority = false }) {
         <span className="frame-dot" />
         <span className="frame-label">{label}</span>
       </div>
-      <img src={`${import.meta.env.BASE_URL}${src}`} alt={alt} loading={priority ? "eager" : "lazy"} />
+      <img src={`${import.meta.env.BASE_URL}${src}`} alt={alt} width="1280" height="800" decoding="async" loading={priority ? "eager" : "lazy"} />
     </figure>
   );
 }
 
 function ModePreview() {
-  const modes = [
-    {
-      id: "standard",
-      label: "标准目录",
-      title: "结构复杂时，展开一张完整地图",
-      description:
-        "完整目录保留标题层级、当前章节和快速回顶，适合文档、教程与技术内容。",
-      image: "product/standard-live.png",
-      alt: "浅色长文章右侧展开的标准目录面板",
-    },
-    {
-      id: "wheel",
-      label: "滚轮",
-      title: "安静时只是进度，靠近时才给出方向",
-      description:
-        "标题在固定观察窗里滚动，当前项始终停在稳定焦点位置。",
-      image: "product/wheel-live.png",
-      alt: "深色长文章右侧的 Wheel Barcode 标题预览",
-    },
-    {
-      id: "spotlight",
-      label: "聚光灯",
-      title: "只照亮当前标题与必要的上下文",
-      description:
-        "标题列保持不动，清晰度和亮度沿指针移动，阅读位置不会跳。",
-      image: "product/spotlight-live.png",
-      alt: "深色长文章右侧的 Spotlight Barcode 标题预览",
-    },
-    {
-      id: "gpt",
-      label: "GPT",
-      title: "需要全量标题时，打开可滚动面板",
-      description:
-        "hover 后显示完整标题列表，支持面板滚动与键盘方向导航。",
-      image: "product/gpt-live.png",
-      alt: "深色长文章右侧的 GPT Barcode 完整标题面板",
-    },
-    {
-      id: "sspai",
-      label: "少数派",
-      title: "把可固定的大纲放在正文之外",
-      description:
-        "竖刻度不横移，展开后当前章节使用红色强调，并可用图钉保持大纲。",
-      image: "product/sspai-live.png",
-      alt: "浅色长文章右侧的少数派风格固定大纲",
-    },
-  ];
-  const [activeId, setActiveId] = useState("wheel");
+  const modes = readingModes;
+  const [activeId, setActiveId] = useState("spotlight");
   const active = modes.find((mode) => mode.id === activeId);
 
   return (
     <section className="mode-preview section-shell" aria-labelledby="mode-preview-title">
       <div className="section-heading split-heading">
         <div>
-          <p className="eyebrow">FIVE READING EXPERIENCES</p>
+          <p className="eyebrow">FOUR WAYS TO FIND YOUR PLACE</p>
           <h2 id="mode-preview-title">按内容密度选择阅读方式</h2>
         </div>
         <Link className="text-link" to="/modes">
@@ -287,13 +237,12 @@ function ModePreview() {
       </div>
       <div className="mode-grid">
         <div className="mode-copy">
-          <div className="segmented-control" role="tablist" aria-label="阅读导航预览">
+          <div className="segmented-control" role="group" aria-label="阅读导航预览">
             {modes.map((mode) => (
               <button
                 key={mode.id}
                 type="button"
-                role="tab"
-                aria-selected={mode.id === activeId}
+                aria-pressed={mode.id === activeId}
                 onClick={() => setActiveId(mode.id)}
               >
                 {mode.label}
@@ -334,15 +283,16 @@ function HomePage() {
               </Link>
             </div>
             <p className="hero-note">
-              <Check size={16} weight="bold" /> v2.16 · 4 种 Barcode 预览 · 正文内容不上传
+              <Check size={16} weight="bold" /> 源码 v2.18 · 4 种阅读模式 · 正文不上传
             </p>
+            <p className="release-note">本页介绍源码版本；商店实际版本以商店页面为准。</p>
           </div>
 
           <div className="hero-visual">
             <ProductFrame
-              src="product/02-right-rail-hover-preview.png"
+              src="product/02-nearby-v218.png"
               alt="Smart TOC & Scroll 在深色长文章右侧显示 Barcode 阅读进度和当前标题"
-              label="Barcode · Wheel · Adaptive surface"
+              label="邻节预览 · 三项上下文"
               priority
             />
             <div className="hero-caption">
@@ -417,7 +367,7 @@ function FeaturesPage() {
       </section>
       <section className="section-shell detail-split">
         <ProductFrame
-          src="product/05-options-reading-navigation.png"
+          src="product/05-settings-v218.png"
           alt="Smart TOC & Scroll 阅读导航设置页"
           label="Options · Reading navigation"
         />
@@ -426,7 +376,7 @@ function FeaturesPage() {
           <h2>把选择留给你，把复杂度留在设置页。</h2>
           <ul className="check-list">
             <li><Check size={18} weight="bold" /> 标准目录与 Barcode 两种导航类型</li>
-            <li><Check size={18} weight="bold" /> Wheel、Spotlight、GPT、SSPAI 四种标题预览</li>
+            <li><Check size={18} weight="bold" /> 邻节预览、检索目录、页边大纲三种页边模式</li>
             <li><Check size={18} weight="bold" /> 显示阈值、左右位置与禁用域名</li>
             <li><Check size={18} weight="bold" /> 自动避开已有目录，也可强制显示</li>
             <li><Check size={18} weight="bold" /> 明暗系统配色与明确保存状态</li>
@@ -441,39 +391,16 @@ function FeaturesPage() {
   );
 }
 
-const barcodeModes = [
-  {
-    id: "wheel",
-    number: "01",
-    title: "Wheel / 滚轮",
-    description: "标题 track 在固定观察窗内滚动，鼠标沿 rail 移动时像机械表日期窗一样切换焦点。",
-    image: "product/wheel-live.png",
-  },
-  {
-    id: "spotlight",
-    number: "02",
-    title: "Spotlight / 聚光灯",
-    description: "只显示当前标题与上下各 2 项，用更大字号和留白形成清晰的五行上下文。",
-    image: "product/spotlight-live.png",
-  },
-  {
-    id: "gpt",
-    number: "03",
-    title: "GPT / 完整面板",
-    description: "hover 后展开可滚动标题面板，支持单一 Tab 停靠点与方向键、Home、End 导航。",
-    image: "product/gpt-live.png",
-  },
-  {
-    id: "sspai",
-    number: "04",
-    title: "SSPAI / 固定大纲",
-    description: "竖刻度固定在正文外侧或屏幕边缘，hover 时不横移；当前章节红色强调，并可用图钉固定或释放大纲。",
-    image: "product/sspai-live.png",
-  },
+const readingModes = [
+  { id: "standard", number: "01", label: "标准面板", title: "一眼看清整篇结构", description: "完整层级与当前章节一起呈现，适合反复查阅文档、教程和技术长文。", image: "product/01-standard-v218.png", alt: "示例文章中的标准目录面板" },
+  { id: "spotlight", number: "02", label: "邻节预览", title: "只看附近，不丢上下文", description: "沿页边刻度查看目标标题及前后各一节。短暂经过不会立刻展开，移开后回归安静。", image: "product/02-nearby-v218.png", alt: "示例文章旁的三项邻节预览" },
+  { id: "gpt", number: "03", label: "检索目录", title: "记得关键词，就能找到那一节", description: "展开完整目录，输入关键词就地筛选标题。支持键盘跳转；查询只在当前页面处理。", image: "product/03-search-v218.png", alt: "真实目录按关键词筛选标题" },
+  { id: "sspai", number: "04", label: "页边大纲", title: "常用的大纲，可以留在身边", description: "在正文外侧阅读章节结构，点击图钉保持展开。当前章节以单一红色标记，Esc 随时收起。", image: "product/04-margin-v218.png", alt: "固定在示例文章页边的章节大纲" },
 ];
+const barcodeModes = readingModes.filter((mode) => mode.id !== "standard");
 
 function ModesPage() {
-  const [selected, setSelected] = useState("wheel");
+  const [selected, setSelected] = useState("spotlight");
   const active = barcodeModes.find((mode) => mode.id === selected);
 
   return (
@@ -497,7 +424,7 @@ function ModesPage() {
           </ul>
         </div>
         <ProductFrame
-          src="product/standard-live.png"
+          src="product/01-standard-v218.png"
           alt="标准目录面板显示文章章节层级和当前章节"
           label="Standard TOC panel"
         />
@@ -509,24 +436,23 @@ function ModesPage() {
           <p className="eyebrow">BARCODE</p>
           <h2>把文章结构收进一条边缘 rail。</h2>
           <p>
-            idle 状态仅保留透明 rail 和章节短横线；靠近或聚焦后，wave 与标题预览才出现。
+            平时只保留轻量章节刻度；停留片刻或用键盘聚焦后，再展开所需信息。
           </p>
-          <div className="mode-selector" role="listbox" aria-label="Barcode 标题预览模式">
+          <div className="mode-selector" role="group" aria-label="Barcode 标题预览模式">
             {barcodeModes.map((mode) => (
               <button
                 key={mode.id}
                 type="button"
-                role="option"
                 className={selected === mode.id ? "is-selected" : ""}
                 onClick={() => setSelected(mode.id)}
-                aria-selected={selected === mode.id}
+                aria-pressed={selected === mode.id}
               >
-                <span>{mode.number}</span>{mode.title}
+                <span>{mode.number}</span>{mode.label}
               </button>
             ))}
           </div>
           <div className="selected-mode-copy" aria-live="polite">
-            <strong>{active.title}</strong>
+            <strong>{active.label}</strong>
             <p>{active.description}</p>
           </div>
         </div>
@@ -547,9 +473,9 @@ function ModesPage() {
           </p>
         </div>
         <ProductFrame
-          src="product/03-left-rail-hover-preview.png"
-          alt="Barcode rail 在长文章左侧显示并向内容外展开标题"
-          label="Barcode · Left rail"
+          src="product/04-margin-v218.png"
+          alt="浅色文章旁的页边大纲"
+          label="页边大纲 · 浅色页面"
         />
       </section>
       <InstallBanner />
@@ -576,7 +502,7 @@ const guideSteps = [
   {
     number: "04",
     title: "开始阅读与跳转",
-    description: "hover 或聚焦导航，点击标题跳转；使用 Top 按钮返回页面顶部。调整偏好后点击“保存更改”即可同步到 Chrome 扩展存储。",
+    description: "停留或聚焦导航，点击标题跳转；Top 返回顶部。检索目录可直接输入标题关键词。设置页显示“已保存”后，刷新文章页面应用更改。",
   },
 ];
 
@@ -611,10 +537,10 @@ function GuidePage() {
           <p className="eyebrow">KEYBOARD QUICK GUIDE</p>
           <h2>不离开键盘，也能移动。</h2>
           <dl>
-            <div><dt><kbd>Esc</kbd></dt><dd>收起固定展开的面板</dd></div>
+            <div><dt><kbd>Esc</kbd></dt><dd>收起预览或固定大纲；清除本次查询</dd></div>
             <div><dt><kbd>↑</kbd><kbd>↓</kbd></dt><dd>在标题间移动</dd></div>
             <div><dt><kbd>Home</kbd><kbd>End</kbd></dt><dd>跳到首项或末项</dd></div>
-            <div><dt><kbd>Ctrl</kbd><kbd>Shift</kbd><kbd>P</kbd></dt><dd>切换性能统计面板</dd></div>
+            <div><dt><kbd>Enter</kbd></dt><dd>跳转到聚焦的标题</dd></div>
           </dl>
         </aside>
       </section>
@@ -676,7 +602,9 @@ function PrivacyPage() {
 const faqs = [
   ["为什么短页面没有出现导航？", "默认需要页面达到最少标题数与滚动距离。可以在 Options 中调整“最少标题”和“滚动屏数”，或开启强制显示。"],
   ["为什么某些网站会自动跳过？", "扩展会检测页面已有的目录或回顶控件，避免重复干扰。可在兼容策略中关闭自动避让。"],
-  ["Barcode 的四种预览有什么区别？", "Wheel 强调沿 rail 滚动的焦点；Spotlight 保持标题列稳定并渐隐邻项；GPT 展开完整、可滚动且支持键盘的标题面板；SSPAI 使用竖刻度和红色当前章节，并可固定大纲。"],
+  ["四种阅读模式该怎么选？", "需要全貌选标准面板，只看附近选邻节预览，按关键词找章节选检索目录，常驻查阅选页边大纲。"],
+  ["以前的 Wheel 模式去哪了？", "v2.18 将 Wheel 与 Spotlight 合并为邻节预览。旧设置自动迁移，不需要重新配置。内部兼容标识仍保留。"],
+  ["检索目录会使用 AI 或联网搜索吗？", "不会。它只匹配当前文章的标题，支持多个关键词，不检索正文。查询不保存，关闭预览后清除。"],
   ["动态页面切换后还会更新吗？", "会。扩展监听常见 SPA 生命周期、DOM 变化以及 GitHub 的页面导航事件，在内容结构变化后重建目录。"],
   ["扩展会上传我阅读的内容吗？", "不会。页面结构识别在本地浏览器完成，正文不会发送到开发者服务器。"],
 ];
@@ -709,7 +637,7 @@ function SupportPage() {
       <section className="section-shell support-grid">
         <article><MouseSimple size={28} weight="duotone" /><h2>功能请求</h2><p>描述你在哪类页面遇到什么阅读问题，以及期望的交互方式。</p><ExternalLink className="text-link" href={`${REPO_URL}/issues/new?template=feature_request.md`}>提出建议 <ArrowRight size={17} /></ExternalLink></article>
         <article><Code size={28} weight="duotone" /><h2>问题报告</h2><p>附上 Chrome 版本、扩展模式、页面地址和最短复现步骤。</p><ExternalLink className="text-link" href={ISSUE_URL}>报告问题 <ArrowRight size={17} /></ExternalLink></article>
-        <article><GithubLogo size={28} weight="duotone" /><h2>版本与下载</h2><p>从 GitHub Releases 获取最新 ZIP、校验文件和完整变更记录。</p><ExternalLink className="text-link" href={RELEASE_URL}>查看 Releases <ArrowRight size={17} /></ExternalLink></article>
+        <article><GithubLogo size={28} weight="duotone" /><h2>版本与下载</h2><p>从 GitHub Releases 获取已发布的 ZIP 和变更记录；源码与商店发布进度可能不同。</p><ExternalLink className="text-link" href={RELEASE_URL}>查看 Releases <ArrowRight size={17} /></ExternalLink></article>
       </section>
       <section className="section-shell faq-section">
         <div className="section-heading"><p className="eyebrow">FAQ</p><h2>常见问题</h2></div>
@@ -752,7 +680,7 @@ function SiteFooter() {
     <footer className="site-footer">
       <div className="section-shell footer-grid">
         <div className="footer-brand">
-          <Link className="brand" to="/"><img src={`${import.meta.env.BASE_URL}brand/icon128.png`} alt="" /><span>Smart TOC <i>&</i> Scroll</span></Link>
+          <Link className="brand" to="/"><img src={`${import.meta.env.BASE_URL}brand/icon128-v218.png`} alt="" /><span>Smart TOC <i>&</i> Scroll</span></Link>
           <p>Adaptive reading navigation for long articles, docs, and GitHub pages.</p>
         </div>
         <div><strong>产品</strong><Link to="/features">功能</Link><Link to="/modes">阅读模式</Link><Link to="/guide">使用指南</Link></div>

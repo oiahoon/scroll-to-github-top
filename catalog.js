@@ -1482,7 +1482,13 @@
 
   function ensureHeaderId(header, text) {
     if (!header.id) {
-      header.id = text.toLowerCase().replace(/[^a-z0-9]+/g, '-');
+      // Preserve non-Latin titles and disambiguate repeated headings.
+      const baseId = text.normalize('NFKC').toLowerCase()
+        .replace(/[^\p{L}\p{N}_-]+/gu, '-').replace(/^-+|-+$/g, '') || 'section';
+      let candidate = baseId;
+      let suffix = 2;
+      while (document.getElementById(candidate)) candidate = `${baseId}-${suffix++}`;
+      header.id = candidate;
     }
     return header.id;
   }

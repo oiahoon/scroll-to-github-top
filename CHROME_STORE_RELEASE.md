@@ -90,7 +90,7 @@ git push origin v2.18
 
 - `CHROME_STORE_LISTING.md`
 - `output/chrome-store-icons/chrome-store-icon-128.png`
-- `output/chrome-store/`
+- `output/chrome-store/v2.18/`（当前五张截图；旧目录素材仅作历史参考）
 
 ## 权限与安全边界
 
@@ -98,3 +98,9 @@ git push origin v2.18
 - 只有 Tag 对应的 GitHub Release Job 使用 `contents: write`。
 - 仓库不保存 Chrome Web Store service account、publisher ID 或 extension ID。
 - 工作流不安装项目依赖，不执行来自扩展页面的远程代码。
+
+## 当前截图上传清单
+
+按 `output/chrome-store/v2.18/README.md` 的 01–05 顺序上传。每张为 1280 × 800、24-bit RGB PNG（无 alpha），分别展示标准面板、邻节预览、检索目录、页边大纲和设置。尺寸要求参见 [Chrome 官方图片规范](https://developer.chrome.com/docs/webstore/images/)。
+
+图标上传 `output/chrome-store-icons/chrome-store-icon-128.png`。上传截图和图标不等于发布扩展；提交审核与审核后公开状态需在后台单独确认。

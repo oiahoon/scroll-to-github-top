@@ -2,7 +2,7 @@
 
 一个面向长文与文档站点的 Chrome 扩展，为网页提供轻量阅读导航。提供`标准面板`与`边缘导航`两种入口；边缘导航分为`邻节预览`、`检索目录`和`页边大纲`，按阅读任务选择。扩展支持主题自适应、hover 标题预览、已有控件避让与 SPA 页面更新，并提供平滑回顶能力。
 
-当前版本：`2.18`（Manifest V3）。
+当前源码版本：`2.18`（Manifest V3）。商店实际版本以商店页面为准。
 
 官方网站：[https://oiahoon.github.io/scroll-to-github-top/](https://oiahoon.github.io/scroll-to-github-top/)
 
@@ -181,3 +181,11 @@
 ## 许可证
 
 MIT License - 查看 [LICENSE](LICENSE) 文件了解详情。
+
+## 品牌与发布素材
+
+- [图标来源与导出](icons/README.md)：简洁的抽象阅读位置标记，扩展与官网共用同一源图。
+- [新版商店截图](output/chrome-store/v2.18/README.md)：四种模式与设置，共五张真实界面截图。
+- [当前功能清单](FEATURE_INVENTORY.md) · [产品路线](PRODUCT_UX_ROADMAP.md) · [发布步骤](CHROME_STORE_RELEASE.md)
+
+官网使用静态 React / Vite 构建，推送 `master` 中的 `website/` 变更会触发 GitHub Pages 工作流。发布官网不会自动更新 Chrome 商店。
