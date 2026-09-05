@@ -1,6 +1,6 @@
 # Chrome Web Store Listing Copy
 
-> Updated: 2026-08-28 for v2.16
+> Updated: 2026-09-05 for v2.17
 > Use for Chrome Web Store title, short description, long description, screenshot captions, and release notes.
 
 ## Positioning
@@ -95,10 +95,10 @@ Smart TOC & Scroll 为长文、博客和文档站点提供轻量阅读导航。
 
 Smart TOC & Scroll does not upload page content or collect browsing history. Outline detection and interactions run locally, and preferences are stored in the browser.
 
-## Release Note — v2.16
+## Release Note — v2.17
 
-Refined all five navigation experiences around low-interruption reading. Barcode previews now adapt their blue accent correctly on dark pages. Wheel is narrower and removes the heavy focus outline, Spotlight is a clearly distinct five-item context with a readable two-line current title, GPT improves current-row contrast, and SSPAI keeps its red focus language while using available page margins. High-frequency Wheel and Spotlight layers avoid backdrop blur, mobile preview width is reduced, and Settings adds clearer accessible descriptions and keyboard-only focus treatment.
+All five navigation styles now wait for deliberate hover, keep keyboard navigation stable, and dismiss previews consistently with Escape. Back-to-top is a quiet, directly clickable control without looping motion or document-wide proximity sampling. Panels no longer use backdrop blur; SSPAI uses one adaptive red accent. Reduced motion now covers section jumps. Standard adds a visible Close button, and Settings validates display thresholds and preserves edits when saving fails.
 
-## 中文更新说明 — v2.16
+## 中文更新说明 — v2.17
 
-围绕“低打扰阅读”继续打磨五种导航体验：暗色页面上的功能蓝对比得到修复；滚轮更窄并移除强矩形描边；聚光灯成为差异明确的五项上下文，当前标题最多显示两行；GPT 提升当前位置对比；少数派统一使用主题红并优先利用正文外侧留白。滚轮与聚光灯的高频标题层不再使用背景模糊，移动端预览进一步收窄，设置页补齐动态说明与键盘焦点语义。
+五种主题进一步围绕阅读导航打磨：停留后再展开、键盘焦点稳定、Esc 同步收起预览；回顶改为静态可点击入口，移除循环动效与全页距离采样；所有浮层取消背景模糊，少数派统一使用明暗自适应红色。减少动态效果覆盖章节跳转，标准目录增加关闭入口，设置页校验显示阈值并在保存失败时保留更改。

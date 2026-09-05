@@ -1,12 +1,16 @@
 /* =============================================
-   Smart TOC & Scroll — 主题系统 v2.16
+   Smart TOC & Scroll — 主题系统 v2.17
    设计规范：UI_DESIGN_SPEC.md §7、§12
    ============================================= */
 
-/* === 全局基础变量 === */
-:root {
+/* === 扩展浮层专用变量：不覆盖宿主页面 === */
+.github-toc,
+.github-sst,
+.toc-rail-preview,
+.toc-spotlight-layer,
+.toc-gpt-preview {
   /* 动画曲线 */
-  --ease-expand:   cubic-bezier(0.34, 1.56, 0.64, 1);   /* 展开：带轻微弹出感 */
+  --ease-expand:   cubic-bezier(0.2, 0, 0, 1);   /* 展开：短促、无回弹 */
   --ease-collapse: cubic-bezier(0.40, 0.00, 0.60, 1);   /* 折叠：快速收缩，无弹出 */
   --ease-content:  cubic-bezier(0.00, 0.00, 0.20, 1);   /* 内容淡入，Material 标准 */
   --ease-standard: cubic-bezier(0.40, 0.00, 0.20, 1);   /* 标准曲线 */
@@ -16,7 +20,7 @@
   --ease-in:  cubic-bezier(0.4, 0.0, 1, 1);
 
   /* 动画时长 */
-  --duration-expand:   0.30s;
+  --duration-expand:   0.20s;
   --duration-collapse: 0.22s;
   --duration-fade:     0.20s;
   --duration-hover:    0.15s;
@@ -50,7 +54,7 @@
   --toc-bg:               rgba(255, 255, 255, 0.88);
   --toc-bg-expanded:      rgba(255, 255, 255, 0.95);
   --toc-bg-fallback:      rgba(255, 255, 255, 0.98);  /* backdrop-filter 不支持时降级 */
-  --toc-backdrop-filter:  blur(16px) saturate(180%);
+  --toc-backdrop-filter:  none;
 
   /* 文字 */
   --toc-text:             #1a1a1a;
@@ -90,7 +94,7 @@
   --toc-bg:               rgba(30, 30, 30, 0.82);
   --toc-bg-expanded:      rgba(28, 28, 28, 0.94);
   --toc-bg-fallback:      rgba(28, 28, 28, 0.98);     /* backdrop-filter 不支持时降级 */
-  --toc-backdrop-filter:  blur(16px) saturate(150%);
+  --toc-backdrop-filter:  none;
 
   /* 文字 */
   --toc-text:             rgba(255, 255, 255, 0.90);
@@ -191,7 +195,7 @@
     --toc-bg:               rgba(30, 30, 30, 0.82);
     --toc-bg-expanded:      rgba(28, 28, 28, 0.94);
     --toc-bg-fallback:      rgba(28, 28, 28, 0.98);
-    --toc-backdrop-filter:  blur(16px) saturate(150%);
+    --toc-backdrop-filter:  none;
     --toc-text:             rgba(255, 255, 255, 0.90);
     --toc-text-secondary:   rgba(255, 255, 255, 0.60);
     --toc-text-muted:       rgba(255, 255, 255, 0.40);
@@ -219,7 +223,7 @@
     --toc-bg:               rgba(255, 255, 255, 0.88);
     --toc-bg-expanded:      rgba(255, 255, 255, 0.95);
     --toc-bg-fallback:      rgba(255, 255, 255, 0.98);
-    --toc-backdrop-filter:  blur(16px) saturate(180%);
+    --toc-backdrop-filter:  none;
     --toc-text:             #1a1a1a;
     --toc-text-secondary:   rgba(26, 26, 26, 0.60);
     --toc-text-muted:       rgba(26, 26, 26, 0.50);
@@ -252,7 +256,7 @@
   --toc-bg:               rgba(30, 30, 30, 0.82);
   --toc-bg-expanded:      rgba(28, 28, 28, 0.94);
   --toc-bg-fallback:      rgba(28, 28, 28, 0.98);
-  --toc-backdrop-filter:  blur(16px) saturate(150%);
+  --toc-backdrop-filter:  none;
   --toc-text:             rgba(255, 255, 255, 0.90);
   --toc-text-secondary:   rgba(255, 255, 255, 0.60);
   --toc-text-muted:       rgba(255, 255, 255, 0.40);

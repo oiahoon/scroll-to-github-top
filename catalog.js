@@ -44,8 +44,10 @@
   let isPinnedOpen = false;
   let railWaveFrame = null;
   let lastRailPointerY = null;
-  let scrollTopProximityFrame = null;
-  let lastScrollTopPointer = null;
+  let resetRailInteraction = null;
+  let previewRailKeyboardItem = null;
+  let railDismissed = false;
+  let tocKeyboardLink = null;
   let railWaveItems = [];
   let railWaveLayout = [];
   let railPreviewItem = null;
@@ -66,8 +68,6 @@
   const railPreviewRowHeight = 30;
   const railPreviewRowGap = 4;
   const railPreviewPaddingY = 4;
-  const scrollTopProximityRadius = 116;
-  const scrollTopHoverRadius = 44;
   const reducedMotionQuery = window.matchMedia
     ? window.matchMedia('(prefers-reduced-motion: reduce)')
     : { matches: false };
@@ -590,11 +590,11 @@
     return isBarcodePreset();
   }
 
-  function bindDefaultKeyboardNavigation() {
+  function bindTocKeyboardNavigation() {
     if (!tocContainer) return;
 
     tocContainer.addEventListener('keydown', (e) => {
-      if (e.key === 'Escape' && tocContainer.classList.contains('expanded')) {
+      if (!isRailPreset() && e.key === 'Escape' && tocContainer.classList.contains('expanded')) {
         e.preventDefault();
         closePanel();
         if (iconContainer) {
@@ -602,20 +602,18 @@
         }
         return;
       }
-      if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+      if (['ArrowDown', 'ArrowUp', 'Home', 'End'].includes(e.key)) {
         const links = Array.from(tocList.querySelectorAll('.toc-item:not(.no-headers) a'));
         if (links.length === 0) return;
         const focused = document.activeElement;
         const idx = links.indexOf(focused);
-        if (e.key === 'ArrowDown') {
-          e.preventDefault();
-          const next = links[idx + 1] || links[0];
-          next.focus();
-        } else {
-          e.preventDefault();
-          const prev = links[idx - 1] || links[links.length - 1];
-          prev.focus();
-        }
+        e.preventDefault();
+        toggleExpanded(true);
+        const nextIndex = e.key === 'Home' ? 0 : e.key === 'End' ? links.length - 1
+          : e.key === 'ArrowDown' ? Math.min(links.length - 1, idx + 1) : Math.max(0, idx - 1);
+        links[nextIndex].focus({ preventScroll: true });
+        previewRailKeyboardItem?.(links[nextIndex].closest('.toc-item'));
+        links[nextIndex].scrollIntoView({ block: 'nearest', behavior: 'instant' });
       }
     });
   }
@@ -692,7 +690,13 @@
       if (e.key === 'Enter' || e.key === ' ') {
         e.preventDefault();
         e.stopPropagation();
-        iconContainer.click();
+        if (settings.expandMode === 'press') {
+          setPinnedState(!tocContainer.classList.contains('expanded'));
+          toggleExpanded();
+        } else {
+          iconContainer.click();
+        }
+        if (tocContainer.classList.contains('expanded')) tocKeyboardLink?.focus({ preventScroll: true });
       }
     });
 
@@ -700,6 +704,7 @@
     tocTree.id = 'github-toc-tree';
     tocTree.className = 'toc-tree';
     tocTree.setAttribute('aria-hidden', 'true');
+    tocTree.inert = true;
 
     tocTitle = document.createElement('div');
     tocTitle.className = 'toc-title';
@@ -721,6 +726,19 @@
     tocTopButton.setAttribute('aria-label', '回到页面顶部');
     tocTitle.appendChild(tocTopButton);
 
+    const closeButton = document.createElement('button');
+    closeButton.type = 'button';
+    closeButton.className = 'toc-close-button';
+    closeButton.textContent = 'Close';
+    closeButton.setAttribute('aria-label', '折叠目录');
+    closeButton.addEventListener('click', (event) => {
+      event.preventDefault();
+      event.stopPropagation();
+      closePanel();
+      iconContainer.focus({ preventScroll: true });
+    });
+    tocTitle.appendChild(closeButton);
+
     tocTree.appendChild(tocTitle);
 
     tocList = document.createElement('ul');
@@ -729,8 +747,6 @@
     tocList.setAttribute('aria-label', '文章目录');
     tocTree.appendChild(tocList);
     tocContainer.appendChild(tocTree);
-
-    bindDefaultKeyboardNavigation();
   }
 
   // 创建目录树容器
@@ -747,6 +763,15 @@
     tocContainer.setAttribute('aria-expanded', 'false');
     tocContainer.setAttribute('data-pinned', 'false');
     document.body.appendChild(tocContainer);
+
+    bindTocKeyboardNavigation();
+    tocContainer.addEventListener('focusin', (event) => {
+      const link = event.target.closest('.toc-item a');
+      if (!link) return;
+      if (tocKeyboardLink) tocKeyboardLink.tabIndex = -1;
+      tocKeyboardLink = link;
+      link.tabIndex = 0;
+    });
 
     if (isRailPreset()) {
       createRailUI();
@@ -893,10 +918,6 @@
       window.cancelAnimationFrame(adaptiveThemeFrame);
       adaptiveThemeFrame = null;
     }
-    if (scrollTopProximityFrame) {
-      window.cancelAnimationFrame(scrollTopProximityFrame);
-      scrollTopProximityFrame = null;
-    }
     if (scrollTimeout) {
       window.cancelAnimationFrame(scrollTimeout);
       scrollTimeout = null;
@@ -917,10 +938,9 @@
       window.clearInterval(performanceStatsTimer);
       performanceStatsTimer = null;
     }
-    clearHoverTimers();
+    closePanel();
     clearTimeout(longPressTimer);
     longPressTimer = null;
-    lastScrollTopPointer = null;
     lastObservedHeadersSignature = '';
     observerActiveHeaderId = null;
     activeHeaderHoldUntil = 0;
@@ -1098,7 +1118,8 @@
         tone: 'light-surface',
         luminance,
         vars: {
-          '--toc-accent': '#0969da',
+          '--toc-accent': isSspaiPreview() ? '#c92b35' : '#0969da',
+          '--toc-sspai-accent': '#c92b35',
           '--toc-rail-line': 'rgba(15, 23, 42, 0.22)',
           '--toc-rail-line-hover': 'rgba(15, 23, 42, 0.38)',
           '--toc-rail-line-active': 'rgba(15, 23, 42, 0.74)',
@@ -1108,7 +1129,7 @@
           '--toc-rail-top-bg': 'rgba(15, 23, 42, 0.065)',
           '--toc-rail-top-bg-hover': 'rgba(15, 23, 42, 0.12)',
           '--toc-rail-top-border': 'rgba(15, 23, 42, 0.10)',
-          '--toc-rail-preview-bg': 'rgba(255, 255, 255, 0.90)',
+          '--toc-rail-preview-bg': 'rgb(255, 255, 255)',
           '--toc-rail-preview-border': 'rgba(15, 23, 42, 0.12)',
           '--toc-rail-preview-shadow': '0 10px 24px rgba(15, 23, 42, 0.14)'
         }
@@ -1119,7 +1140,8 @@
       tone: 'dark-surface',
       luminance,
       vars: {
-        '--toc-accent': '#58a6ff',
+        '--toc-accent': isSspaiPreview() ? '#ff7b83' : '#58a6ff',
+        '--toc-sspai-accent': '#ff7b83',
         '--toc-rail-line': 'rgba(255, 255, 255, 0.22)',
         '--toc-rail-line-hover': 'rgba(255, 255, 255, 0.42)',
         '--toc-rail-line-active': 'rgba(255, 255, 255, 0.88)',
@@ -1129,7 +1151,7 @@
         '--toc-rail-top-bg': 'rgba(255, 255, 255, 0.06)',
         '--toc-rail-top-bg-hover': 'rgba(255, 255, 255, 0.13)',
         '--toc-rail-top-border': 'rgba(255, 255, 255, 0.10)',
-        '--toc-rail-preview-bg': 'rgba(17, 24, 39, 0.84)',
+        '--toc-rail-preview-bg': 'rgb(24, 27, 34)',
         '--toc-rail-preview-border': 'rgba(255, 255, 255, 0.18)',
         '--toc-rail-preview-shadow': '0 10px 24px rgba(0, 0, 0, 0.24)'
       }
@@ -1144,7 +1166,7 @@
       const standardVars = palette.tone === 'dark-surface'
         ? {
             '--toc-bg': 'rgba(22, 25, 31, 0.90)',
-            '--toc-bg-expanded': 'rgba(24, 27, 34, 0.96)',
+            '--toc-bg-expanded': 'rgb(24, 27, 34)',
             '--toc-bg-fallback': 'rgb(24, 27, 34)',
             '--toc-text': 'rgba(248, 250, 252, 0.92)',
             '--toc-text-muted': 'rgba(226, 232, 240, 0.58)',
@@ -1160,7 +1182,7 @@
           }
         : {
             '--toc-bg': 'rgba(255, 255, 255, 0.90)',
-            '--toc-bg-expanded': 'rgba(255, 255, 255, 0.97)',
+            '--toc-bg-expanded': 'rgb(255, 255, 255)',
             '--toc-bg-fallback': 'rgb(255, 255, 255)',
             '--toc-text': 'rgba(15, 23, 42, 0.92)',
             '--toc-text-muted': 'rgba(51, 65, 85, 0.62)',
@@ -1219,6 +1241,7 @@
 
   function scheduleAdaptiveRailThemeUpdate(force = false) {
     const now = Date.now();
+    if (document.hidden || !tocContainer || tocContainer.style.display === 'none') return;
     if (!force && now - lastAdaptiveThemeSampleAt < 180) return;
     if (adaptiveThemeFrame) return;
 
@@ -1539,7 +1562,7 @@
     a.addEventListener('click', (e) => {
       e.preventDefault();
       primeRailPostClickHoldFromLink(a);
-      header.scrollIntoView({ behavior: 'smooth' });
+      header.scrollIntoView({ behavior: reducedMotionQuery.matches ? 'instant' : 'smooth' });
       holdActiveHeaderAfterNavigation(headerId);
     });
 
@@ -1610,6 +1633,7 @@
   function renderHeadersIntoToc(headers) {
     if (!tocList) return;
 
+    tocKeyboardLink = null;
     tocList.innerHTML = '';
     railWaveItems = [];
     railWaveLayout = [];
@@ -1643,6 +1667,11 @@
     headers.forEach((header) => {
       const item = createTocItem(header);
       if (item) {
+        const link = item.querySelector('a');
+        if (link) {
+          link.tabIndex = tocKeyboardLink ? -1 : 0;
+          if (!tocKeyboardLink) tocKeyboardLink = link;
+        }
         tocList.appendChild(item);
       }
     });
@@ -1750,7 +1779,7 @@
       item.scrollIntoView({
         block: 'nearest',
         inline: 'nearest',
-        behavior: 'smooth'
+        behavior: reducedMotionQuery.matches ? 'instant' : 'smooth'
       });
     }
   }
@@ -1771,9 +1800,17 @@
       }
     });
 
+    if (nextActiveItem && !tocContainer.contains(document.activeElement) && !tocGptPreview?.contains(document.activeElement)) {
+      if (tocKeyboardLink) tocKeyboardLink.tabIndex = -1;
+      tocKeyboardLink = nextActiveItem.querySelector('a');
+      if (tocKeyboardLink) tocKeyboardLink.tabIndex = 0;
+    }
+
     if (nextActiveItem && headerId && headerId !== lastActiveHeaderId) {
       lastActiveHeaderId = headerId;
-      revealActiveTocItem(nextActiveItem);
+      if (!tocContainer.contains(document.activeElement) && !tocGptPreview?.contains(document.activeElement)) {
+        revealActiveTocItem(nextActiveItem);
+      }
     }
   }
 
@@ -1857,6 +1894,7 @@
     const shouldShow = shouldShowToc();
     if (shouldShow !== lastTocVisibility) {
       lastTocVisibility = shouldShow;
+      if (!shouldShow) closePanel();
       if (tocContainer) {
         tocContainer.style.display = shouldShow ? 'flex' : 'none';
       }
@@ -1866,7 +1904,6 @@
       }
     }
     if (scrollTopButton && !shouldShow) {
-      scrollTopButton.classList.remove('is-near');
       scrollTopButton.classList.remove('is-hovered');
     }
     if (shouldShow) {
@@ -1875,11 +1912,10 @@
   }
 
   window.addEventListener('scroll', () => {
-    if (scrollTimeout) {
-      window.cancelAnimationFrame(scrollTimeout);
-    }
+    if (!tocContainer || document.hidden || scrollTimeout) return;
 
     scrollTimeout = window.requestAnimationFrame(() => {
+      scrollTimeout = null;
       measurePerformance('scrollPerformance', () => {
         updateVisibility();
         if (shouldTrackActiveHeaderOnScroll()) {
@@ -1969,6 +2005,8 @@
     document.addEventListener('visibilitychange', () => {
       if (document.visibilityState === 'visible') {
         scheduleReinitialize(100);
+      } else {
+        closePanel();
       }
     });
   }
@@ -2040,15 +2078,18 @@
       tocContainer.addEventListener('transitionend', collapseCleanup);
       const collapseFallback = setTimeout(collapseCleanup, 300);
     } else {
+      railDismissed = false;
       tocContainer.classList.remove('is-collapsing');
     }
     tocContainer.classList.toggle('expanded', shouldExpand);
     // 同步 ARIA 状态
     tocContainer.setAttribute('aria-expanded', shouldExpand ? 'true' : 'false');
-    if (tocTree) {
+    if (tocTree && !isRailPreset()) {
+      tocTree.inert = !shouldExpand;
       tocTree.setAttribute('aria-hidden', shouldExpand ? 'false' : 'true');
     }
     if (iconContainer) {
+      iconContainer.tabIndex = shouldExpand ? -1 : 0;
       iconContainer.setAttribute('aria-label', shouldExpand ? '折叠目录' : '展开目录');
       iconContainer.setAttribute('aria-expanded', shouldExpand ? 'true' : 'false');
     }
@@ -2072,21 +2113,24 @@
   function closePanel() {
     clearHoverTimers();
     setPinnedState(false);
+    resetRailInteraction?.();
     toggleExpanded(false);
   }
 
-  function scheduleHoverOpen() {
-    if (isPinnedOpen) return;
+  function scheduleHoverOpen(onOpen) {
+    if (isPinnedOpen || (isRailPreset() && railDismissed)) return;
     clearHoverTimers();
     hoverOpenTimer = setTimeout(() => {
       toggleExpanded(true);
-    }, 120);
+      if (typeof onOpen === 'function') onOpen();
+    }, 180);
   }
 
   function scheduleHoverClose() {
     if (isPinnedOpen) return;
     clearHoverTimers();
     hoverCloseTimer = setTimeout(() => {
+      if (tocContainer?.contains(document.activeElement) || tocGptPreview?.contains(document.activeElement)) return;
       toggleExpanded(false);
     }, 180);
   }
@@ -2095,7 +2139,7 @@
     window.scrollTo({
       top: 0,
       left: 0,
-      behavior: reducedMotionQuery.matches ? 'auto' : 'smooth'
+      behavior: reducedMotionQuery.matches ? 'instant' : 'smooth'
     });
   }
 
@@ -2103,6 +2147,20 @@
     let spotlightRows = [];
     let gptRows = [];
     let gptCurrentIndex = -1;
+
+    previewRailKeyboardItem = (item) => {
+      setRailPreviewItem(item);
+      if (isWheelPreview()) positionRailPreview(item);
+    };
+
+    resetRailInteraction = () => {
+      railDismissed = railPointerInside;
+      railPointerInside = false;
+      clearRailPointerExit();
+      clearRailPostClickHold();
+      setSspaiDirectoryPinned(false);
+      resetRailWave();
+    };
 
     function clearRailPointerExit() {
       if (!railPointerExitTimer) return;
@@ -2115,7 +2173,7 @@
       if (railPointerExitTimer) return;
       railPointerExitTimer = window.setTimeout(() => {
         railPointerExitTimer = null;
-        if (railPointerInside) return;
+        if (railPointerInside || tocContainer.contains(document.activeElement) || tocGptPreview?.contains(document.activeElement)) return;
         if (isRailPostClickHoldActive()) {
           scheduleRailPostClickHoldRelease();
           return;
@@ -2511,9 +2569,6 @@
       tocRailPreview.style.setProperty('--toc-rail-focus-y', `${focusY}px`);
       tocRailPreview.style.setProperty('--toc-rail-track-y', `${trackY}px`);
       tocRailPreview.style.setProperty('--toc-rail-focus-opacity', rows.length > 0 ? '1' : '0');
-      focus.classList.remove('is-bouncing');
-      focus.offsetWidth;
-      focus.classList.add('is-bouncing');
 
       railPreviewRenderedItem = item;
       railPreviewRenderedMeta = {
@@ -2615,7 +2670,7 @@
       const entry = railWaveLayout.find(({ item: railItem }) => railItem === item);
       if (entry) {
         lastRailPointerY = entry.centerY;
-        if (reducedMotionQuery.matches) {
+        if (reducedMotionQuery.matches || !isWheelPreview()) {
           updateReducedMotionRailPreview(entry.centerY);
         } else {
           updateRailWave(entry.centerY);
@@ -2753,19 +2808,20 @@
     }
 
     function scheduleRailWave(e) {
-      if (!tocList) return;
+      if (!tocList || railDismissed || e.pointerType === 'touch') return;
+      lastRailPointerY = e.clientY;
+      if (!tocContainer.classList.contains('expanded')) return;
 
       if (isRailPostClickHoldActive()) {
         clearRailPostClickHold();
       }
-      lastRailPointerY = e.clientY;
       if (railWaveFrame) return;
 
       railWaveFrame = window.requestAnimationFrame(() => {
         railWaveFrame = null;
         if (lastRailPointerY !== null) {
           measurePerformance('railPointer', () => {
-            if (reducedMotionQuery.matches) {
+            if (reducedMotionQuery.matches || !isWheelPreview()) {
               updateReducedMotionRailPreview(lastRailPointerY);
             } else {
               updateRailWave(lastRailPointerY);
@@ -2775,43 +2831,7 @@
       });
     }
 
-    function updateScrollTopProximity(pointer) {
-      if (!scrollTopButton || !scrollTopButton.classList.contains('visible')) return;
-
-      const rect = scrollTopButton.getBoundingClientRect();
-      const centerX = rect.left + rect.width / 2;
-      const centerY = rect.top + rect.height / 2;
-      const distanceFromCenter = Math.hypot(pointer.clientX - centerX, pointer.clientY - centerY);
-      const near =
-        pointer.clientX >= rect.left - scrollTopProximityRadius &&
-        pointer.clientX <= rect.right + scrollTopProximityRadius &&
-        pointer.clientY >= rect.top - scrollTopProximityRadius &&
-        pointer.clientY <= rect.bottom + scrollTopProximityRadius;
-      const hovered = distanceFromCenter <= scrollTopHoverRadius;
-
-      scrollTopButton.classList.toggle('is-near', near);
-      scrollTopButton.classList.toggle('is-hovered', hovered);
-    }
-
-    function scheduleScrollTopProximity(e) {
-      if (!scrollTopButton || !scrollTopButton.classList.contains('visible')) return;
-
-      lastScrollTopPointer = {
-        clientX: e.clientX,
-        clientY: e.clientY
-      };
-      if (scrollTopProximityFrame) return;
-
-      scrollTopProximityFrame = window.requestAnimationFrame(() => {
-        scrollTopProximityFrame = null;
-        if (lastScrollTopPointer) {
-          updateScrollTopProximity(lastScrollTopPointer);
-        }
-      });
-    }
-
     function handleRailDocumentPointerMove(event) {
-      scheduleScrollTopProximity(event);
       if (isSspaiDirectoryPinned) return;
       if ((!isSpotlightPreview() && !isGptPreview()) || !railPreviewItem) return;
       const target = event.target;
@@ -2829,15 +2849,22 @@
       scheduleRailPointerExit();
     }
 
-    tocContainer.addEventListener('pointerenter', () => {
+    tocContainer.addEventListener('pointerenter', (event) => {
+      if (event.pointerType === 'touch') return;
+      railDismissed = false;
       railPointerInside = true;
       clearRailPointerExit();
-      refreshRailWaveLayout();
-      scheduleAdaptiveRailThemeUpdate(true);
-      scheduleHoverOpen();
+      lastRailPointerY = event.clientY;
+      scheduleHoverOpen(() => {
+        refreshRailWaveLayout();
+        scheduleAdaptiveRailThemeUpdate(true);
+        scheduleRailWave({ clientY: lastRailPointerY });
+      });
     });
     tocContainer.addEventListener('pointermove', scheduleRailWave);
     tocContainer.addEventListener('pointerleave', (event) => {
+      railDismissed = false;
+      clearTimeout(hoverOpenTimer);
       if (isSspaiDirectoryPinned) return;
       if (
         (isSpotlightPreview() && tocSpotlightLayer?.contains(event.relatedTarget)) ||
@@ -2855,6 +2882,8 @@
       scheduleRailPointerExit();
     });
     tocContainer.addEventListener('focusin', (event) => {
+      railDismissed = false;
+      clearHoverTimers();
       toggleExpanded(true);
       const item = event.target?.closest?.('.toc-item:not(.no-headers)');
       if (!item) return;
@@ -2863,11 +2892,7 @@
         positionRailPreview(item);
       }
     });
-    tocContainer.addEventListener('keydown', (event) => {
-      if (!isSspaiPreview() || event.key !== 'Escape' || !isSspaiDirectoryPinned) return;
-      event.preventDefault();
-      setSspaiDirectoryPinned(false);
-    });
+
 
     if (tocSpotlightLayer) {
       tocSpotlightLayer.addEventListener('pointerenter', () => {
@@ -2953,7 +2978,13 @@
 
       tocList.addEventListener('scroll', () => {
         railWaveLayout = [];
-        if (isSpotlightPreview() || isGptPreview()) {
+        const focusedItem = document.activeElement?.closest('.toc-item');
+        if (focusedItem && tocList.contains(focusedItem)) {
+          refreshRailWaveLayout();
+          if (isSpotlightPreview()) updateSpotlightLabelContext(focusedItem);
+          if (isGptPreview()) positionGptPreview(focusedItem);
+          if (isWheelPreview()) positionRailPreview(focusedItem);
+        } else if (isSpotlightPreview() || isGptPreview()) {
           setRailPreviewItem(null);
         }
       }, { passive: true });
@@ -2970,12 +3001,9 @@
     }, { passive: true });
 
     if (scrollTopButton) {
-      document.addEventListener('pointermove', handleRailDocumentPointerMove, { passive: true });
-      document.addEventListener('pointerleave', () => {
-        scrollTopButton.classList.remove('is-near');
-        scrollTopButton.classList.remove('is-hovered');
-        lastScrollTopPointer = null;
-      });
+      if (isSpotlightPreview() || isGptPreview()) {
+        document.addEventListener('pointermove', handleRailDocumentPointerMove, { passive: true });
+      }
       scrollTopButton.addEventListener('pointerenter', () => {
         scrollTopButton.classList.add('is-hovered');
       });
@@ -2990,13 +3018,18 @@
 
     document.addEventListener('pointerdown', (e) => {
       if (!tocContainer.classList.contains('expanded')) return;
-      if (tocContainer.contains(e.target)) return;
+      if (tocContainer.contains(e.target) || tocGptPreview?.contains(e.target) || tocSpotlightLayer?.contains(e.target)) return;
       closePanel();
     });
 
     document.addEventListener('keydown', (e) => {
       if (e.key === 'Escape' && tocContainer.classList.contains('expanded')) {
+        const active = document.activeElement;
+        if (tocGptPreview?.contains(active)) {
+          tocKeyboardLink?.focus({ preventScroll: true });
+        }
         closePanel();
+        if (tocContainer.contains(active) || tocGptPreview?.contains(active)) e.preventDefault();
       }
     });
   }
@@ -3049,7 +3082,7 @@
 
     if (settings.expandMode === 'press') {
       tocContainer.addEventListener('pointerdown', (e) => {
-        if (isClickOnTocLink(e)) return;
+        if (!isIconClick(e)) return;
         longPressTriggered = false;
         longPressTimer = setTimeout(() => {
           longPressTriggered = true;
@@ -3058,6 +3091,7 @@
       });
 
       tocContainer.addEventListener('pointerup', (e) => {
+        if (!isIconClick(e)) return;
         if (longPressTimer) {
           clearTimeout(longPressTimer);
           longPressTimer = null;

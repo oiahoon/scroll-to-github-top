@@ -34,6 +34,8 @@ const elements = {
 const segmentedControls = Array.from(document.querySelectorAll('[data-control-for]'));
 let statusHideTimer = null;
 let statusClearTimer = null;
+let isSaving = false;
+let editRevision = 0;
 
 const expandModeDescriptions = {
   hover: '悬停预览目录，点击浮标可固定展开；移开后自动收起。',
@@ -47,10 +49,10 @@ const navigationTypeDescriptions = {
 };
 
 const barcodePreviewDescriptions = {
-  wheel: '标题在窄幅观察窗中滚动，只在靠近时强调当前标题。',
-  spotlight: '靠近时显示当前标题与上下各两项，当前标题最多显示两行。',
-  gpt: '靠近时展开带背景和边框的完整目录，可在面板内滚动。',
-  sspai: '悬停展开固定在页面边缘的标题大纲，当前章节使用红色，并可固定显示。'
+  wheel: '稍作停留后显示滚动标题窗，适合快速扫读；移开收起。',
+  spotlight: '稍作停留后显示目标标题与上下各两项，适合逐节定位。',
+  gpt: '稍作停留后展开完整目录，可独立滚动；方向键选标题，Esc 收起。',
+  sspai: '稍作停留后展开边缘大纲，红色标记阅读位置；图钉固定，Esc 收起。'
 };
 
 function normalizeSettings(input = {}) {
@@ -78,11 +80,12 @@ function normalizeDomains(input) {
     .filter((value) => value.length > 0);
 }
 
-function renderStatus(message) {
+function renderStatus(message, persistent = false) {
   clearTimeout(statusHideTimer);
   clearTimeout(statusClearTimer);
   elements.status.textContent = message;
   elements.status.classList.add('visible');
+  if (persistent) return;
   statusHideTimer = setTimeout(() => {
     elements.status.classList.remove('visible');
     // 等待淡出动画结束后再清空文字（0.2s）
@@ -93,6 +96,7 @@ function renderStatus(message) {
 }
 
 function setDirtyState(isDirty) {
+  if (isDirty) editRevision += 1;
   elements.save.disabled = !isDirty;
   elements.save.textContent = isDirty ? '保存更改' : '已保存';
   document.querySelector('.settings-panel')?.classList.toggle('has-unsaved-changes', isDirty);
@@ -160,8 +164,11 @@ function saveSettings(data) {
   if (typeof chrome === 'undefined' || !chrome.storage || !chrome.storage.sync) {
     return Promise.resolve();
   }
-  return new Promise((resolve) => {
-    chrome.storage.sync.set(data, resolve);
+  return new Promise((resolve, reject) => {
+    chrome.storage.sync.set(data, () => {
+      if (chrome.runtime?.lastError) reject(new Error(chrome.runtime.lastError.message));
+      else resolve();
+    });
   });
 }
 
@@ -210,6 +217,10 @@ function syncForceShow() {
 }
 
 elements.save.addEventListener('click', async () => {
+  if (isSaving) return;
+  for (const field of [elements.minHeaders, elements.showAfterScrollScreens]) {
+    if (!field.reportValidity()) return;
+  }
   const payload = {
     themePreset: elements.themePreset.value,
     barcodePreview: elements.barcodePreview.value,
@@ -222,9 +233,20 @@ elements.save.addEventListener('click', async () => {
     forceShow: elements.forceShow.checked
   };
 
-  await saveSettings(payload);
-  setDirtyState(false);
-  renderStatus('设置已保存');
+  isSaving = true;
+  const revision = editRevision;
+  elements.save.disabled = true;
+  elements.save.textContent = '保存中…';
+  try {
+    await saveSettings(payload);
+    setDirtyState(editRevision !== revision);
+    renderStatus(editRevision === revision ? '设置已保存，刷新文章页后生效' : '已保存，另有新更改待保存');
+  } catch {
+    setDirtyState(true);
+    renderStatus('保存失败，请重试。更改仍保留。', true);
+  } finally {
+    isSaving = false;
+  }
 });
 
 elements.forceShow.addEventListener('change', syncForceShow);

@@ -4,7 +4,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Smart TOC & Scroll 设置</title>
-    <link rel="stylesheet" href="options.css?v=2.16.0" />
+    <link rel="stylesheet" href="options.css?v=2.17.0" />
   </head>
   <body>
     <main class="page">
@@ -84,7 +84,7 @@
                 <span>滚动屏数</span>
                 <input
                   id="showAfterScrollScreens"
-                  type="number"
+                  type="number" required
                   min="0"
                   step="0.5"
                   aria-label="滚动屏数"
@@ -94,7 +94,7 @@
               </label>
               <label class="compact-field">
                 <span>最少标题</span>
-                <input id="minHeaders" type="number" min="0" step="1" aria-label="最少标题" value="3" />
+                <input id="minHeaders" type="number" required min="0" step="1" aria-label="最少标题" value="3" />
               </label>
             </div>
           </section>
@@ -145,7 +145,7 @@
         </div>
 
         <footer class="settings-footer">
-          <p>本地分析页面结构，偏好只保存在浏览器中。</p>
+          <p>本地分析页面结构，偏好通过浏览器同步。保存后刷新文章页生效。</p>
           <div class="actions">
             <span id="status" role="status" aria-live="polite" aria-atomic="true"></span>
             <button id="save" type="button" disabled>已保存</button>
@@ -154,6 +154,6 @@
       </section>
     </main>
 
-    <script src="options.js?v=2.16.0"></script>
+    <script src="options.js?v=2.17.0"></script>
   </body>
 </html>
