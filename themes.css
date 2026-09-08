@@ -4,11 +4,16 @@
    ============================================= */
 
 /* === 扩展浮层专用变量：不覆盖宿主页面 === */
-.github-toc,
-.github-sst,
-.toc-rail-preview,
-.toc-spotlight-layer,
-.toc-gpt-preview {
+:where([data-smart-toc-owned]).github-toc,
+:where([data-smart-toc-owned]) .github-toc,
+:where([data-smart-toc-owned]).github-sst,
+:where([data-smart-toc-owned]) .github-sst,
+:where([data-smart-toc-owned]).toc-rail-preview,
+:where([data-smart-toc-owned]) .toc-rail-preview,
+:where([data-smart-toc-owned]).toc-spotlight-layer,
+:where([data-smart-toc-owned]) .toc-spotlight-layer,
+:where([data-smart-toc-owned]).toc-gpt-preview,
+:where([data-smart-toc-owned]) .toc-gpt-preview {
   /* 动画曲线 */
   --ease-expand:   cubic-bezier(0.2, 0, 0, 1);   /* 展开：短促、无回弹 */
   --ease-collapse: cubic-bezier(0.40, 0.00, 0.60, 1);   /* 折叠：快速收缩，无弹出 */
@@ -49,7 +54,7 @@
    主题 A：light（面向深色/中色背景页面）
    半透明磨砂白
    ============================================= */
-.theme-light {
+:where([data-smart-toc-owned]).theme-light, :where([data-smart-toc-owned]) .theme-light {
   /* 背景：半透明白色 + 磨砂模糊 */
   --toc-bg:               rgba(255, 255, 255, 0.88);
   --toc-bg-expanded:      rgba(255, 255, 255, 0.95);
@@ -89,7 +94,7 @@
    主题 B：dark（面向浅色背景页面）
    半透明磨砂深灰
    ============================================= */
-.theme-dark {
+:where([data-smart-toc-owned]).theme-dark, :where([data-smart-toc-owned]) .theme-dark {
   /* 背景：半透明深色 + 磨砂模糊 */
   --toc-bg:               rgba(30, 30, 30, 0.82);
   --toc-bg-expanded:      rgba(28, 28, 28, 0.94);
@@ -125,11 +130,11 @@
   --toc-elevation-expanded: 0 8px 32px rgba(0,0,0,0.55), 0 4px 8px rgba(0,0,0,0.30);
 }
 
-.theme-preset-default {
+:where([data-smart-toc-owned]).theme-preset-default, :where([data-smart-toc-owned]) .theme-preset-default {
   --toc-rail-line: rgba(255, 255, 255, 0.24);
 }
 
-.theme-light.theme-preset-rail {
+:where([data-smart-toc-owned]).theme-light.theme-preset-rail, :where([data-smart-toc-owned]) .theme-light.theme-preset-rail {
   --toc-bg: transparent;
   --toc-bg-expanded: transparent;
   --toc-backdrop-filter: none;
@@ -155,7 +160,7 @@
   --toc-rail-preview-shadow: 0 10px 24px rgba(0, 0, 0, 0.28);
 }
 
-.theme-dark.theme-preset-rail {
+:where([data-smart-toc-owned]).theme-dark.theme-preset-rail, :where([data-smart-toc-owned]) .theme-dark.theme-preset-rail {
   --toc-bg: transparent;
   --toc-bg-expanded: transparent;
   --toc-backdrop-filter: none;
@@ -185,13 +190,13 @@
    主题 C：auto（媒体查询自动跟随操作系统偏好）
    浅色系统 → 深色浮层；深色系统 → 浅色浮层
    ============================================= */
-.theme-auto {
+:where([data-smart-toc-owned]).theme-auto, :where([data-smart-toc-owned]) .theme-auto {
   color-scheme: light dark;
 }
 
 @media (prefers-color-scheme: light) {
   /* 浅色系统 → 深色浮层（在浅色页面上更显眼） */
-  .theme-auto {
+  :where([data-smart-toc-owned]).theme-auto, :where([data-smart-toc-owned]) .theme-auto {
     --toc-bg:               rgba(30, 30, 30, 0.82);
     --toc-bg-expanded:      rgba(28, 28, 28, 0.94);
     --toc-bg-fallback:      rgba(28, 28, 28, 0.98);
@@ -219,7 +224,7 @@
 
 @media (prefers-color-scheme: dark) {
   /* 深色系统 → 浅色浮层（在深色页面上更清晰） */
-  .theme-auto {
+  :where([data-smart-toc-owned]).theme-auto, :where([data-smart-toc-owned]) .theme-auto {
     --toc-bg:               rgba(255, 255, 255, 0.88);
     --toc-bg-expanded:      rgba(255, 255, 255, 0.95);
     --toc-bg-fallback:      rgba(255, 255, 255, 0.98);
@@ -250,9 +255,12 @@
    theme-blue/green/purple → theme-dark 变量
    （保持 theme.js 逻辑不变，旧 class 不丢失功能）
    ============================================= */
-.theme-blue,
-.theme-green,
-.theme-purple {
+:where([data-smart-toc-owned]).theme-blue,
+:where([data-smart-toc-owned]) .theme-blue,
+:where([data-smart-toc-owned]).theme-green,
+:where([data-smart-toc-owned]) .theme-green,
+:where([data-smart-toc-owned]).theme-purple,
+:where([data-smart-toc-owned]) .theme-purple {
   --toc-bg:               rgba(30, 30, 30, 0.82);
   --toc-bg-expanded:      rgba(28, 28, 28, 0.94);
   --toc-bg-fallback:      rgba(28, 28, 28, 0.98);
@@ -283,12 +291,18 @@
    此处仅处理不支持时的降级背景
    ============================================= */
 @supports not (backdrop-filter: blur(1px)) {
-  .theme-light,
-  .theme-dark,
-  .theme-auto,
-  .theme-blue,
-  .theme-green,
-  .theme-purple {
+  :where([data-smart-toc-owned]).theme-light,
+  :where([data-smart-toc-owned]) .theme-light,
+  :where([data-smart-toc-owned]).theme-dark,
+  :where([data-smart-toc-owned]) .theme-dark,
+  :where([data-smart-toc-owned]).theme-auto,
+  :where([data-smart-toc-owned]) .theme-auto,
+  :where([data-smart-toc-owned]).theme-blue,
+  :where([data-smart-toc-owned]) .theme-blue,
+  :where([data-smart-toc-owned]).theme-green,
+  :where([data-smart-toc-owned]) .theme-green,
+  :where([data-smart-toc-owned]).theme-purple,
+  :where([data-smart-toc-owned]) .theme-purple {
     /* 降级：提高不透明度以补偿缺少的磨砂效果 */
     --toc-bg: var(--toc-bg-fallback);
   }

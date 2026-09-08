@@ -77,7 +77,7 @@ function normalizeSettings(input = {}) {
 function normalizeDomains(input) {
   return input
     .split(',')
-    .map((value) => value.trim())
+    .map((value) => value.trim().toLowerCase())
     .filter((value) => value.length > 0);
 }
 
@@ -154,8 +154,9 @@ function loadSettings() {
     return Promise.resolve({ ...defaultSettings });
   }
 
-  return new Promise((resolve) => {
+  return new Promise((resolve, reject) => {
     chrome.storage.sync.get(defaultSettings, (items) => {
+      if (chrome.runtime?.lastError) { reject(new Error(chrome.runtime.lastError.message)); return; }
       resolve(items || { ...defaultSettings });
     });
   });
@@ -285,4 +286,7 @@ setupSegmentedControls();
 loadSettings().then((settings) => {
   bindForm(settings);
   setDirtyState(false);
+}).catch(() => {
+  renderStatus('无法读取设置，请刷新后重试，避免覆盖已有偏好。', true);
+  document.querySelectorAll('input, textarea, select, button').forEach(control => { control.disabled = true; });
 });

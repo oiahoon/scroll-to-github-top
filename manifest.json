@@ -1,18 +1,16 @@
 {
   "manifest_version": 3,
   "name": "Smart TOC & Scroll",
-  "version": "2.18",
+  "version": "2.19",
+  "minimum_chrome_version": "111",
   "description": "Adaptive reading navigation for long articles: TOC, progress outline, hover preview, smart skip, and smooth scroll to top.",
   "permissions": [
-    "activeTab",
     "storage"
-  ],
-  "host_permissions": [
-    "<all_urls>"
   ],
   "content_scripts": [
     {
-      "matches": ["<all_urls>"],
+      "matches": ["http://*/*", "https://*/*"],
+      "run_at": "document_idle",
       "js": ["catalog.js", "theme.js"],
       "css": ["toc.css", "themes.css"]
     }

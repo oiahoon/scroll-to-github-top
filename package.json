@@ -1,0 +1,11 @@
+{
+  "name": "smart-toc-scroll",
+  "private": true,
+  "version": "2.19.0",
+  "type": "module",
+  "scripts": {
+    "test": "node scripts/test-extension.mjs",
+    "check": "bash scripts/validate_package.sh && npm test"
+  },
+  "devDependencies": { "playwright": "^1.58.2" }
+}

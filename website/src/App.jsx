@@ -283,7 +283,7 @@ function HomePage() {
               </Link>
             </div>
             <p className="hero-note">
-              <Check size={16} weight="bold" /> 源码 v2.18 · 4 种阅读模式 · 正文不上传
+              <Check size={16} weight="bold" /> 源码 v2.19 · 4 种阅读模式 · 正文不上传
             </p>
             <p className="release-note">本页介绍源码版本；商店实际版本以商店页面为准。</p>
           </div>
@@ -572,9 +572,8 @@ function PrivacyPage() {
         <article>
           <p className="eyebrow">PERMISSIONS</p>
           <h2>为什么需要这些权限</h2>
-          <div className="policy-row"><code>activeTab</code><div><h3>当前标签页</h3><p>用于在你正在阅读的页面中提供导航体验。</p></div></div>
           <div className="policy-row"><code>storage</code><div><h3>扩展设置</h3><p>保存导航类型、显示阈值、位置和禁用域名等偏好。</p></div></div>
-          <div className="policy-row"><code>&lt;all_urls&gt;</code><div><h3>在长页面上工作</h3><p>扩展需要读取不同网站的页面标题结构，才能生成目录与当前位置。</p></div></div>
+          <div className="policy-row"><code>HTTP / HTTPS</code><div><h3>网页访问</h3><p>内容脚本自动读取已授权网站的标题结构来生成目录。可通过 Chrome 的网站访问设置限制授权；扩展不请求本地文件访问权限。</p></div></div>
         </article>
         <article>
           <p className="eyebrow">DATA FLOW</p>
@@ -588,6 +587,8 @@ function PrivacyPage() {
           <p className="policy-footnote">
             这些信息用于当前页面的导航与显示，不会由扩展发送到开发者服务器。
           </p>
+          <p>生效日期：2026-09-08。标题、滚动状态和检索词仅在页面会话内使用；检索词关闭预览时清除。设置保留至你更改、清除扩展数据或卸载扩展。启用 Chrome Sync 时，偏好和禁用域名可由 Google 同步到你的设备；未启用同步时，设置保存在当前浏览器。</p>
+          <p>开发者不接收、出售或与第三方共享页面内容，不用于广告，也不供人工阅读。数据使用仅限阅读导航功能，并遵守 Chrome Web Store User Data Policy 及 Limited Use 要求。</p>
         </article>
       </section>
 

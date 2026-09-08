@@ -30,13 +30,13 @@ jobs:
       release_tag: ${{ steps.release.outputs.release_tag }}
     steps:
       - name: Check out repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
         with:
           ref: ${{ inputs.release_tag || github.ref }}
           fetch-depth: 0
 
       - name: Set up Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
         with:
           node-version: 22
 
@@ -90,8 +90,14 @@ jobs:
       - name: Validate packaged extension
         run: ./scripts/validate_package.sh "dist/${{ steps.package.outputs.package_name }}"
 
+      - name: Install regression tools
+        run: npm ci --ignore-scripts && npx playwright install --with-deps chromium
+
+      - name: Test packaged extension
+        run: npm test
+
       - name: Upload workflow artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
           name: ${{ steps.package.outputs.artifact_name }}
           path: |
@@ -109,7 +115,7 @@ jobs:
       contents: write
     steps:
       - name: Download packaged extension
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
         with:
           name: ${{ needs.package.outputs.artifact_name }}
           path: dist

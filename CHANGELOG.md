@@ -7,6 +7,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.19] - 2026-09-08
+
+### Fixed
+- Scope injected styles to extension-owned nodes; preserve host heading IDs using an in-memory element map.
+- Replace unload and isolated-world History overrides with pagehide/pageshow and Navigation API lifecycle handling.
+- Cache the content container before widget detection, retain SPA recovery after skipped pages, and process heading mutations before debouncing refreshes.
+- Observe only body/html theme attributes while mounted; keep theme changes consistent with the refresh-to-apply settings contract.
+- Remove unused activeTab and host_permissions; restrict injection to HTTP/HTTPS with Chrome 111 minimum support.
+- Handle storage failures, normalize disabled hosts, and refresh privacy disclosures.
+
+### Maintenance
+- Refresh website security dependencies and separate build dependencies.
+- Add packaged-extension browser regression checks and CI validation.
+
 - 修复无 ID 的中文、非拉丁文字及重复标题生成相同锚点，导致跳转和高亮错误的问题。
 - 同步四种阅读模式的官网、使用指南、功能清单与产品路线，明确源码和商店发布状态的区别。
 - 品牌更新为简洁抽象的阅读位置标记，并同步扩展、官网与商店图标。

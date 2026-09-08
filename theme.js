@@ -8,6 +8,7 @@
 
   let currentThemePreset = defaultSettings.themePreset;
   let currentBarcodePreview = defaultSettings.barcodePreview;
+  let themeObserver = null;
 
   function normalizeThemeSettings(input = {}) {
     const normalized = { ...defaultSettings, ...input };
@@ -182,7 +183,10 @@
   }
 
   function startThemeObserver() {
-    if (!document.body) return;
+    themeObserver?.disconnect();
+    clearTimeout(themeApplyTimer);
+    const root = document.querySelector('[data-smart-toc-owned]#github-toc');
+    if (!document.body || !root || root.style.display === 'none' || document.hidden) return;
 
     // 监听 DOM 变化，在页面内容更新时重新检测主题（如 SPA 路由切换后背景色改变）
     const observer = new MutationObserver((mutations) => {
@@ -201,10 +205,7 @@
       }
     });
 
-    observer.observe(document.body, {
-      childList: true,
-      subtree: true
-    });
+    themeObserver = observer;
 
     observer.observe(document.documentElement, {
       attributes: true,
@@ -227,28 +228,9 @@
         return;
       }
       chrome.storage.sync.get(defaultSettings, (items) => {
+        if (chrome.runtime?.lastError) { resolve({ ...defaultSettings }); return; }
         resolve(items || { ...defaultSettings });
       });
-    });
-  }
-
-  function watchSettingsChanges() {
-    if (typeof chrome === 'undefined' || !chrome.storage || !chrome.storage.onChanged) {
-      return;
-    }
-
-    chrome.storage.onChanged.addListener((changes, areaName) => {
-      if (areaName !== 'sync' || (!changes.themePreset && !changes.barcodePreview)) {
-        return;
-      }
-
-      const normalized = normalizeThemeSettings({
-        themePreset: changes.themePreset?.newValue || currentThemePreset,
-        barcodePreview: changes.barcodePreview?.newValue || currentBarcodePreview
-      });
-      currentThemePreset = normalized.themePreset;
-      currentBarcodePreview = normalized.barcodePreview;
-      scheduleApplyTheme();
     });
   }
 
@@ -256,7 +238,15 @@
     const normalized = normalizeThemeSettings(items);
     currentThemePreset = normalized.themePreset;
     currentBarcodePreview = normalized.barcodePreview;
-    watchSettingsChanges();
+    // Structural preferences take effect on reload, together with catalog.js.
+    document.addEventListener('smart-toc-mounted', startThemeObserver);
+    document.addEventListener('smart-toc-visibility', startThemeObserver);
+    document.addEventListener('visibilitychange', startThemeObserver);
+    window.addEventListener('pageshow', startThemeObserver);
+    window.addEventListener('pagehide', () => {
+      themeObserver?.disconnect();
+      clearTimeout(themeApplyTimer);
+    });
 
     if (document.body) {
       startThemeObserver();

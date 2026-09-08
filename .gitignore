@@ -13,7 +13,10 @@ Archive.zip
 /tmp/
 
 # Used by dotenv library to load environment variables.
-# .env
+.env
+.env.*
+!.env.example
+node_modules/
 
 ## Specific to RubyMotion:
 .dat*

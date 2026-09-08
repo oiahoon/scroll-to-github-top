@@ -5,7 +5,7 @@
 
 /* === 浮标基础样式（折叠状态） === */
 /* 尺寸从 56px 缩小至 44px，底部/右侧间距从 20px 调整为 24px */
-.github-toc {
+:where([data-smart-toc-owned]).github-toc, :where([data-smart-toc-owned]) .github-toc {
   position: fixed;
   right: 24px;
   bottom: 24px;
@@ -35,36 +35,36 @@
   justify-content: center;
 }
 
-.github-toc::before {
+:where([data-smart-toc-owned]).github-toc::before, :where([data-smart-toc-owned]) .github-toc::before {
   content: none;
 }
 
 /* 位置变体 */
-.github-toc.position-left {
+:where([data-smart-toc-owned]).github-toc.position-left, :where([data-smart-toc-owned]) .github-toc.position-left {
   left: 24px;
   right: auto;
 }
 
-.github-toc.position-right {
+:where([data-smart-toc-owned]).github-toc.position-right, :where([data-smart-toc-owned]) .github-toc.position-right {
   right: 24px;
   left: auto;
 }
 
 /* hover：提高透明度，提升阴影层级 */
-.github-toc:hover {
+:where([data-smart-toc-owned]).github-toc:hover, :where([data-smart-toc-owned]) .github-toc:hover {
   box-shadow: var(--toc-elevation-hover);
   opacity: 0.76;
 }
 
 /* active（按下）：轻微压下感 */
-.github-toc:active {
+:where([data-smart-toc-owned]).github-toc:active, :where([data-smart-toc-owned]) .github-toc:active {
   opacity: 0.88;
   box-shadow: var(--toc-elevation-press, var(--toc-elevation));
 }
 
 /* === 图标容器（汉堡菜单） === */
 /* 图标 SVG 从 30×30 缩小至 20×20，在 44px 容器内占比约 45% */
-.toc-icon {
+:where([data-smart-toc-owned]).toc-icon, :where([data-smart-toc-owned]) .toc-icon {
   position: absolute;
   top: 50%;
   left: 50%;
@@ -75,7 +75,7 @@
   z-index: 2;
 }
 
-.toc-icon::after {
+:where([data-smart-toc-owned]).toc-icon::after, :where([data-smart-toc-owned]) .toc-icon::after {
   content: attr(data-label);
   position: absolute;
   top: 50%;
@@ -96,25 +96,27 @@
   transition: opacity 0.18s ease 0.24s, transform 0.18s ease 0.24s;
 }
 
-.github-toc.position-left .toc-icon::after {
+:where([data-smart-toc-owned]).github-toc.position-left .toc-icon::after, :where([data-smart-toc-owned]) .github-toc.position-left .toc-icon::after {
   left: auto;
   right: calc(100% + 8px);
   transform: translateY(-50%) translateX(4px);
 }
 
-.github-toc:hover .toc-icon::after,
-.github-toc:focus-within .toc-icon::after {
+:where([data-smart-toc-owned]).github-toc:hover .toc-icon::after,
+:where([data-smart-toc-owned]) .github-toc:hover .toc-icon::after,
+:where([data-smart-toc-owned]).github-toc:focus-within .toc-icon::after,
+:where([data-smart-toc-owned]) .github-toc:focus-within .toc-icon::after {
   opacity: 1;
   transform: translateY(-50%) translateX(0);
 }
 
 /* 防止无关伪元素影响 */
-.toc-icon::before {
+:where([data-smart-toc-owned]).toc-icon::before, :where([data-smart-toc-owned]) .toc-icon::before {
   display: none !important;
   content: none !important;
 }
 
-.toc-icon svg {
+:where([data-smart-toc-owned]).toc-icon svg, :where([data-smart-toc-owned]) .toc-icon svg {
   width: 100% !important;
   height: 100% !important;
   fill: var(--toc-text) !important;
@@ -127,7 +129,7 @@
   outline: none !important;
 }
 
-.toc-icon svg path {
+:where([data-smart-toc-owned]).toc-icon svg path, :where([data-smart-toc-owned]) .toc-icon svg path {
   fill: var(--toc-text) !important;
   color: var(--toc-text) !important;
   stroke: var(--toc-text) !important;
@@ -139,7 +141,7 @@
 }
 
 /* 确保图标容器不受宿主页面样式污染（all: initial 重置后重新声明） */
-.github-toc .toc-icon {
+:where([data-smart-toc-owned]).github-toc .toc-icon, :where([data-smart-toc-owned]) .github-toc .toc-icon {
   all: initial;
   position: absolute !important;
   top: 50% !important;
@@ -163,7 +165,7 @@
 
 /* === 展开状态（expanded） === */
 /* 宽度 320→280px，高度改为自适应，border-radius 8→12px */
-.github-toc.expanded {
+:where([data-smart-toc-owned]).github-toc.expanded, :where([data-smart-toc-owned]) .github-toc.expanded {
   width: 280px;
   height: min(420px, calc(100vh - 64px));
   border-radius: 12px;
@@ -179,17 +181,17 @@
     border-radius 0.25s var(--ease-expand, cubic-bezier(0.34,1.56,0.64,1));
 }
 
-.github-toc.expanded.is-pinned {
+:where([data-smart-toc-owned]).github-toc.expanded.is-pinned, :where([data-smart-toc-owned]) .github-toc.expanded.is-pinned {
   border-color: var(--toc-border-hover, var(--toc-border));
   box-shadow: var(--toc-elevation-expanded);
 }
 
-.github-toc.expanded.is-pinned::before {
+:where([data-smart-toc-owned]).github-toc.expanded.is-pinned::before, :where([data-smart-toc-owned]) .github-toc.expanded.is-pinned::before {
   opacity: 0.6;
 }
 
 /* 折叠动画（JS 临时添加此 class，使用快速收缩曲线） */
-.github-toc.is-collapsing {
+:where([data-smart-toc-owned]).github-toc.is-collapsing, :where([data-smart-toc-owned]) .github-toc.is-collapsing {
   transition:
     opacity var(--duration-fade, 0.20s) ease,
     box-shadow var(--duration-collapse, 0.22s) ease,
@@ -199,23 +201,23 @@
 }
 
 /* 展开时仅折叠态图标淡出缩小，避免影响面板内其他图标 */
-.github-toc.expanded .toc-icon svg {
+:where([data-smart-toc-owned]).github-toc.expanded .toc-icon svg, :where([data-smart-toc-owned]) .github-toc.expanded .toc-icon svg {
   opacity: 0;
   transform: scale(0.8);
 }
 
-.toc-icon svg {
+:where([data-smart-toc-owned]).toc-icon svg, :where([data-smart-toc-owned]) .toc-icon svg {
   transition:
     opacity 0.18s ease,
     transform 0.22s var(--ease-out);
 }
 
-.github-toc.expanded .toc-icon::after {
+:where([data-smart-toc-owned]).github-toc.expanded .toc-icon::after, :where([data-smart-toc-owned]) .github-toc.expanded .toc-icon::after {
   opacity: 0;
 }
 
 /* === 展开面板主体（toc-tree） === */
-.toc-tree {
+:where([data-smart-toc-owned]).toc-tree, :where([data-smart-toc-owned]) .toc-tree {
   position: absolute;
   inset: 0;
   opacity: 0;
@@ -233,7 +235,7 @@
   flex-direction: column;
 }
 
-.github-toc.expanded .toc-tree {
+:where([data-smart-toc-owned]).github-toc.expanded .toc-tree, :where([data-smart-toc-owned]) .github-toc.expanded .toc-tree {
   opacity: 1;
   transform: scale(1);
   pointer-events: auto;
@@ -241,7 +243,7 @@
 
 /* === 顶栏（.toc-title 作为 header 使用） === */
 /* 标题字号从 20px 大幅缩至 11px，改为标签风格 */
-.toc-title {
+:where([data-smart-toc-owned]).toc-title, :where([data-smart-toc-owned]) .toc-title {
   /* 标题标签文字改为 uppercase 小标签风格 */
   color: var(--toc-text-muted, var(--toc-text));
   font-size: 11px;
@@ -268,12 +270,12 @@
   z-index: 2;
 }
 
-.github-toc.expanded .toc-title {
+:where([data-smart-toc-owned]).github-toc.expanded .toc-title, :where([data-smart-toc-owned]) .github-toc.expanded .toc-title {
   opacity: 1;
   transform: translateY(0);
 }
 
-.toc-count-badge {
+:where([data-smart-toc-owned]).toc-count-badge, :where([data-smart-toc-owned]) .toc-count-badge {
   min-width: 24px;
   height: 22px;
   padding: 0 7px;
@@ -295,20 +297,20 @@
   transition: opacity 0.16s ease, transform 0.16s ease;
 }
 
-.github-toc.expanded .toc-count-badge {
+:where([data-smart-toc-owned]).github-toc.expanded .toc-count-badge, :where([data-smart-toc-owned]) .github-toc.expanded .toc-count-badge {
   color: var(--toc-text);
   border-color: var(--toc-border);
   opacity: 1;
   transform: scale(1);
 }
 
-.github-toc.expanded.is-pinned .toc-count-badge {
+:where([data-smart-toc-owned]).github-toc.expanded.is-pinned .toc-count-badge, :where([data-smart-toc-owned]) .github-toc.expanded.is-pinned .toc-count-badge {
   border-color: var(--toc-border-hover, var(--toc-border));
 }
 
 /* === Top 按钮（幽灵按钮样式） === */
 /* 从实心背景改为 ghost button：透明背景 + 描边 */
-.toc-top-button {
+:where([data-smart-toc-owned]).toc-top-button, :where([data-smart-toc-owned]) .toc-top-button {
   border: 1px solid var(--toc-border);
   background: transparent;
   color: var(--toc-text-muted, var(--toc-text));
@@ -326,25 +328,25 @@
   flex-shrink: 0;
 }
 
-.toc-top-button:hover {
+:where([data-smart-toc-owned]).toc-top-button:hover, :where([data-smart-toc-owned]) .toc-top-button:hover {
   background: var(--toc-highlight);
   color: var(--toc-text);
   border-color: var(--toc-border-hover, var(--toc-border));
 }
 
-.toc-top-button:active {
+:where([data-smart-toc-owned]).toc-top-button:active, :where([data-smart-toc-owned]) .toc-top-button:active {
   background: var(--toc-highlight-active);
   color: var(--toc-text);
   border-color: var(--toc-border-hover, var(--toc-border));
 }
 
-.toc-top-button:focus-visible {
+:where([data-smart-toc-owned]).toc-top-button:focus-visible, :where([data-smart-toc-owned]) .toc-top-button:focus-visible {
   outline: 2px solid var(--toc-accent);
   outline-offset: 2px;
 }
 
 /* === TOC 列表容器 === */
-.toc-list {
+:where([data-smart-toc-owned]).toc-list, :where([data-smart-toc-owned]) .toc-list {
   list-style: none;
   padding: 8px 10px 10px;
   margin: 0;
@@ -360,23 +362,23 @@
 }
 
 /* 滚动条：从 8px 缩小至 4px，更精巧 */
-.toc-list::-webkit-scrollbar {
+:where([data-smart-toc-owned]).toc-list::-webkit-scrollbar, :where([data-smart-toc-owned]) .toc-list::-webkit-scrollbar {
   width: 4px;
 }
 
-.toc-list::-webkit-scrollbar-track {
+:where([data-smart-toc-owned]).toc-list::-webkit-scrollbar-track, :where([data-smart-toc-owned]) .toc-list::-webkit-scrollbar-track {
   background: transparent;   /* 轨道透明，更简洁 */
   border-radius: 2px;
 }
 
-.toc-list::-webkit-scrollbar-thumb {
+:where([data-smart-toc-owned]).toc-list::-webkit-scrollbar-thumb, :where([data-smart-toc-owned]) .toc-list::-webkit-scrollbar-thumb {
   background: var(--toc-scrollbar-thumb);
   border-radius: 2px;
 }
 
 /* === TOC 条目 === */
 /* margin 从 8px 缩小至 1px，靠 padding 撑开高度 */
-.toc-item {
+:where([data-smart-toc-owned]).toc-item, :where([data-smart-toc-owned]) .toc-item {
   margin: 1px 0;
   opacity: 1;
   transform: none;
@@ -385,19 +387,19 @@
   z-index: 1;
 }
 
-.github-toc.expanded .toc-item {
+:where([data-smart-toc-owned]).github-toc.expanded .toc-item, :where([data-smart-toc-owned]) .github-toc.expanded .toc-item {
   opacity: 1;
   transform: translateY(0);
 }
 
 /* 折叠时清零所有条目延迟，防止折叠时条目还在"入场" */
-.github-toc:not(.expanded) .toc-item {
+:where([data-smart-toc-owned]).github-toc:not(.expanded) .toc-item, :where([data-smart-toc-owned]) .github-toc:not(.expanded) .toc-item {
   transition-delay: 0s !important;
 }
 
 /* === 条目链接 === */
 /* font-size 14→13px，padding 缩小，radius 增大 */
-.toc-item a {
+:where([data-smart-toc-owned]).toc-item a, :where([data-smart-toc-owned]) .toc-item a {
   color: var(--toc-text);
   text-decoration: none;
   font-size: 13px;
@@ -418,13 +420,13 @@
   text-overflow: ellipsis;
 }
 
-.toc-item a:hover {
+:where([data-smart-toc-owned]).toc-item a:hover, :where([data-smart-toc-owned]) .toc-item a:hover {
   color: var(--toc-text-hover);
   background: var(--toc-highlight);
   transform: none;
 }
 
-.toc-item a:focus-visible {
+:where([data-smart-toc-owned]).toc-item a:focus-visible, :where([data-smart-toc-owned]) .toc-item a:focus-visible {
   outline: 2px solid var(--toc-accent);
   outline-offset: -2px;
   border-radius: 6px;
@@ -433,7 +435,7 @@
 /* === 激活状态 === */
 /* 指示条改为 a 标签的 border-left，跟随层级缩进 */
 /* 移除旧的 ::before 伪元素方案 */
-.toc-item.active > a {
+:where([data-smart-toc-owned]).toc-item.active > a, :where([data-smart-toc-owned]) .toc-item.active > a {
   color: var(--toc-accent, var(--toc-text-active, #0969da));
   background: var(--toc-highlight-active, rgba(9,105,218,0.08));
   font-weight: 500;
@@ -441,24 +443,26 @@
 }
 
 /* 各层级激活态：border-left 2px，padding 补偿 2px */
-.toc-item.level-1.active > a {
+:where([data-smart-toc-owned]).toc-item.level-1.active > a, :where([data-smart-toc-owned]) .toc-item.level-1.active > a {
   border-left: 2px solid var(--toc-accent, #0969da);
   padding-left: 6px;    /* 8px - 2px */
 }
-.toc-item.level-2.active > a {
+:where([data-smart-toc-owned]).toc-item.level-2.active > a, :where([data-smart-toc-owned]) .toc-item.level-2.active > a {
   border-left: 2px solid var(--toc-accent, #0969da);
   padding-left: 18px;   /* 20px - 2px */
 }
-.toc-item.level-3.active > a {
+:where([data-smart-toc-owned]).toc-item.level-3.active > a, :where([data-smart-toc-owned]) .toc-item.level-3.active > a {
   border-left: 2px solid var(--toc-accent, #0969da);
   padding-left: 30px;   /* 32px - 2px */
 }
-.toc-item.level-4.active > a {
+:where([data-smart-toc-owned]).toc-item.level-4.active > a, :where([data-smart-toc-owned]) .toc-item.level-4.active > a {
   border-left: 2px solid var(--toc-accent, #0969da);
   padding-left: 38px;   /* 40px - 2px */
 }
-.toc-item.level-5.active > a,
-.toc-item.level-6.active > a {
+:where([data-smart-toc-owned]).toc-item.level-5.active > a,
+:where([data-smart-toc-owned]) .toc-item.level-5.active > a,
+:where([data-smart-toc-owned]).toc-item.level-6.active > a,
+:where([data-smart-toc-owned]) .toc-item.level-6.active > a {
   border-left: 2px solid var(--toc-accent, #0969da);
   padding-left: 46px;   /* 48px - 2px */
 }
@@ -466,26 +470,26 @@
 /* === 层级缩进（收敛方案） === */
 /* 在 a 标签上用 padding-left，hover 背景能完整覆盖整行宽度 */
 /* 注意：非激活态的 padding-left 由此设置，激活态 padding-left 在上方声明 */
-.toc-item.level-1 > a { padding-left: 8px; }
-.toc-item.level-2 > a { padding-left: 20px; }    /* 缩进 12px */
-.toc-item.level-3 > a { padding-left: 32px; }    /* 缩进 12px */
-.toc-item.level-4 > a { padding-left: 40px; }    /* 缩进 8px（收敛） */
-.toc-item.level-5 > a { padding-left: 48px; }    /* 缩进 8px（收敛） */
-.toc-item.level-6 > a { padding-left: 48px; }    /* 与 level-5 同，不再深入 */
+:where([data-smart-toc-owned]).toc-item.level-1 > a, :where([data-smart-toc-owned]) .toc-item.level-1 > a { padding-left: 8px; }
+:where([data-smart-toc-owned]).toc-item.level-2 > a, :where([data-smart-toc-owned]) .toc-item.level-2 > a { padding-left: 20px; }    /* 缩进 12px */
+:where([data-smart-toc-owned]).toc-item.level-3 > a, :where([data-smart-toc-owned]) .toc-item.level-3 > a { padding-left: 32px; }    /* 缩进 12px */
+:where([data-smart-toc-owned]).toc-item.level-4 > a, :where([data-smart-toc-owned]) .toc-item.level-4 > a { padding-left: 40px; }    /* 缩进 8px（收敛） */
+:where([data-smart-toc-owned]).toc-item.level-5 > a, :where([data-smart-toc-owned]) .toc-item.level-5 > a { padding-left: 48px; }    /* 缩进 8px（收敛） */
+:where([data-smart-toc-owned]).toc-item.level-6 > a, :where([data-smart-toc-owned]) .toc-item.level-6 > a { padding-left: 48px; }    /* 与 level-5 同，不再深入 */
 
 /* 移除旧的 margin-left 层级缩进（改用 padding-left 方案） */
-.toc-item.level-1 { margin-left: 0; }
-.toc-item.level-2 { margin-left: 0; }
-.toc-item.level-3 { margin-left: 0; }
-.toc-item.level-4 { margin-left: 0; }
-.toc-item.level-5 { margin-left: 0; }
-.toc-item.level-6 { margin-left: 0; }
+:where([data-smart-toc-owned]).toc-item.level-1, :where([data-smart-toc-owned]) .toc-item.level-1 { margin-left: 0; }
+:where([data-smart-toc-owned]).toc-item.level-2, :where([data-smart-toc-owned]) .toc-item.level-2 { margin-left: 0; }
+:where([data-smart-toc-owned]).toc-item.level-3, :where([data-smart-toc-owned]) .toc-item.level-3 { margin-left: 0; }
+:where([data-smart-toc-owned]).toc-item.level-4, :where([data-smart-toc-owned]) .toc-item.level-4 { margin-left: 0; }
+:where([data-smart-toc-owned]).toc-item.level-5, :where([data-smart-toc-owned]) .toc-item.level-5 { margin-left: 0; }
+:where([data-smart-toc-owned]).toc-item.level-6, :where([data-smart-toc-owned]) .toc-item.level-6 { margin-left: 0; }
 
 /* === 条目入场动画时序 === */
 
 /* === 字体栈（中文优化） === */
 /* 在现有栈前补充中文优先字体 */
-.github-toc, .github-toc * {
+:where([data-smart-toc-owned]).github-toc, :where([data-smart-toc-owned]) .github-toc, :where([data-smart-toc-owned]).github-toc *, :where([data-smart-toc-owned]) .github-toc * {
   font-family:
     -apple-system,           /* macOS/iOS 系统字体 */
     'PingFang SC',           /* macOS 中文 */
@@ -499,7 +503,7 @@
 }
 
 /* === 样式隔离：防止宿主页面 CSS 污染 === */
-.github-toc, .github-toc .toc-title, .github-toc .toc-list, .github-toc .toc-item, .github-toc .toc-item a {
+:where([data-smart-toc-owned]).github-toc, :where([data-smart-toc-owned]) .github-toc, :where([data-smart-toc-owned]).github-toc .toc-title, :where([data-smart-toc-owned]) .github-toc .toc-title, :where([data-smart-toc-owned]).github-toc .toc-list, :where([data-smart-toc-owned]) .github-toc .toc-list, :where([data-smart-toc-owned]).github-toc .toc-item, :where([data-smart-toc-owned]) .github-toc .toc-item, :where([data-smart-toc-owned]).github-toc .toc-item a, :where([data-smart-toc-owned]) .github-toc .toc-item a {
   color: var(--toc-text) !important;
   background: none;
   font-size: inherit;
@@ -508,14 +512,14 @@
 }
 
 /* 标题标签：使用 muted 色，不抢夺视觉焦点 */
-.github-toc .toc-title {
+:where([data-smart-toc-owned]).github-toc .toc-title, :where([data-smart-toc-owned]) .github-toc .toc-title {
   font-size: 11px !important;
   font-weight: 600 !important;
   color: var(--toc-text-muted, var(--toc-text)) !important;
 }
 
 /* 条目链接 */
-.github-toc .toc-item a {
+:where([data-smart-toc-owned]).github-toc .toc-item a, :where([data-smart-toc-owned]) .github-toc .toc-item a {
   color: var(--toc-text) !important;
   background: none !important;
   font-size: 13px !important;
@@ -523,13 +527,13 @@
   text-decoration: none !important;
 }
 
-.github-toc .toc-item a:hover {
+:where([data-smart-toc-owned]).github-toc .toc-item a:hover, :where([data-smart-toc-owned]) .github-toc .toc-item a:hover {
   color: var(--toc-text-hover) !important;
   background: var(--toc-highlight) !important;
 }
 
 /* 激活链接强调色 */
-.github-toc .toc-item.active > a {
+:where([data-smart-toc-owned]).github-toc .toc-item.active > a, :where([data-smart-toc-owned]) .github-toc .toc-item.active > a {
   color: var(--toc-accent, var(--toc-text-active, #0969da)) !important;
   background: var(--toc-highlight-active, rgba(9,105,218,0.08)) !important;
   box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--toc-accent, #0969da) 8%, transparent);
@@ -537,12 +541,12 @@
 }
 
 /* === 全局 focus-visible 保护（确保不被宿主页面 outline:none 污染） === */
-.github-toc *:focus-visible {
+:where([data-smart-toc-owned]).github-toc *:focus-visible, :where([data-smart-toc-owned]) .github-toc *:focus-visible {
   outline: 2px solid var(--toc-accent) !important;
 }
 
 /* 图标容器 focus-visible */
-.toc-icon:focus-visible {
+:where([data-smart-toc-owned]).toc-icon:focus-visible, :where([data-smart-toc-owned]) .toc-icon:focus-visible {
   outline: 2px solid var(--toc-accent);
   outline-offset: 3px;
   border-radius: 50%;
@@ -550,7 +554,7 @@
 
 /* === 无标题时的空状态样式 === */
 /* 布局：flex column，图标更淡，文字减小 */
-.no-headers-message {
+:where([data-smart-toc-owned]).no-headers-message, :where([data-smart-toc-owned]) .no-headers-message {
   padding: 28px 16px;
   text-align: center;
   display: flex;
@@ -559,20 +563,20 @@
   gap: 6px;
 }
 
-.no-headers-message svg {
+:where([data-smart-toc-owned]).no-headers-message svg, :where([data-smart-toc-owned]) .no-headers-message svg {
   width: 20px;
   height: 20px;
   fill: var(--toc-text-muted, var(--toc-text-secondary));
   opacity: 0.4;
 }
 
-.no-headers-message span {
+:where([data-smart-toc-owned]).no-headers-message span, :where([data-smart-toc-owned]) .no-headers-message span {
   font-size: 13px;
   font-weight: 500;
   color: var(--toc-text-muted, var(--toc-text));
 }
 
-.no-headers-message p {
+:where([data-smart-toc-owned]).no-headers-message p, :where([data-smart-toc-owned]) .no-headers-message p {
   font-size: 12px;
   margin: 0;
   opacity: 0.6;
@@ -581,25 +585,25 @@
   color: var(--toc-text);
 }
 
-.toc-item.no-headers {
+:where([data-smart-toc-owned]).toc-item.no-headers, :where([data-smart-toc-owned]) .toc-item.no-headers {
   margin: 0;
   padding: 0;
   opacity: 1;
   transform: none;
 }
 
-.toc-item.no-headers:hover {
+:where([data-smart-toc-owned]).toc-item.no-headers:hover, :where([data-smart-toc-owned]) .toc-item.no-headers:hover {
   background: none;
 }
 
 /* 空状态条目不需要入场动画延迟 */
-.toc-item.no-headers { transition-delay: 0s !important; }
+:where([data-smart-toc-owned]).toc-item.no-headers, :where([data-smart-toc-owned]) .toc-item.no-headers { transition-delay: 0s !important; }
 
 /* === 响应式适配 === */
 
 /* 平板（768px–1023px）：面板宽度 240px */
 @media (max-width: 1023px) and (min-width: 768px) {
-  .github-toc.expanded {
+  :where([data-smart-toc-owned]).github-toc.expanded, :where([data-smart-toc-owned]) .github-toc.expanded {
     width: 240px;
     max-height: min(420px, calc(100vh - 80px));
   }
@@ -607,7 +611,7 @@
 
 /* 小桌面（1024px–1439px）：面板宽度 260px */
 @media (min-width: 1024px) and (max-width: 1439px) {
-  .github-toc.expanded {
+  :where([data-smart-toc-owned]).github-toc.expanded, :where([data-smart-toc-owned]) .github-toc.expanded {
     width: 260px;
     max-height: min(460px, calc(100vh - 64px));
   }
@@ -617,19 +621,19 @@
 
 /* 手机端（<768px）：近全宽底部弹层风格 */
 @media (max-width: 767px) {
-  .github-toc {
+  :where([data-smart-toc-owned]).github-toc, :where([data-smart-toc-owned]) .github-toc {
     bottom: 16px;
     right: 16px;
     /* 手机无 hover，稍提高默认透明度 */
     opacity: 0.5;
   }
 
-  .github-toc.position-left {
+  :where([data-smart-toc-owned]).github-toc.position-left, :where([data-smart-toc-owned]) .github-toc.position-left {
     left: 16px;
     right: auto;
   }
 
-  .github-toc.expanded {
+  :where([data-smart-toc-owned]).github-toc.expanded, :where([data-smart-toc-owned]) .github-toc.expanded {
     width: calc(100vw - 32px);
     max-width: 360px;
     max-height: 40vh;
@@ -637,27 +641,41 @@
     border-radius: 16px;  /* 手机端更圆润 */
   }
 
-  .toc-icon::after {
+  :where([data-smart-toc-owned]).toc-icon::after, :where([data-smart-toc-owned]) .toc-icon::after {
     display: none;
   }
 }
 
 /* === 减少动态效果（无障碍：尊重用户偏好） === */
 @media (prefers-reduced-motion: reduce) {
-  .github-toc,
-  .github-toc *,
-  .github-sst,
-  .github-sst *,
-  .toc-icon,
-  .toc-tree,
-  .toc-item,
-  .toc-title,
-  .toc-rail-preview,
-  .toc-rail-preview *,
-  .toc-spotlight-layer,
-  .toc-spotlight-layer *,
-  .toc-gpt-preview,
-  .toc-gpt-preview * {
+  :where([data-smart-toc-owned]).github-toc,
+  :where([data-smart-toc-owned]) .github-toc,
+  :where([data-smart-toc-owned]).github-toc *,
+  :where([data-smart-toc-owned]) .github-toc *,
+  :where([data-smart-toc-owned]).github-sst,
+  :where([data-smart-toc-owned]) .github-sst,
+  :where([data-smart-toc-owned]).github-sst *,
+  :where([data-smart-toc-owned]) .github-sst *,
+  :where([data-smart-toc-owned]).toc-icon,
+  :where([data-smart-toc-owned]) .toc-icon,
+  :where([data-smart-toc-owned]).toc-tree,
+  :where([data-smart-toc-owned]) .toc-tree,
+  :where([data-smart-toc-owned]).toc-item,
+  :where([data-smart-toc-owned]) .toc-item,
+  :where([data-smart-toc-owned]).toc-title,
+  :where([data-smart-toc-owned]) .toc-title,
+  :where([data-smart-toc-owned]).toc-rail-preview,
+  :where([data-smart-toc-owned]) .toc-rail-preview,
+  :where([data-smart-toc-owned]).toc-rail-preview *,
+  :where([data-smart-toc-owned]) .toc-rail-preview *,
+  :where([data-smart-toc-owned]).toc-spotlight-layer,
+  :where([data-smart-toc-owned]) .toc-spotlight-layer,
+  :where([data-smart-toc-owned]).toc-spotlight-layer *,
+  :where([data-smart-toc-owned]) .toc-spotlight-layer *,
+  :where([data-smart-toc-owned]).toc-gpt-preview,
+  :where([data-smart-toc-owned]) .toc-gpt-preview,
+  :where([data-smart-toc-owned]).toc-gpt-preview *,
+  :where([data-smart-toc-owned]) .toc-gpt-preview * {
     transition: none !important;
     animation: none !important;
     transition-delay: 0s !important;
@@ -670,7 +688,7 @@
    轻量线状目录 + 独立回顶按钮
    ============================================= */
 
-.github-toc.theme-preset-rail {
+:where([data-smart-toc-owned]).github-toc.theme-preset-rail, :where([data-smart-toc-owned]) .github-toc.theme-preset-rail {
   --toc-rail-wave-bleed: 26px;
   width: 56px;
   height: auto;
@@ -692,27 +710,30 @@
     transform 0.18s ease;
 }
 
-.github-toc.theme-preset-rail.position-left {
+:where([data-smart-toc-owned]).github-toc.theme-preset-rail.position-left, :where([data-smart-toc-owned]) .github-toc.theme-preset-rail.position-left {
   left: 24px;
   right: auto;
 }
 
-.github-toc.theme-preset-rail.position-right {
+:where([data-smart-toc-owned]).github-toc.theme-preset-rail.position-right, :where([data-smart-toc-owned]) .github-toc.theme-preset-rail.position-right {
   right: 24px;
   left: auto;
 }
 
-.github-toc.theme-preset-rail::before {
+:where([data-smart-toc-owned]).github-toc.theme-preset-rail::before, :where([data-smart-toc-owned]) .github-toc.theme-preset-rail::before {
   display: none;
 }
 
-.github-toc.theme-preset-rail:hover,
-.github-toc.theme-preset-rail.expanded,
-.github-toc.theme-preset-rail:focus-within {
+:where([data-smart-toc-owned]).github-toc.theme-preset-rail:hover,
+:where([data-smart-toc-owned]) .github-toc.theme-preset-rail:hover,
+:where([data-smart-toc-owned]).github-toc.theme-preset-rail.expanded,
+:where([data-smart-toc-owned]) .github-toc.theme-preset-rail.expanded,
+:where([data-smart-toc-owned]).github-toc.theme-preset-rail:focus-within,
+:where([data-smart-toc-owned]) .github-toc.theme-preset-rail:focus-within {
   opacity: 1;
 }
 
-.github-toc.theme-preset-rail .toc-tree {
+:where([data-smart-toc-owned]).github-toc.theme-preset-rail .toc-tree, :where([data-smart-toc-owned]) .github-toc.theme-preset-rail .toc-tree {
   position: relative;
   inset: auto;
   opacity: 1;
@@ -723,18 +744,18 @@
   overflow: visible;
 }
 
-.github-toc.theme-preset-rail .toc-list {
+:where([data-smart-toc-owned]).github-toc.theme-preset-rail .toc-list, :where([data-smart-toc-owned]) .github-toc.theme-preset-rail .toc-list {
   padding: 6px 0;
   overflow-y: auto;
   overflow-x: visible;
   scrollbar-width: none;
 }
 
-.github-toc.theme-preset-rail .toc-list::-webkit-scrollbar {
+:where([data-smart-toc-owned]).github-toc.theme-preset-rail .toc-list::-webkit-scrollbar, :where([data-smart-toc-owned]) .github-toc.theme-preset-rail .toc-list::-webkit-scrollbar {
   display: none;
 }
 
-.github-toc.theme-preset-rail .toc-item {
+:where([data-smart-toc-owned]).github-toc.theme-preset-rail .toc-item, :where([data-smart-toc-owned]) .github-toc.theme-preset-rail .toc-item {
   --toc-rail-base-width: 13px;
   --toc-rail-wave-width: 0px;
   --toc-rail-wave-opacity: 0.72;
@@ -746,19 +767,21 @@
   margin: 0;
 }
 
-.github-toc.theme-preset-rail .toc-item a,
-.github-toc.theme-preset-rail .toc-item a:hover {
+:where([data-smart-toc-owned]).github-toc.theme-preset-rail .toc-item a,
+:where([data-smart-toc-owned]) .github-toc.theme-preset-rail .toc-item a,
+:where([data-smart-toc-owned]).github-toc.theme-preset-rail .toc-item a:hover,
+:where([data-smart-toc-owned]) .github-toc.theme-preset-rail .toc-item a:hover {
   background: transparent !important;
   transform: none !important;
   box-shadow: none !important;
   border: none !important;
 }
 
-.github-toc.theme-preset-rail .toc-item.active > a {
+:where([data-smart-toc-owned]).github-toc.theme-preset-rail .toc-item.active > a, :where([data-smart-toc-owned]) .github-toc.theme-preset-rail .toc-item.active > a {
   background: transparent !important;
 }
 
-.github-toc.theme-preset-rail .toc-rail-link {
+:where([data-smart-toc-owned]).github-toc.theme-preset-rail .toc-rail-link, :where([data-smart-toc-owned]) .github-toc.theme-preset-rail .toc-rail-link {
   display: flex;
   align-items: center;
   justify-content: flex-start;
@@ -771,11 +794,11 @@
   transition: background 0.16s ease;
 }
 
-.github-toc.theme-preset-rail .toc-rail-link:hover {
+:where([data-smart-toc-owned]).github-toc.theme-preset-rail .toc-rail-link:hover, :where([data-smart-toc-owned]) .github-toc.theme-preset-rail .toc-rail-link:hover {
   background: var(--toc-rail-hover-surface) !important;
 }
 
-.github-toc.theme-preset-rail .toc-rail-bar {
+:where([data-smart-toc-owned]).github-toc.theme-preset-rail .toc-rail-bar, :where([data-smart-toc-owned]) .github-toc.theme-preset-rail .toc-rail-bar {
   flex: 0 0 auto;
   height: 3px;
   border-radius: 999px;
@@ -791,50 +814,57 @@
   will-change: auto;
 }
 
-.github-toc.theme-preset-rail .toc-item.is-wave-active .toc-rail-bar {
+:where([data-smart-toc-owned]).github-toc.theme-preset-rail .toc-item.is-wave-active .toc-rail-bar, :where([data-smart-toc-owned]) .github-toc.theme-preset-rail .toc-item.is-wave-active .toc-rail-bar {
   will-change: opacity, transform;
 }
 
-.github-toc.theme-preset-rail .toc-item.level-1 { --toc-rail-base-width: 22px; }
-.github-toc.theme-preset-rail .toc-item.level-2 { --toc-rail-base-width: 17px; }
-.github-toc.theme-preset-rail .toc-item.level-3 { --toc-rail-base-width: 13px; }
-.github-toc.theme-preset-rail .toc-item.level-4,
-.github-toc.theme-preset-rail .toc-item.level-5,
-.github-toc.theme-preset-rail .toc-item.level-6 { --toc-rail-base-width: 10px; }
+:where([data-smart-toc-owned]).github-toc.theme-preset-rail .toc-item.level-1, :where([data-smart-toc-owned]) .github-toc.theme-preset-rail .toc-item.level-1 { --toc-rail-base-width: 22px; }
+:where([data-smart-toc-owned]).github-toc.theme-preset-rail .toc-item.level-2, :where([data-smart-toc-owned]) .github-toc.theme-preset-rail .toc-item.level-2 { --toc-rail-base-width: 17px; }
+:where([data-smart-toc-owned]).github-toc.theme-preset-rail .toc-item.level-3, :where([data-smart-toc-owned]) .github-toc.theme-preset-rail .toc-item.level-3 { --toc-rail-base-width: 13px; }
+:where([data-smart-toc-owned]).github-toc.theme-preset-rail .toc-item.level-4,
+:where([data-smart-toc-owned]) .github-toc.theme-preset-rail .toc-item.level-4,
+:where([data-smart-toc-owned]).github-toc.theme-preset-rail .toc-item.level-5,
+:where([data-smart-toc-owned]) .github-toc.theme-preset-rail .toc-item.level-5,
+:where([data-smart-toc-owned]).github-toc.theme-preset-rail .toc-item.level-6,
+:where([data-smart-toc-owned]) .github-toc.theme-preset-rail .toc-item.level-6 { --toc-rail-base-width: 10px; }
 
-.github-toc.theme-preset-rail .toc-item.active .toc-rail-bar {
+:where([data-smart-toc-owned]).github-toc.theme-preset-rail .toc-item.active .toc-rail-bar, :where([data-smart-toc-owned]) .github-toc.theme-preset-rail .toc-item.active .toc-rail-bar {
   background: var(--toc-rail-line-active);
   opacity: 1;
 }
 
-.github-toc.theme-preset-rail .toc-item.is-previewed .toc-rail-bar {
+:where([data-smart-toc-owned]).github-toc.theme-preset-rail .toc-item.is-previewed .toc-rail-bar, :where([data-smart-toc-owned]) .github-toc.theme-preset-rail .toc-item.is-previewed .toc-rail-bar {
   background: var(--toc-rail-line-active);
   opacity: 1;
 }
 
-.github-toc.theme-preset-rail .toc-item:hover .toc-rail-bar,
-.github-toc.theme-preset-rail .toc-item:focus-within .toc-rail-bar {
+:where([data-smart-toc-owned]).github-toc.theme-preset-rail .toc-item:hover .toc-rail-bar,
+:where([data-smart-toc-owned]) .github-toc.theme-preset-rail .toc-item:hover .toc-rail-bar,
+:where([data-smart-toc-owned]).github-toc.theme-preset-rail .toc-item:focus-within .toc-rail-bar,
+:where([data-smart-toc-owned]) .github-toc.theme-preset-rail .toc-item:focus-within .toc-rail-bar {
   background: var(--toc-rail-line-active);
 }
 
-.github-toc.theme-preset-rail .toc-rail-label {
+:where([data-smart-toc-owned]).github-toc.theme-preset-rail .toc-rail-label, :where([data-smart-toc-owned]) .github-toc.theme-preset-rail .toc-rail-label {
   display: none !important;
 }
 
-.github-toc.theme-preset-rail .toc-item.active .toc-rail-label {
+:where([data-smart-toc-owned]).github-toc.theme-preset-rail .toc-item.active .toc-rail-label, :where([data-smart-toc-owned]) .github-toc.theme-preset-rail .toc-item.active .toc-rail-label {
   color: var(--toc-rail-label-active) !important;
 }
 
-.github-toc.theme-preset-rail .toc-item:hover .toc-rail-label,
-.github-toc.theme-preset-rail .toc-item:focus-within .toc-rail-label {
+:where([data-smart-toc-owned]).github-toc.theme-preset-rail .toc-item:hover .toc-rail-label,
+:where([data-smart-toc-owned]) .github-toc.theme-preset-rail .toc-item:hover .toc-rail-label,
+:where([data-smart-toc-owned]).github-toc.theme-preset-rail .toc-item:focus-within .toc-rail-label,
+:where([data-smart-toc-owned]) .github-toc.theme-preset-rail .toc-item:focus-within .toc-rail-label {
   color: var(--toc-rail-label-active) !important;
 }
 
-.github-toc.theme-preset-rail .toc-item a:focus-visible {
+:where([data-smart-toc-owned]).github-toc.theme-preset-rail .toc-item a:focus-visible, :where([data-smart-toc-owned]) .github-toc.theme-preset-rail .toc-item a:focus-visible {
   outline-offset: 2px;
 }
 
-.github-toc.theme-preset-rail.position-right .toc-list {
+:where([data-smart-toc-owned]).github-toc.theme-preset-rail.position-right .toc-list, :where([data-smart-toc-owned]) .github-toc.theme-preset-rail.position-right .toc-list {
   box-sizing: border-box;
   margin-left: calc(-1 * var(--toc-rail-wave-bleed));
   padding-left: var(--toc-rail-wave-bleed);
@@ -842,26 +872,26 @@
   width: calc(100% + var(--toc-rail-wave-bleed));
 }
 
-.github-toc.theme-preset-rail.position-right .toc-rail-link {
+:where([data-smart-toc-owned]).github-toc.theme-preset-rail.position-right .toc-rail-link, :where([data-smart-toc-owned]) .github-toc.theme-preset-rail.position-right .toc-rail-link {
   justify-content: flex-end;
   flex-direction: row;
   padding-left: 10px;
   padding-right: 6px;
 }
 
-.github-toc.theme-preset-rail.position-right .toc-rail-bar {
+:where([data-smart-toc-owned]).github-toc.theme-preset-rail.position-right .toc-rail-bar, :where([data-smart-toc-owned]) .github-toc.theme-preset-rail.position-right .toc-rail-bar {
   order: 0;
   transform-origin: right center;
 }
 
-.github-toc.theme-preset-rail.position-right .toc-rail-label {
+:where([data-smart-toc-owned]).github-toc.theme-preset-rail.position-right .toc-rail-label, :where([data-smart-toc-owned]) .github-toc.theme-preset-rail.position-right .toc-rail-label {
   order: 1;
   right: calc(8px + var(--toc-rail-base-width) + var(--toc-rail-wave-width) + 10px);
   text-align: right;
   transform: translateY(-50%) translateX(6px) scale(0.96);
 }
 
-.github-toc.theme-preset-rail.position-left .toc-list {
+:where([data-smart-toc-owned]).github-toc.theme-preset-rail.position-left .toc-list, :where([data-smart-toc-owned]) .github-toc.theme-preset-rail.position-left .toc-list {
   box-sizing: border-box;
   margin-right: calc(-1 * var(--toc-rail-wave-bleed));
   padding-right: var(--toc-rail-wave-bleed);
@@ -869,19 +899,19 @@
   width: calc(100% + var(--toc-rail-wave-bleed));
 }
 
-.github-toc.theme-preset-rail.position-left .toc-rail-link {
+:where([data-smart-toc-owned]).github-toc.theme-preset-rail.position-left .toc-rail-link, :where([data-smart-toc-owned]) .github-toc.theme-preset-rail.position-left .toc-rail-link {
   justify-content: flex-start;
   flex-direction: row;
   padding-left: 6px;
   padding-right: 10px;
 }
 
-.github-toc.theme-preset-rail.position-left .toc-rail-bar {
+:where([data-smart-toc-owned]).github-toc.theme-preset-rail.position-left .toc-rail-bar, :where([data-smart-toc-owned]) .github-toc.theme-preset-rail.position-left .toc-rail-bar {
   order: 0;
   transform-origin: left center;
 }
 
-.github-toc.theme-preset-rail.position-left .toc-rail-label {
+:where([data-smart-toc-owned]).github-toc.theme-preset-rail.position-left .toc-rail-label, :where([data-smart-toc-owned]) .github-toc.theme-preset-rail.position-left .toc-rail-label {
   order: 0;
   left: calc(8px + var(--toc-rail-base-width) + var(--toc-rail-wave-width) + 10px);
   text-align: left;
@@ -893,14 +923,14 @@
    Hover 时显示稳定的完整标题列，仅移动亮度与字重焦点
    ============================================= */
 
-.toc-spotlight-layer {
+:where([data-smart-toc-owned]).toc-spotlight-layer, :where([data-smart-toc-owned]) .toc-spotlight-layer {
   position: fixed;
   inset: 0;
   z-index: 10000;
   pointer-events: none;
 }
 
-.toc-spotlight-row {
+:where([data-smart-toc-owned]).toc-spotlight-row, :where([data-smart-toc-owned]) .toc-spotlight-row {
   --toc-spotlight-label-opacity: 0;
   --toc-spotlight-label-scale: 0.96;
   box-sizing: border-box;
@@ -920,7 +950,7 @@
     visibility 0s linear 0.2s;
 }
 
-.toc-spotlight-text {
+:where([data-smart-toc-owned]).toc-spotlight-text, :where([data-smart-toc-owned]) .toc-spotlight-text {
   box-sizing: border-box;
   display: block;
   width: 100%;
@@ -946,7 +976,7 @@
   white-space: nowrap;
 }
 
-.toc-spotlight-row::after {
+:where([data-smart-toc-owned]).toc-spotlight-row::after, :where([data-smart-toc-owned]) .toc-spotlight-row::after {
   content: "";
   position: absolute;
   top: -2px;
@@ -954,15 +984,15 @@
   width: 16px;
 }
 
-.toc-spotlight-row.position-right::after {
+:where([data-smart-toc-owned]).toc-spotlight-row.position-right::after, :where([data-smart-toc-owned]) .toc-spotlight-row.position-right::after {
   right: -16px;
 }
 
-.toc-spotlight-row.position-left::after {
+:where([data-smart-toc-owned]).toc-spotlight-row.position-left::after, :where([data-smart-toc-owned]) .toc-spotlight-row.position-left::after {
   left: -16px;
 }
 
-.toc-spotlight-row.is-visible {
+:where([data-smart-toc-owned]).toc-spotlight-row.is-visible, :where([data-smart-toc-owned]) .toc-spotlight-row.is-visible {
   opacity: var(--toc-spotlight-label-opacity);
   pointer-events: auto;
   transform: translateY(-50%) scale(var(--toc-spotlight-label-scale));
@@ -970,12 +1000,12 @@
   transition-delay: 0s;
 }
 
-.toc-spotlight-row.distance-0 {
+:where([data-smart-toc-owned]).toc-spotlight-row.distance-0, :where([data-smart-toc-owned]) .toc-spotlight-row.distance-0 {
   --toc-spotlight-label-opacity: 1;
   --toc-spotlight-label-scale: 1;
 }
 
-.toc-spotlight-row.distance-0 .toc-spotlight-text {
+:where([data-smart-toc-owned]).toc-spotlight-row.distance-0 .toc-spotlight-text, :where([data-smart-toc-owned]) .toc-spotlight-row.distance-0 .toc-spotlight-text {
   display: -webkit-box;
   max-height: 44px;
   background: color-mix(in srgb, var(--toc-accent, #0969da) 5%, var(--toc-rail-preview-bg, var(--toc-bg-fallback)));
@@ -990,33 +1020,33 @@
   white-space: normal;
 }
 
-.toc-spotlight-row.position-right.distance-0 .toc-spotlight-text {
+:where([data-smart-toc-owned]).toc-spotlight-row.position-right.distance-0 .toc-spotlight-text, :where([data-smart-toc-owned]) .toc-spotlight-row.position-right.distance-0 .toc-spotlight-text {
   box-shadow:
     inset -2px 0 0 var(--toc-accent, #0969da),
     0 5px 16px color-mix(in srgb, #000 10%, transparent);
 }
 
-.toc-spotlight-row.distance-1 {
+:where([data-smart-toc-owned]).toc-spotlight-row.distance-1, :where([data-smart-toc-owned]) .toc-spotlight-row.distance-1 {
   --toc-spotlight-label-opacity: 0.72;
   --toc-spotlight-label-scale: 0.985;
 }
 
-.toc-spotlight-row.distance-2 {
+:where([data-smart-toc-owned]).toc-spotlight-row.distance-2, :where([data-smart-toc-owned]) .toc-spotlight-row.distance-2 {
   --toc-spotlight-label-opacity: 0.52;
   --toc-spotlight-label-scale: 0.97;
 }
 
-.toc-spotlight-row.distance-far {
+:where([data-smart-toc-owned]).toc-spotlight-row.distance-far, :where([data-smart-toc-owned]) .toc-spotlight-row.distance-far {
   --toc-spotlight-label-opacity: 0;
   --toc-spotlight-label-scale: 0.97;
 }
 
-.toc-spotlight-row.position-right {
+:where([data-smart-toc-owned]).toc-spotlight-row.position-right, :where([data-smart-toc-owned]) .toc-spotlight-row.position-right {
   text-align: right;
   transform-origin: right center;
 }
 
-.toc-spotlight-row.position-left {
+:where([data-smart-toc-owned]).toc-spotlight-row.position-left, :where([data-smart-toc-owned]) .toc-spotlight-row.position-left {
   text-align: left;
   transform-origin: left center;
 }
@@ -1026,7 +1056,7 @@
    Idle 保留条形码；Hover 展开可滚动的完整标题面板
    ============================================= */
 
-.toc-gpt-preview {
+:where([data-smart-toc-owned]).toc-gpt-preview, :where([data-smart-toc-owned]) .toc-gpt-preview {
   position: fixed;
   top: 50%;
   z-index: 10000;
@@ -1053,19 +1083,19 @@
     visibility 0s linear 0.2s;
 }
 
-.toc-gpt-preview[data-adaptive-tone="dark-surface"] {
+:where([data-smart-toc-owned]).toc-gpt-preview[data-adaptive-tone="dark-surface"], :where([data-smart-toc-owned]) .toc-gpt-preview[data-adaptive-tone="dark-surface"] {
   background: rgb(28, 31, 37);
 }
 
-.toc-gpt-preview[data-adaptive-tone="light-surface"] {
+:where([data-smart-toc-owned]).toc-gpt-preview[data-adaptive-tone="light-surface"], :where([data-smart-toc-owned]) .toc-gpt-preview[data-adaptive-tone="light-surface"] {
   background: rgb(255, 255, 255);
 }
 
-.toc-gpt-preview.position-left {
+:where([data-smart-toc-owned]).toc-gpt-preview.position-left, :where([data-smart-toc-owned]) .toc-gpt-preview.position-left {
   transform-origin: center left;
 }
 
-.toc-gpt-preview::after {
+:where([data-smart-toc-owned]).toc-gpt-preview::after, :where([data-smart-toc-owned]) .toc-gpt-preview::after {
   content: "";
   position: absolute;
   top: 0;
@@ -1073,15 +1103,15 @@
   width: 16px;
 }
 
-.toc-gpt-preview.position-right::after {
+:where([data-smart-toc-owned]).toc-gpt-preview.position-right::after, :where([data-smart-toc-owned]) .toc-gpt-preview.position-right::after {
   right: -16px;
 }
 
-.toc-gpt-preview.position-left::after {
+:where([data-smart-toc-owned]).toc-gpt-preview.position-left::after, :where([data-smart-toc-owned]) .toc-gpt-preview.position-left::after {
   left: -16px;
 }
 
-.toc-gpt-preview.is-visible {
+:where([data-smart-toc-owned]).toc-gpt-preview.is-visible, :where([data-smart-toc-owned]) .toc-gpt-preview.is-visible {
   opacity: 1;
   pointer-events: auto;
   transform: translateY(-50%) scale(1);
@@ -1089,7 +1119,7 @@
   transition-delay: 0s;
 }
 
-.toc-gpt-preview-list {
+:where([data-smart-toc-owned]).toc-gpt-preview-list, :where([data-smart-toc-owned]) .toc-gpt-preview-list {
   box-sizing: border-box;
   max-height: min(382px, calc(100vh - 112px));
   overflow-x: hidden;
@@ -1099,7 +1129,7 @@
   scrollbar-width: thin;
 }
 
-.toc-gpt-preview-header {
+:where([data-smart-toc-owned]).toc-gpt-preview-header, :where([data-smart-toc-owned]) .toc-gpt-preview-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -1109,14 +1139,14 @@
   color: var(--toc-rail-label, rgba(255, 255, 255, 0.58));
 }
 
-.toc-gpt-preview-title {
+:where([data-smart-toc-owned]).toc-gpt-preview-title, :where([data-smart-toc-owned]) .toc-gpt-preview-title {
   font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Segoe UI", sans-serif !important;
   font-size: 10px !important;
   font-weight: 700 !important;
   letter-spacing: 0.1em;
 }
 
-.toc-gpt-preview-count {
+:where([data-smart-toc-owned]).toc-gpt-preview-count, :where([data-smart-toc-owned]) .toc-gpt-preview-count {
   min-width: 26px;
   height: 22px;
   padding: 0 7px;
@@ -1130,16 +1160,16 @@
   font-weight: 650 !important;
 }
 
-.toc-gpt-preview-list::-webkit-scrollbar {
+:where([data-smart-toc-owned]).toc-gpt-preview-list::-webkit-scrollbar, :where([data-smart-toc-owned]) .toc-gpt-preview-list::-webkit-scrollbar {
   width: 7px;
 }
 
-.toc-gpt-preview-list::-webkit-scrollbar-thumb {
+:where([data-smart-toc-owned]).toc-gpt-preview-list::-webkit-scrollbar-thumb, :where([data-smart-toc-owned]) .toc-gpt-preview-list::-webkit-scrollbar-thumb {
   border-radius: 999px;
   background: color-mix(in srgb, currentColor 34%, transparent);
 }
 
-.toc-gpt-preview-row {
+:where([data-smart-toc-owned]).toc-gpt-preview-row, :where([data-smart-toc-owned]) .toc-gpt-preview-row {
   box-sizing: border-box;
   display: flex;
   align-items: center;
@@ -1161,39 +1191,45 @@
   transition: background-color 0.14s ease, color 0.14s ease;
 }
 
-.toc-gpt-preview-row[data-level="2"] {
+:where([data-smart-toc-owned]).toc-gpt-preview-row[data-level="2"], :where([data-smart-toc-owned]) .toc-gpt-preview-row[data-level="2"] {
   padding-left: 18px;
 }
 
-.toc-gpt-preview-row[data-level="3"],
-.toc-gpt-preview-row[data-level="4"],
-.toc-gpt-preview-row[data-level="5"],
-.toc-gpt-preview-row[data-level="6"] {
+:where([data-smart-toc-owned]).toc-gpt-preview-row[data-level="3"],
+:where([data-smart-toc-owned]) .toc-gpt-preview-row[data-level="3"],
+:where([data-smart-toc-owned]).toc-gpt-preview-row[data-level="4"],
+:where([data-smart-toc-owned]) .toc-gpt-preview-row[data-level="4"],
+:where([data-smart-toc-owned]).toc-gpt-preview-row[data-level="5"],
+:where([data-smart-toc-owned]) .toc-gpt-preview-row[data-level="5"],
+:where([data-smart-toc-owned]).toc-gpt-preview-row[data-level="6"],
+:where([data-smart-toc-owned]) .toc-gpt-preview-row[data-level="6"] {
   padding-left: 26px;
 }
 
-.toc-gpt-preview-row:hover,
-.toc-gpt-preview-row:focus-visible {
+:where([data-smart-toc-owned]).toc-gpt-preview-row:hover,
+:where([data-smart-toc-owned]) .toc-gpt-preview-row:hover,
+:where([data-smart-toc-owned]).toc-gpt-preview-row:focus-visible,
+:where([data-smart-toc-owned]) .toc-gpt-preview-row:focus-visible {
   background: color-mix(in srgb, currentColor 9%, transparent);
 }
 
-.toc-gpt-preview-row:focus-visible {
+:where([data-smart-toc-owned]).toc-gpt-preview-row:focus-visible, :where([data-smart-toc-owned]) .toc-gpt-preview-row:focus-visible {
   outline: 2px solid color-mix(in srgb, var(--toc-accent, #0969da) 72%, transparent);
   outline-offset: -2px;
 }
 
-.toc-gpt-preview-row.is-current {
+:where([data-smart-toc-owned]).toc-gpt-preview-row.is-current, :where([data-smart-toc-owned]) .toc-gpt-preview-row.is-current {
   background: color-mix(in srgb, currentColor 15%, transparent);
   box-shadow: inset 2px 0 0 var(--toc-accent, #0969da);
   color: var(--toc-accent, #58a6ff) !important;
   font-weight: 650 !important;
 }
 
-.toc-gpt-preview.position-right .toc-gpt-preview-row.is-current {
+:where([data-smart-toc-owned]).toc-gpt-preview.position-right .toc-gpt-preview-row.is-current, :where([data-smart-toc-owned]) .toc-gpt-preview.position-right .toc-gpt-preview-row.is-current {
   box-shadow: inset -2px 0 0 var(--toc-accent, #0969da);
 }
 
-.toc-gpt-preview-text {
+:where([data-smart-toc-owned]).toc-gpt-preview-text, :where([data-smart-toc-owned]) .toc-gpt-preview-text {
   display: block;
   min-width: 0;
   overflow: hidden;
@@ -1206,7 +1242,7 @@
    Idle 保留竖向刻度；Hover 或固定后展开完整标题
    ============================================= */
 
-.github-toc.theme-preset-rail.theme-preview-sspai {
+:where([data-smart-toc-owned]).github-toc.theme-preset-rail.theme-preview-sspai, :where([data-smart-toc-owned]) .github-toc.theme-preset-rail.theme-preview-sspai {
   --toc-sspai-accent: var(--toc-accent, #c92b35);
   --toc-sspai-edge-offset: 24px;
   --toc-sspai-width: min(252px, calc(100vw - 48px));
@@ -1216,22 +1252,26 @@
   transition: opacity var(--duration-hover, 0.15s) ease;
 }
 
-.github-toc.theme-preset-rail.theme-preview-sspai.position-right {
+:where([data-smart-toc-owned]).github-toc.theme-preset-rail.theme-preview-sspai.position-right, :where([data-smart-toc-owned]) .github-toc.theme-preset-rail.theme-preview-sspai.position-right {
   right: var(--toc-sspai-edge-offset);
 }
 
-.github-toc.theme-preset-rail.theme-preview-sspai.position-left {
+:where([data-smart-toc-owned]).github-toc.theme-preset-rail.theme-preview-sspai.position-left, :where([data-smart-toc-owned]) .github-toc.theme-preset-rail.theme-preview-sspai.position-left {
   left: var(--toc-sspai-edge-offset);
 }
 
-.github-toc.theme-preset-rail.theme-preview-sspai .toc-tree,
-.github-toc.theme-preset-rail.theme-preview-sspai .toc-list {
+:where([data-smart-toc-owned]).github-toc.theme-preset-rail.theme-preview-sspai .toc-tree,
+:where([data-smart-toc-owned]) .github-toc.theme-preset-rail.theme-preview-sspai .toc-tree,
+:where([data-smart-toc-owned]).github-toc.theme-preset-rail.theme-preview-sspai .toc-list,
+:where([data-smart-toc-owned]) .github-toc.theme-preset-rail.theme-preview-sspai .toc-list {
   width: 100%;
   pointer-events: none;
 }
 
-.github-toc.theme-preset-rail.theme-preview-sspai.position-right .toc-list,
-.github-toc.theme-preset-rail.theme-preview-sspai.position-left .toc-list {
+:where([data-smart-toc-owned]).github-toc.theme-preset-rail.theme-preview-sspai.position-right .toc-list,
+:where([data-smart-toc-owned]) .github-toc.theme-preset-rail.theme-preview-sspai.position-right .toc-list,
+:where([data-smart-toc-owned]).github-toc.theme-preset-rail.theme-preview-sspai.position-left .toc-list,
+:where([data-smart-toc-owned]) .github-toc.theme-preset-rail.theme-preview-sspai.position-left .toc-list {
   box-sizing: border-box;
   width: 100%;
   margin: 0;
@@ -1239,11 +1279,11 @@
   text-align: initial;
 }
 
-.github-toc.theme-preset-rail.theme-preview-sspai .toc-item {
+:where([data-smart-toc-owned]).github-toc.theme-preset-rail.theme-preview-sspai .toc-item, :where([data-smart-toc-owned]) .github-toc.theme-preset-rail.theme-preview-sspai .toc-item {
   min-height: 10px;
 }
 
-.github-toc.theme-preset-rail.theme-preview-sspai .toc-rail-link {
+:where([data-smart-toc-owned]).github-toc.theme-preset-rail.theme-preview-sspai .toc-rail-link, :where([data-smart-toc-owned]) .github-toc.theme-preset-rail.theme-preview-sspai .toc-rail-link {
   box-sizing: border-box;
   width: 18px;
   min-height: 10px;
@@ -1254,22 +1294,22 @@
   transition: min-height 0.18s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
-.github-toc.theme-preset-rail.theme-preview-sspai .toc-rail-link:hover {
+:where([data-smart-toc-owned]).github-toc.theme-preset-rail.theme-preview-sspai .toc-rail-link:hover, :where([data-smart-toc-owned]) .github-toc.theme-preset-rail.theme-preview-sspai .toc-rail-link:hover {
   background: transparent !important;
 }
 
-.github-toc.theme-preset-rail.theme-preview-sspai.position-right .toc-rail-link {
+:where([data-smart-toc-owned]).github-toc.theme-preset-rail.theme-preview-sspai.position-right .toc-rail-link, :where([data-smart-toc-owned]) .github-toc.theme-preset-rail.theme-preview-sspai.position-right .toc-rail-link {
   flex-direction: row;
   justify-content: flex-start;
 }
 
-.github-toc.theme-preset-rail.theme-preview-sspai.position-left .toc-rail-link {
+:where([data-smart-toc-owned]).github-toc.theme-preset-rail.theme-preview-sspai.position-left .toc-rail-link, :where([data-smart-toc-owned]) .github-toc.theme-preset-rail.theme-preview-sspai.position-left .toc-rail-link {
   flex-direction: row-reverse;
   justify-content: flex-start;
   margin-left: auto;
 }
 
-.github-toc.theme-preset-rail.theme-preview-sspai .toc-rail-bar {
+:where([data-smart-toc-owned]).github-toc.theme-preset-rail.theme-preview-sspai .toc-rail-bar, :where([data-smart-toc-owned]) .github-toc.theme-preset-rail.theme-preview-sspai .toc-rail-bar {
   flex: 0 0 2px;
   width: 2px !important;
   height: 6px;
@@ -1283,7 +1323,7 @@
     opacity 0.16s ease;
 }
 
-.github-toc.theme-preset-rail.theme-preview-sspai .toc-rail-label {
+:where([data-smart-toc-owned]).github-toc.theme-preset-rail.theme-preview-sspai .toc-rail-label, :where([data-smart-toc-owned]) .github-toc.theme-preset-rail.theme-preview-sspai .toc-rail-label {
   position: static;
   box-sizing: border-box;
   display: block !important;
@@ -1311,56 +1351,79 @@
     height 0s linear 0.18s;
 }
 
-.github-toc.theme-preset-rail.theme-preview-sspai.position-right .toc-rail-label {
+:where([data-smart-toc-owned]).github-toc.theme-preset-rail.theme-preview-sspai.position-right .toc-rail-label, :where([data-smart-toc-owned]) .github-toc.theme-preset-rail.theme-preview-sspai.position-right .toc-rail-label {
   text-align: left;
 }
 
-.github-toc.theme-preset-rail.theme-preview-sspai.position-left .toc-rail-label {
+:where([data-smart-toc-owned]).github-toc.theme-preset-rail.theme-preview-sspai.position-left .toc-rail-label, :where([data-smart-toc-owned]) .github-toc.theme-preset-rail.theme-preview-sspai.position-left .toc-rail-label {
   text-align: right;
 }
 
-.github-toc.theme-preset-rail.theme-preview-sspai .toc-item.level-2 .toc-rail-label,
-.github-toc.theme-preset-rail.theme-preview-sspai .toc-item.level-3 .toc-rail-label,
-.github-toc.theme-preset-rail.theme-preview-sspai .toc-item.level-4 .toc-rail-label,
-.github-toc.theme-preset-rail.theme-preview-sspai .toc-item.level-5 .toc-rail-label,
-.github-toc.theme-preset-rail.theme-preview-sspai .toc-item.level-6 .toc-rail-label {
+:where([data-smart-toc-owned]).github-toc.theme-preset-rail.theme-preview-sspai .toc-item.level-2 .toc-rail-label,
+:where([data-smart-toc-owned]) .github-toc.theme-preset-rail.theme-preview-sspai .toc-item.level-2 .toc-rail-label,
+:where([data-smart-toc-owned]).github-toc.theme-preset-rail.theme-preview-sspai .toc-item.level-3 .toc-rail-label,
+:where([data-smart-toc-owned]) .github-toc.theme-preset-rail.theme-preview-sspai .toc-item.level-3 .toc-rail-label,
+:where([data-smart-toc-owned]).github-toc.theme-preset-rail.theme-preview-sspai .toc-item.level-4 .toc-rail-label,
+:where([data-smart-toc-owned]) .github-toc.theme-preset-rail.theme-preview-sspai .toc-item.level-4 .toc-rail-label,
+:where([data-smart-toc-owned]).github-toc.theme-preset-rail.theme-preview-sspai .toc-item.level-5 .toc-rail-label,
+:where([data-smart-toc-owned]) .github-toc.theme-preset-rail.theme-preview-sspai .toc-item.level-5 .toc-rail-label,
+:where([data-smart-toc-owned]).github-toc.theme-preset-rail.theme-preview-sspai .toc-item.level-6 .toc-rail-label,
+:where([data-smart-toc-owned]) .github-toc.theme-preset-rail.theme-preview-sspai .toc-item.level-6 .toc-rail-label {
   font-weight: 400 !important;
 }
 
-.github-toc.theme-preset-rail.theme-preview-sspai.position-right .toc-item.level-2 .toc-rail-label,
-.github-toc.theme-preset-rail.theme-preview-sspai.position-right .toc-item.level-3 .toc-rail-label,
-.github-toc.theme-preset-rail.theme-preview-sspai.position-right .toc-item.level-4 .toc-rail-label,
-.github-toc.theme-preset-rail.theme-preview-sspai.position-right .toc-item.level-5 .toc-rail-label,
-.github-toc.theme-preset-rail.theme-preview-sspai.position-right .toc-item.level-6 .toc-rail-label {
+:where([data-smart-toc-owned]).github-toc.theme-preset-rail.theme-preview-sspai.position-right .toc-item.level-2 .toc-rail-label,
+:where([data-smart-toc-owned]) .github-toc.theme-preset-rail.theme-preview-sspai.position-right .toc-item.level-2 .toc-rail-label,
+:where([data-smart-toc-owned]).github-toc.theme-preset-rail.theme-preview-sspai.position-right .toc-item.level-3 .toc-rail-label,
+:where([data-smart-toc-owned]) .github-toc.theme-preset-rail.theme-preview-sspai.position-right .toc-item.level-3 .toc-rail-label,
+:where([data-smart-toc-owned]).github-toc.theme-preset-rail.theme-preview-sspai.position-right .toc-item.level-4 .toc-rail-label,
+:where([data-smart-toc-owned]) .github-toc.theme-preset-rail.theme-preview-sspai.position-right .toc-item.level-4 .toc-rail-label,
+:where([data-smart-toc-owned]).github-toc.theme-preset-rail.theme-preview-sspai.position-right .toc-item.level-5 .toc-rail-label,
+:where([data-smart-toc-owned]) .github-toc.theme-preset-rail.theme-preview-sspai.position-right .toc-item.level-5 .toc-rail-label,
+:where([data-smart-toc-owned]).github-toc.theme-preset-rail.theme-preview-sspai.position-right .toc-item.level-6 .toc-rail-label,
+:where([data-smart-toc-owned]) .github-toc.theme-preset-rail.theme-preview-sspai.position-right .toc-item.level-6 .toc-rail-label {
   padding-left: 30px;
 }
 
-.github-toc.theme-preset-rail.theme-preview-sspai.position-left .toc-item.level-2 .toc-rail-label,
-.github-toc.theme-preset-rail.theme-preview-sspai.position-left .toc-item.level-3 .toc-rail-label,
-.github-toc.theme-preset-rail.theme-preview-sspai.position-left .toc-item.level-4 .toc-rail-label,
-.github-toc.theme-preset-rail.theme-preview-sspai.position-left .toc-item.level-5 .toc-rail-label,
-.github-toc.theme-preset-rail.theme-preview-sspai.position-left .toc-item.level-6 .toc-rail-label {
+:where([data-smart-toc-owned]).github-toc.theme-preset-rail.theme-preview-sspai.position-left .toc-item.level-2 .toc-rail-label,
+:where([data-smart-toc-owned]) .github-toc.theme-preset-rail.theme-preview-sspai.position-left .toc-item.level-2 .toc-rail-label,
+:where([data-smart-toc-owned]).github-toc.theme-preset-rail.theme-preview-sspai.position-left .toc-item.level-3 .toc-rail-label,
+:where([data-smart-toc-owned]) .github-toc.theme-preset-rail.theme-preview-sspai.position-left .toc-item.level-3 .toc-rail-label,
+:where([data-smart-toc-owned]).github-toc.theme-preset-rail.theme-preview-sspai.position-left .toc-item.level-4 .toc-rail-label,
+:where([data-smart-toc-owned]) .github-toc.theme-preset-rail.theme-preview-sspai.position-left .toc-item.level-4 .toc-rail-label,
+:where([data-smart-toc-owned]).github-toc.theme-preset-rail.theme-preview-sspai.position-left .toc-item.level-5 .toc-rail-label,
+:where([data-smart-toc-owned]) .github-toc.theme-preset-rail.theme-preview-sspai.position-left .toc-item.level-5 .toc-rail-label,
+:where([data-smart-toc-owned]).github-toc.theme-preset-rail.theme-preview-sspai.position-left .toc-item.level-6 .toc-rail-label,
+:where([data-smart-toc-owned]) .github-toc.theme-preset-rail.theme-preview-sspai.position-left .toc-item.level-6 .toc-rail-label {
   padding-right: 30px;
 }
 
-.github-toc.theme-preset-rail.theme-preview-sspai.expanded .toc-rail-link,
-.github-toc.theme-preset-rail.theme-preview-sspai.is-directory-pinned .toc-rail-link {
+:where([data-smart-toc-owned]).github-toc.theme-preset-rail.theme-preview-sspai.expanded .toc-rail-link,
+:where([data-smart-toc-owned]) .github-toc.theme-preset-rail.theme-preview-sspai.expanded .toc-rail-link,
+:where([data-smart-toc-owned]).github-toc.theme-preset-rail.theme-preview-sspai.is-directory-pinned .toc-rail-link,
+:where([data-smart-toc-owned]) .github-toc.theme-preset-rail.theme-preview-sspai.is-directory-pinned .toc-rail-link {
   width: 100%;
   min-height: 33px;
 }
 
-.github-toc.theme-preset-rail.theme-preview-sspai.position-left.expanded .toc-rail-link,
-.github-toc.theme-preset-rail.theme-preview-sspai.position-left.is-directory-pinned .toc-rail-link {
+:where([data-smart-toc-owned]).github-toc.theme-preset-rail.theme-preview-sspai.position-left.expanded .toc-rail-link,
+:where([data-smart-toc-owned]) .github-toc.theme-preset-rail.theme-preview-sspai.position-left.expanded .toc-rail-link,
+:where([data-smart-toc-owned]).github-toc.theme-preset-rail.theme-preview-sspai.position-left.is-directory-pinned .toc-rail-link,
+:where([data-smart-toc-owned]) .github-toc.theme-preset-rail.theme-preview-sspai.position-left.is-directory-pinned .toc-rail-link {
   margin-left: 0;
 }
 
-.github-toc.theme-preset-rail.theme-preview-sspai.expanded .toc-rail-bar,
-.github-toc.theme-preset-rail.theme-preview-sspai.is-directory-pinned .toc-rail-bar {
+:where([data-smart-toc-owned]).github-toc.theme-preset-rail.theme-preview-sspai.expanded .toc-rail-bar,
+:where([data-smart-toc-owned]) .github-toc.theme-preset-rail.theme-preview-sspai.expanded .toc-rail-bar,
+:where([data-smart-toc-owned]).github-toc.theme-preset-rail.theme-preview-sspai.is-directory-pinned .toc-rail-bar,
+:where([data-smart-toc-owned]) .github-toc.theme-preset-rail.theme-preview-sspai.is-directory-pinned .toc-rail-bar {
   height: 21px;
 }
 
-.github-toc.theme-preset-rail.theme-preview-sspai.expanded .toc-rail-label,
-.github-toc.theme-preset-rail.theme-preview-sspai.is-directory-pinned .toc-rail-label {
+:where([data-smart-toc-owned]).github-toc.theme-preset-rail.theme-preview-sspai.expanded .toc-rail-label,
+:where([data-smart-toc-owned]) .github-toc.theme-preset-rail.theme-preview-sspai.expanded .toc-rail-label,
+:where([data-smart-toc-owned]).github-toc.theme-preset-rail.theme-preview-sspai.is-directory-pinned .toc-rail-label,
+:where([data-smart-toc-owned]) .github-toc.theme-preset-rail.theme-preview-sspai.is-directory-pinned .toc-rail-label {
   width: var(--toc-sspai-label-width);
   max-width: var(--toc-sspai-label-width);
   height: 33px;
@@ -1375,29 +1438,33 @@
     height 0s;
 }
 
-.github-toc.theme-preset-rail.theme-preview-sspai.position-right.expanded .toc-rail-label,
-.github-toc.theme-preset-rail.theme-preview-sspai.position-right.is-directory-pinned .toc-rail-label {
+:where([data-smart-toc-owned]).github-toc.theme-preset-rail.theme-preview-sspai.position-right.expanded .toc-rail-label,
+:where([data-smart-toc-owned]) .github-toc.theme-preset-rail.theme-preview-sspai.position-right.expanded .toc-rail-label,
+:where([data-smart-toc-owned]).github-toc.theme-preset-rail.theme-preview-sspai.position-right.is-directory-pinned .toc-rail-label,
+:where([data-smart-toc-owned]) .github-toc.theme-preset-rail.theme-preview-sspai.position-right.is-directory-pinned .toc-rail-label {
   padding-left: 14px;
 }
 
-.github-toc.theme-preset-rail.theme-preview-sspai.position-left.expanded .toc-rail-label,
-.github-toc.theme-preset-rail.theme-preview-sspai.position-left.is-directory-pinned .toc-rail-label {
+:where([data-smart-toc-owned]).github-toc.theme-preset-rail.theme-preview-sspai.position-left.expanded .toc-rail-label,
+:where([data-smart-toc-owned]) .github-toc.theme-preset-rail.theme-preview-sspai.position-left.expanded .toc-rail-label,
+:where([data-smart-toc-owned]).github-toc.theme-preset-rail.theme-preview-sspai.position-left.is-directory-pinned .toc-rail-label,
+:where([data-smart-toc-owned]) .github-toc.theme-preset-rail.theme-preview-sspai.position-left.is-directory-pinned .toc-rail-label {
   padding-right: 14px;
 }
 
-.github-toc.theme-preset-rail.theme-preview-sspai .toc-item.active .toc-rail-bar {
+:where([data-smart-toc-owned]).github-toc.theme-preset-rail.theme-preview-sspai .toc-item.active .toc-rail-bar, :where([data-smart-toc-owned]) .github-toc.theme-preset-rail.theme-preview-sspai .toc-item.active .toc-rail-bar {
   background: var(--toc-sspai-accent);
   opacity: 1;
 }
 
-.github-toc.theme-preset-rail.theme-preview-sspai .toc-item.active .toc-rail-label {
+:where([data-smart-toc-owned]).github-toc.theme-preset-rail.theme-preview-sspai .toc-item.active .toc-rail-label, :where([data-smart-toc-owned]) .github-toc.theme-preset-rail.theme-preview-sspai .toc-item.active .toc-rail-label {
   border-radius: 5px;
   background: color-mix(in srgb, var(--toc-sspai-accent) 9%, transparent);
   color: var(--toc-sspai-accent) !important;
   font-weight: 600 !important;
 }
 
-.github-toc.theme-preset-rail.theme-preview-sspai .toc-sspai-pin {
+:where([data-smart-toc-owned]).github-toc.theme-preset-rail.theme-preview-sspai .toc-sspai-pin, :where([data-smart-toc-owned]) .github-toc.theme-preset-rail.theme-preview-sspai .toc-sspai-pin {
   position: absolute;
   top: -30px;
   display: inline-grid;
@@ -1421,45 +1488,52 @@
     visibility 0s linear 0.16s;
 }
 
-.github-toc.theme-preset-rail.theme-preview-sspai.position-right .toc-sspai-pin {
+:where([data-smart-toc-owned]).github-toc.theme-preset-rail.theme-preview-sspai.position-right .toc-sspai-pin, :where([data-smart-toc-owned]) .github-toc.theme-preset-rail.theme-preview-sspai.position-right .toc-sspai-pin {
   right: 6px;
 }
 
-.github-toc.theme-preset-rail.theme-preview-sspai.position-left .toc-sspai-pin {
+:where([data-smart-toc-owned]).github-toc.theme-preset-rail.theme-preview-sspai.position-left .toc-sspai-pin, :where([data-smart-toc-owned]) .github-toc.theme-preset-rail.theme-preview-sspai.position-left .toc-sspai-pin {
   left: 6px;
 }
 
-.github-toc.theme-preset-rail.theme-preview-sspai.expanded .toc-sspai-pin,
-.github-toc.theme-preset-rail.theme-preview-sspai.is-directory-pinned .toc-sspai-pin {
+:where([data-smart-toc-owned]).github-toc.theme-preset-rail.theme-preview-sspai.expanded .toc-sspai-pin,
+:where([data-smart-toc-owned]) .github-toc.theme-preset-rail.theme-preview-sspai.expanded .toc-sspai-pin,
+:where([data-smart-toc-owned]).github-toc.theme-preset-rail.theme-preview-sspai.is-directory-pinned .toc-sspai-pin,
+:where([data-smart-toc-owned]) .github-toc.theme-preset-rail.theme-preview-sspai.is-directory-pinned .toc-sspai-pin {
   opacity: 1;
   pointer-events: auto;
   visibility: visible;
   transition-delay: 0s;
 }
 
-.github-toc.theme-preset-rail.theme-preview-sspai .toc-sspai-pin:hover,
-.github-toc.theme-preset-rail.theme-preview-sspai .toc-sspai-pin:focus-visible,
-.github-toc.theme-preset-rail.theme-preview-sspai .toc-sspai-pin.is-pinned {
+:where([data-smart-toc-owned]).github-toc.theme-preset-rail.theme-preview-sspai .toc-sspai-pin:hover,
+:where([data-smart-toc-owned]) .github-toc.theme-preset-rail.theme-preview-sspai .toc-sspai-pin:hover,
+:where([data-smart-toc-owned]).github-toc.theme-preset-rail.theme-preview-sspai .toc-sspai-pin:focus-visible,
+:where([data-smart-toc-owned]) .github-toc.theme-preset-rail.theme-preview-sspai .toc-sspai-pin:focus-visible,
+:where([data-smart-toc-owned]).github-toc.theme-preset-rail.theme-preview-sspai .toc-sspai-pin.is-pinned,
+:where([data-smart-toc-owned]) .github-toc.theme-preset-rail.theme-preview-sspai .toc-sspai-pin.is-pinned {
   background: var(--toc-rail-hover-surface);
   color: var(--toc-sspai-accent);
 }
 
-.github-toc.theme-preset-rail.theme-preview-sspai .toc-sspai-pin:focus-visible {
+:where([data-smart-toc-owned]).github-toc.theme-preset-rail.theme-preview-sspai .toc-sspai-pin:focus-visible, :where([data-smart-toc-owned]) .github-toc.theme-preset-rail.theme-preview-sspai .toc-sspai-pin:focus-visible {
   outline: 2px solid var(--toc-sspai-accent) !important;
   outline-offset: 2px;
 }
 
-.github-toc.theme-preset-rail.theme-preview-sspai .toc-sspai-pin.is-pinned svg {
+:where([data-smart-toc-owned]).github-toc.theme-preset-rail.theme-preview-sspai .toc-sspai-pin.is-pinned svg, :where([data-smart-toc-owned]) .github-toc.theme-preset-rail.theme-preview-sspai .toc-sspai-pin.is-pinned svg {
   transform: rotate(-24deg);
 }
 
-.github-toc.theme-preset-rail.theme-preview-sspai .toc-sspai-pin svg,
-.github-toc.theme-preset-rail.theme-preview-sspai .toc-sspai-pin path {
+:where([data-smart-toc-owned]).github-toc.theme-preset-rail.theme-preview-sspai .toc-sspai-pin svg,
+:where([data-smart-toc-owned]) .github-toc.theme-preset-rail.theme-preview-sspai .toc-sspai-pin svg,
+:where([data-smart-toc-owned]).github-toc.theme-preset-rail.theme-preview-sspai .toc-sspai-pin path,
+:where([data-smart-toc-owned]) .github-toc.theme-preset-rail.theme-preview-sspai .toc-sspai-pin path {
   fill: currentColor !important;
   color: currentColor !important;
 }
 
-.github-sst {
+:where([data-smart-toc-owned]).github-sst, :where([data-smart-toc-owned]) .github-sst {
   position: fixed;
   bottom: 24px;
   width: 42px;
@@ -1486,28 +1560,30 @@
   will-change: auto;
 }
 
-.github-sst.visible {
+:where([data-smart-toc-owned]).github-sst.visible, :where([data-smart-toc-owned]) .github-sst.visible {
   opacity: 0.38;
   pointer-events: auto;
   transform: none;
 }
 
-.github-sst.position-right {
+:where([data-smart-toc-owned]).github-sst.position-right, :where([data-smart-toc-owned]) .github-sst.position-right {
   right: 24px;
   left: auto;
 }
 
-.github-sst.position-left {
+:where([data-smart-toc-owned]).github-sst.position-left, :where([data-smart-toc-owned]) .github-sst.position-left {
   left: 24px;
   right: auto;
 }
 
-.github-sst::before,
-.github-sst::after {
+:where([data-smart-toc-owned]).github-sst::before,
+:where([data-smart-toc-owned]) .github-sst::before,
+:where([data-smart-toc-owned]).github-sst::after,
+:where([data-smart-toc-owned]) .github-sst::after {
   content: none;
 }
 
-.github-sst svg {
+:where([data-smart-toc-owned]).github-sst svg, :where([data-smart-toc-owned]) .github-sst svg {
   position: relative;
   z-index: 1;
   fill: currentColor;
@@ -1515,134 +1591,162 @@
   transform: translateY(0);
 }
 
-.github-sst svg * {
+:where([data-smart-toc-owned]).github-sst svg *, :where([data-smart-toc-owned]) .github-sst svg * {
   pointer-events: none;
 }
 
-.github-sst.visible.is-hovered,
-.github-sst.visible:hover,
-.github-sst.visible:focus-visible {
+:where([data-smart-toc-owned]).github-sst.visible.is-hovered,
+:where([data-smart-toc-owned]) .github-sst.visible.is-hovered,
+:where([data-smart-toc-owned]).github-sst.visible:hover,
+:where([data-smart-toc-owned]) .github-sst.visible:hover,
+:where([data-smart-toc-owned]).github-sst.visible:focus-visible,
+:where([data-smart-toc-owned]) .github-sst.visible:focus-visible {
   background: var(--toc-rail-top-bg-hover);
   box-shadow: none;
   opacity: 1;
   transform: none;
 }
 
-.github-sst:active {
+:where([data-smart-toc-owned]).github-sst:active, :where([data-smart-toc-owned]) .github-sst:active {
   opacity: 0.92;
   transform: translateY(0) scale(0.98);
 }
 
-.github-sst:focus-visible {
+:where([data-smart-toc-owned]).github-sst:focus-visible, :where([data-smart-toc-owned]) .github-sst:focus-visible {
   outline: 2px solid var(--toc-accent);
   outline-offset: 2px;
 }
 
 @media (max-width: 767px) {
-  .github-toc.theme-preset-rail {
+  :where([data-smart-toc-owned]).github-toc.theme-preset-rail, :where([data-smart-toc-owned]) .github-toc.theme-preset-rail {
     right: 6px;
     width: 30px;
     max-height: calc(100vh - 120px);
     opacity: 0.42;
   }
 
-  .github-toc.theme-preset-rail.position-left {
+  :where([data-smart-toc-owned]).github-toc.theme-preset-rail.position-left, :where([data-smart-toc-owned]) .github-toc.theme-preset-rail.position-left {
     left: 6px;
   }
 
-  .github-toc.theme-preset-rail:hover,
-  .github-toc.theme-preset-rail.expanded,
-  .github-toc.theme-preset-rail:focus-within {
+  :where([data-smart-toc-owned]).github-toc.theme-preset-rail:hover,
+  :where([data-smart-toc-owned]) .github-toc.theme-preset-rail:hover,
+  :where([data-smart-toc-owned]).github-toc.theme-preset-rail.expanded,
+  :where([data-smart-toc-owned]) .github-toc.theme-preset-rail.expanded,
+  :where([data-smart-toc-owned]).github-toc.theme-preset-rail:focus-within,
+  :where([data-smart-toc-owned]) .github-toc.theme-preset-rail:focus-within {
     opacity: 0.82;
   }
 
-  .github-sst.position-right {
+  :where([data-smart-toc-owned]).github-sst.position-right, :where([data-smart-toc-owned]) .github-sst.position-right {
     right: 8px;
   }
 
-  .github-sst.position-left {
+  :where([data-smart-toc-owned]).github-sst.position-left, :where([data-smart-toc-owned]) .github-sst.position-left {
     left: 8px;
   }
 
 
-  .toc-spotlight-row,
-  .toc-spotlight-text {
+  :where([data-smart-toc-owned]).toc-spotlight-row,
+  :where([data-smart-toc-owned]) .toc-spotlight-row,
+  :where([data-smart-toc-owned]).toc-spotlight-text,
+  :where([data-smart-toc-owned]) .toc-spotlight-text {
     width: min(210px, calc(100vw - 76px));
     max-width: min(210px, calc(100vw - 76px));
   }
 
-  .github-toc.theme-preset-rail.theme-preview-sspai {
+  :where([data-smart-toc-owned]).github-toc.theme-preset-rail.theme-preview-sspai, :where([data-smart-toc-owned]) .github-toc.theme-preset-rail.theme-preview-sspai {
     --toc-sspai-width: 30px;
     --toc-sspai-label-width: min(210px, calc(100vw - 80px));
   }
 
-  .github-toc.theme-preset-rail.theme-preview-sspai.position-right .toc-list,
-  .github-toc.theme-preset-rail.theme-preview-sspai.position-left .toc-list {
+  :where([data-smart-toc-owned]).github-toc.theme-preset-rail.theme-preview-sspai.position-right .toc-list,
+  :where([data-smart-toc-owned]) .github-toc.theme-preset-rail.theme-preview-sspai.position-right .toc-list,
+  :where([data-smart-toc-owned]).github-toc.theme-preset-rail.theme-preview-sspai.position-left .toc-list,
+  :where([data-smart-toc-owned]) .github-toc.theme-preset-rail.theme-preview-sspai.position-left .toc-list {
     padding-right: 6px;
     padding-left: 6px;
   }
 
-  .github-toc.theme-preset-rail.theme-preview-sspai.position-right .toc-rail-link {
+  :where([data-smart-toc-owned]).github-toc.theme-preset-rail.theme-preview-sspai.position-right .toc-rail-link, :where([data-smart-toc-owned]) .github-toc.theme-preset-rail.theme-preview-sspai.position-right .toc-rail-link {
     flex-direction: row-reverse;
     margin-left: 0;
   }
 
-  .github-toc.theme-preset-rail.theme-preview-sspai.position-left .toc-rail-link {
+  :where([data-smart-toc-owned]).github-toc.theme-preset-rail.theme-preview-sspai.position-left .toc-rail-link, :where([data-smart-toc-owned]) .github-toc.theme-preset-rail.theme-preview-sspai.position-left .toc-rail-link {
     flex-direction: row;
     margin-left: 0;
   }
 
-  .github-toc.theme-preset-rail.theme-preview-sspai.expanded .toc-rail-link,
-  .github-toc.theme-preset-rail.theme-preview-sspai.is-directory-pinned .toc-rail-link {
+  :where([data-smart-toc-owned]).github-toc.theme-preset-rail.theme-preview-sspai.expanded .toc-rail-link,
+  :where([data-smart-toc-owned]) .github-toc.theme-preset-rail.theme-preview-sspai.expanded .toc-rail-link,
+  :where([data-smart-toc-owned]).github-toc.theme-preset-rail.theme-preview-sspai.is-directory-pinned .toc-rail-link,
+  :where([data-smart-toc-owned]) .github-toc.theme-preset-rail.theme-preview-sspai.is-directory-pinned .toc-rail-link {
     width: calc(var(--toc-sspai-label-width) + 2px);
   }
 
-  .github-toc.theme-preset-rail.theme-preview-sspai.position-right.expanded .toc-rail-link,
-  .github-toc.theme-preset-rail.theme-preview-sspai.position-right.is-directory-pinned .toc-rail-link {
+  :where([data-smart-toc-owned]).github-toc.theme-preset-rail.theme-preview-sspai.position-right.expanded .toc-rail-link,
+  :where([data-smart-toc-owned]) .github-toc.theme-preset-rail.theme-preview-sspai.position-right.expanded .toc-rail-link,
+  :where([data-smart-toc-owned]).github-toc.theme-preset-rail.theme-preview-sspai.position-right.is-directory-pinned .toc-rail-link,
+  :where([data-smart-toc-owned]) .github-toc.theme-preset-rail.theme-preview-sspai.position-right.is-directory-pinned .toc-rail-link {
     margin-left: calc(16px - var(--toc-sspai-label-width));
   }
 
-  .github-toc.theme-preset-rail.theme-preview-sspai.position-right .toc-rail-label {
+  :where([data-smart-toc-owned]).github-toc.theme-preset-rail.theme-preview-sspai.position-right .toc-rail-label, :where([data-smart-toc-owned]) .github-toc.theme-preset-rail.theme-preview-sspai.position-right .toc-rail-label {
     text-align: right;
   }
 
-  .github-toc.theme-preset-rail.theme-preview-sspai.position-left .toc-rail-label {
+  :where([data-smart-toc-owned]).github-toc.theme-preset-rail.theme-preview-sspai.position-left .toc-rail-label, :where([data-smart-toc-owned]) .github-toc.theme-preset-rail.theme-preview-sspai.position-left .toc-rail-label {
     text-align: left;
   }
 
-  .github-toc.theme-preset-rail.theme-preview-sspai.position-right.expanded .toc-rail-label,
-  .github-toc.theme-preset-rail.theme-preview-sspai.position-right.is-directory-pinned .toc-rail-label {
+  :where([data-smart-toc-owned]).github-toc.theme-preset-rail.theme-preview-sspai.position-right.expanded .toc-rail-label,
+  :where([data-smart-toc-owned]) .github-toc.theme-preset-rail.theme-preview-sspai.position-right.expanded .toc-rail-label,
+  :where([data-smart-toc-owned]).github-toc.theme-preset-rail.theme-preview-sspai.position-right.is-directory-pinned .toc-rail-label,
+  :where([data-smart-toc-owned]) .github-toc.theme-preset-rail.theme-preview-sspai.position-right.is-directory-pinned .toc-rail-label {
     padding-right: 14px;
     padding-left: 0;
   }
 
-  .github-toc.theme-preset-rail.theme-preview-sspai.position-left.expanded .toc-rail-label,
-  .github-toc.theme-preset-rail.theme-preview-sspai.position-left.is-directory-pinned .toc-rail-label {
+  :where([data-smart-toc-owned]).github-toc.theme-preset-rail.theme-preview-sspai.position-left.expanded .toc-rail-label,
+  :where([data-smart-toc-owned]) .github-toc.theme-preset-rail.theme-preview-sspai.position-left.expanded .toc-rail-label,
+  :where([data-smart-toc-owned]).github-toc.theme-preset-rail.theme-preview-sspai.position-left.is-directory-pinned .toc-rail-label,
+  :where([data-smart-toc-owned]) .github-toc.theme-preset-rail.theme-preview-sspai.position-left.is-directory-pinned .toc-rail-label {
     padding-right: 0;
     padding-left: 14px;
   }
 
-  .github-toc.theme-preset-rail.theme-preview-sspai.position-right .toc-item.level-2 .toc-rail-label,
-  .github-toc.theme-preset-rail.theme-preview-sspai.position-right .toc-item.level-3 .toc-rail-label,
-  .github-toc.theme-preset-rail.theme-preview-sspai.position-right .toc-item.level-4 .toc-rail-label,
-  .github-toc.theme-preset-rail.theme-preview-sspai.position-right .toc-item.level-5 .toc-rail-label,
-  .github-toc.theme-preset-rail.theme-preview-sspai.position-right .toc-item.level-6 .toc-rail-label {
+  :where([data-smart-toc-owned]).github-toc.theme-preset-rail.theme-preview-sspai.position-right .toc-item.level-2 .toc-rail-label,
+  :where([data-smart-toc-owned]) .github-toc.theme-preset-rail.theme-preview-sspai.position-right .toc-item.level-2 .toc-rail-label,
+  :where([data-smart-toc-owned]).github-toc.theme-preset-rail.theme-preview-sspai.position-right .toc-item.level-3 .toc-rail-label,
+  :where([data-smart-toc-owned]) .github-toc.theme-preset-rail.theme-preview-sspai.position-right .toc-item.level-3 .toc-rail-label,
+  :where([data-smart-toc-owned]).github-toc.theme-preset-rail.theme-preview-sspai.position-right .toc-item.level-4 .toc-rail-label,
+  :where([data-smart-toc-owned]) .github-toc.theme-preset-rail.theme-preview-sspai.position-right .toc-item.level-4 .toc-rail-label,
+  :where([data-smart-toc-owned]).github-toc.theme-preset-rail.theme-preview-sspai.position-right .toc-item.level-5 .toc-rail-label,
+  :where([data-smart-toc-owned]) .github-toc.theme-preset-rail.theme-preview-sspai.position-right .toc-item.level-5 .toc-rail-label,
+  :where([data-smart-toc-owned]).github-toc.theme-preset-rail.theme-preview-sspai.position-right .toc-item.level-6 .toc-rail-label,
+  :where([data-smart-toc-owned]) .github-toc.theme-preset-rail.theme-preview-sspai.position-right .toc-item.level-6 .toc-rail-label {
     padding-right: 30px;
     padding-left: 0;
   }
 
-  .github-toc.theme-preset-rail.theme-preview-sspai.position-left .toc-item.level-2 .toc-rail-label,
-  .github-toc.theme-preset-rail.theme-preview-sspai.position-left .toc-item.level-3 .toc-rail-label,
-  .github-toc.theme-preset-rail.theme-preview-sspai.position-left .toc-item.level-4 .toc-rail-label,
-  .github-toc.theme-preset-rail.theme-preview-sspai.position-left .toc-item.level-5 .toc-rail-label,
-  .github-toc.theme-preset-rail.theme-preview-sspai.position-left .toc-item.level-6 .toc-rail-label {
+  :where([data-smart-toc-owned]).github-toc.theme-preset-rail.theme-preview-sspai.position-left .toc-item.level-2 .toc-rail-label,
+  :where([data-smart-toc-owned]) .github-toc.theme-preset-rail.theme-preview-sspai.position-left .toc-item.level-2 .toc-rail-label,
+  :where([data-smart-toc-owned]).github-toc.theme-preset-rail.theme-preview-sspai.position-left .toc-item.level-3 .toc-rail-label,
+  :where([data-smart-toc-owned]) .github-toc.theme-preset-rail.theme-preview-sspai.position-left .toc-item.level-3 .toc-rail-label,
+  :where([data-smart-toc-owned]).github-toc.theme-preset-rail.theme-preview-sspai.position-left .toc-item.level-4 .toc-rail-label,
+  :where([data-smart-toc-owned]) .github-toc.theme-preset-rail.theme-preview-sspai.position-left .toc-item.level-4 .toc-rail-label,
+  :where([data-smart-toc-owned]).github-toc.theme-preset-rail.theme-preview-sspai.position-left .toc-item.level-5 .toc-rail-label,
+  :where([data-smart-toc-owned]) .github-toc.theme-preset-rail.theme-preview-sspai.position-left .toc-item.level-5 .toc-rail-label,
+  :where([data-smart-toc-owned]).github-toc.theme-preset-rail.theme-preview-sspai.position-left .toc-item.level-6 .toc-rail-label,
+  :where([data-smart-toc-owned]) .github-toc.theme-preset-rail.theme-preview-sspai.position-left .toc-item.level-6 .toc-rail-label {
     padding-right: 0;
     padding-left: 30px;
   }
 }
 
 @media (hover: none), (pointer: coarse) {
-  .github-sst.visible {
+  :where([data-smart-toc-owned]).github-sst.visible, :where([data-smart-toc-owned]) .github-sst.visible {
     opacity: 0.72;
     pointer-events: auto;
     transform: translateY(0) scale(1);
@@ -1650,61 +1754,59 @@
 }
 
 /* Reading controls stay quiet at rest, fully legible while deliberately in use. */
-.github-toc.theme-preset-default:focus-within {
+:where([data-smart-toc-owned]).github-toc.theme-preset-default:focus-within, :where([data-smart-toc-owned]) .github-toc.theme-preset-default:focus-within {
   opacity: 1;
 }
 
-.github-toc.theme-preset-default .toc-top-button {
+:where([data-smart-toc-owned]).github-toc.theme-preset-default .toc-top-button, :where([data-smart-toc-owned]) .github-toc.theme-preset-default .toc-top-button {
   min-width: 36px;
   height: 32px;
   color: var(--toc-text);
 }
 
-.github-toc.theme-preset-default .toc-title {
+:where([data-smart-toc-owned]).github-toc.theme-preset-default .toc-title, :where([data-smart-toc-owned]) .github-toc.theme-preset-default .toc-title {
   padding: 6px 12px;
   min-height: 44px;
 }
 
-.github-toc.theme-preset-rail.expanded {
+:where([data-smart-toc-owned]).github-toc.theme-preset-rail.expanded, :where([data-smart-toc-owned]) .github-toc.theme-preset-rail.expanded {
   opacity: 1;
 }
 
-.github-toc.theme-preview-sspai .toc-rail-link:focus-visible {
+:where([data-smart-toc-owned]).github-toc.theme-preview-sspai .toc-rail-link:focus-visible, :where([data-smart-toc-owned]) .github-toc.theme-preview-sspai .toc-rail-link:focus-visible {
   outline: 2px solid var(--toc-sspai-accent) !important;
   outline-offset: -2px;
 }
 
-.toc-spotlight-row.distance-0 .toc-spotlight-text {
+:where([data-smart-toc-owned]).toc-spotlight-row.distance-0 .toc-spotlight-text, :where([data-smart-toc-owned]) .toc-spotlight-row.distance-0 .toc-spotlight-text {
   color: var(--toc-rail-label-active) !important;
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .github-toc, .github-toc *, .github-sst, .github-sst *,
-  .toc-rail-preview, .toc-rail-preview *, .toc-spotlight-layer *,
-  .toc-gpt-preview, .toc-gpt-preview * {
+  :where([data-smart-toc-owned]).github-toc, :where([data-smart-toc-owned]) .github-toc, :where([data-smart-toc-owned]).github-toc *, :where([data-smart-toc-owned]) .github-toc *, :where([data-smart-toc-owned]).github-sst, :where([data-smart-toc-owned]) .github-sst, :where([data-smart-toc-owned]).github-sst *, :where([data-smart-toc-owned]) .github-sst *, :where([data-smart-toc-owned]).toc-rail-preview, :where([data-smart-toc-owned]) .toc-rail-preview, :where([data-smart-toc-owned]).toc-rail-preview *, :where([data-smart-toc-owned]) .toc-rail-preview *, :where([data-smart-toc-owned]).toc-spotlight-layer *, :where([data-smart-toc-owned]) .toc-spotlight-layer *, :where([data-smart-toc-owned]).toc-gpt-preview, :where([data-smart-toc-owned]) .toc-gpt-preview, :where([data-smart-toc-owned]).toc-gpt-preview *, :where([data-smart-toc-owned]) .toc-gpt-preview * {
     animation: none !important;
     transition: none !important;
     scroll-behavior: auto !important;
   }
 }
 
-.github-toc.theme-preset-default:not(.expanded) .toc-icon {
+:where([data-smart-toc-owned]).github-toc.theme-preset-default:not(.expanded) .toc-icon, :where([data-smart-toc-owned]) .github-toc.theme-preset-default:not(.expanded) .toc-icon {
   width: 44px !important;
   height: 44px !important;
   display: grid !important;
   place-items: center !important;
 }
 
-.github-toc.theme-preset-default .toc-icon svg {
+:where([data-smart-toc-owned]).github-toc.theme-preset-default .toc-icon svg, :where([data-smart-toc-owned]) .github-toc.theme-preset-default .toc-icon svg {
   width: 20px !important;
   height: 20px !important;
 }
 
-.github-toc.theme-preset-default.expanded .toc-icon {
+:where([data-smart-toc-owned]).github-toc.theme-preset-default.expanded .toc-icon, :where([data-smart-toc-owned]) .github-toc.theme-preset-default.expanded .toc-icon {
   pointer-events: none !important;
 }
 
-.github-toc .toc-close-button {
+:where([data-smart-toc-owned]).github-toc .toc-close-button, :where([data-smart-toc-owned]) .github-toc .toc-close-button {
   height: 32px;
   min-width: 40px;
   padding: 0 6px;
@@ -1716,33 +1818,33 @@
   cursor: pointer;
 }
 
-.github-toc .toc-close-button:hover {
+:where([data-smart-toc-owned]).github-toc .toc-close-button:hover, :where([data-smart-toc-owned]) .github-toc .toc-close-button:hover {
   background: var(--toc-highlight);
 }
 
-.github-toc .toc-close-button:focus-visible {
+:where([data-smart-toc-owned]).github-toc .toc-close-button:focus-visible, :where([data-smart-toc-owned]) .github-toc .toc-close-button:focus-visible {
   outline: 2px solid var(--toc-accent);
   outline-offset: 2px;
 }
 
 @media (max-width: 767px) {
-  .github-toc.theme-preset-default.position-right {
+  :where([data-smart-toc-owned]).github-toc.theme-preset-default.position-right, :where([data-smart-toc-owned]) .github-toc.theme-preset-default.position-right {
     right: 16px;
     left: auto;
   }
 
-  .github-toc.theme-preset-rail.position-right:not(.theme-preview-sspai) {
+  :where([data-smart-toc-owned]).github-toc.theme-preset-rail.position-right:not(.theme-preview-sspai), :where([data-smart-toc-owned]) .github-toc.theme-preset-rail.position-right:not(.theme-preview-sspai) {
     right: 6px;
   }
 }
 
 /* Task-specific reading modes: nearby context, search, and pinned margin. */
-.github-toc:not(.theme-preset-rail).expanded .toc-item a {
+:where([data-smart-toc-owned]).github-toc:not(.theme-preset-rail).expanded .toc-item a, :where([data-smart-toc-owned]) .github-toc:not(.theme-preset-rail).expanded .toc-item a {
   white-space: normal;
   overflow-wrap: anywhere;
   line-height: 1.5;
 }
-.toc-spotlight-row .toc-spotlight-text {
+:where([data-smart-toc-owned]).toc-spotlight-row .toc-spotlight-text, :where([data-smart-toc-owned]) .toc-spotlight-row .toc-spotlight-text {
   display: -webkit-box;
   -webkit-box-orient: vertical;
   -webkit-line-clamp: 2;
@@ -1751,13 +1853,13 @@
   max-height: 48px;
   background: var(--toc-rail-preview-bg, var(--toc-bg-fallback));
 }
-.toc-spotlight-row.distance-1 {
+:where([data-smart-toc-owned]).toc-spotlight-row.distance-1, :where([data-smart-toc-owned]) .toc-spotlight-row.distance-1 {
   --toc-spotlight-label-opacity: 0.9;
   --toc-spotlight-label-scale: 1;
 }
-.toc-gpt-preview { border-radius: 12px; }
-.toc-gpt-preview-header { gap: 8px; padding: 6px 2px; }
-.toc-gpt-preview .toc-gpt-search {
+:where([data-smart-toc-owned]).toc-gpt-preview, :where([data-smart-toc-owned]) .toc-gpt-preview { border-radius: 12px; }
+:where([data-smart-toc-owned]).toc-gpt-preview-header, :where([data-smart-toc-owned]) .toc-gpt-preview-header { gap: 8px; padding: 6px 2px; }
+:where([data-smart-toc-owned]).toc-gpt-preview .toc-gpt-search, :where([data-smart-toc-owned]) .toc-gpt-preview .toc-gpt-search {
   box-sizing: border-box;
   display: block;
   width: 100%;
@@ -1772,20 +1874,22 @@
   font: 13px/1.4 -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif !important;
   box-shadow: none;
 }
-.toc-gpt-search::placeholder { color: var(--toc-rail-label); opacity: 1; }
-.toc-gpt-search:focus-visible { outline: 2px solid var(--toc-accent); outline-offset: 1px; }
-.toc-gpt-preview-count { flex-shrink: 0; border: 0; padding: 0 4px; }
-.toc-gpt-preview-row[hidden], .toc-gpt-empty[hidden] { display: none !important; }
-.toc-gpt-preview-text { white-space: normal; overflow-wrap: anywhere; }
-.toc-gpt-preview-row.is-current { background: color-mix(in srgb, currentColor 7%, transparent); }
-.toc-gpt-preview .toc-gpt-empty {
+:where([data-smart-toc-owned]).toc-gpt-search::placeholder, :where([data-smart-toc-owned]) .toc-gpt-search::placeholder { color: var(--toc-rail-label); opacity: 1; }
+:where([data-smart-toc-owned]).toc-gpt-search:focus-visible, :where([data-smart-toc-owned]) .toc-gpt-search:focus-visible { outline: 2px solid var(--toc-accent); outline-offset: 1px; }
+:where([data-smart-toc-owned]).toc-gpt-preview-count, :where([data-smart-toc-owned]) .toc-gpt-preview-count { flex-shrink: 0; border: 0; padding: 0 4px; }
+:where([data-smart-toc-owned]).toc-gpt-preview-row[hidden], :where([data-smart-toc-owned]) .toc-gpt-preview-row[hidden], :where([data-smart-toc-owned]).toc-gpt-empty[hidden], :where([data-smart-toc-owned]) .toc-gpt-empty[hidden] { display: none !important; }
+:where([data-smart-toc-owned]).toc-gpt-preview-text, :where([data-smart-toc-owned]) .toc-gpt-preview-text { white-space: normal; overflow-wrap: anywhere; }
+:where([data-smart-toc-owned]).toc-gpt-preview-row.is-current, :where([data-smart-toc-owned]) .toc-gpt-preview-row.is-current { background: color-mix(in srgb, currentColor 7%, transparent); }
+:where([data-smart-toc-owned]).toc-gpt-preview .toc-gpt-empty, :where([data-smart-toc-owned]) .toc-gpt-preview .toc-gpt-empty {
   margin: 0;
   padding: 20px 10px;
   color: var(--toc-rail-label-active);
   font: 13px/1.6 -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
 }
-.github-toc.theme-preset-rail.theme-preview-sspai.expanded .toc-rail-label,
-.github-toc.theme-preset-rail.theme-preview-sspai.is-directory-pinned .toc-rail-label {
+:where([data-smart-toc-owned]).github-toc.theme-preset-rail.theme-preview-sspai.expanded .toc-rail-label,
+:where([data-smart-toc-owned]) .github-toc.theme-preset-rail.theme-preview-sspai.expanded .toc-rail-label,
+:where([data-smart-toc-owned]).github-toc.theme-preset-rail.theme-preview-sspai.is-directory-pinned .toc-rail-label,
+:where([data-smart-toc-owned]) .github-toc.theme-preset-rail.theme-preview-sspai.is-directory-pinned .toc-rail-label {
   height: auto;
   min-height: 33px;
   padding-block: 6px;
@@ -1796,29 +1900,29 @@
 
 /* With no article gutter, expand the scroll viewport itself so titles cannot
    be clipped by the narrow idle rail. Keep the ticks at the outer edge. */
-.github-toc.theme-preset-rail.theme-preview-sspai[data-sspai-anchor="viewport-edge"]:is(.expanded, .is-directory-pinned) {
+:where([data-smart-toc-owned]).github-toc.theme-preset-rail.theme-preview-sspai[data-sspai-anchor="viewport-edge"]:is(.expanded, .is-directory-pinned), :where([data-smart-toc-owned]) .github-toc.theme-preset-rail.theme-preview-sspai[data-sspai-anchor="viewport-edge"]:is(.expanded, .is-directory-pinned) {
   width: min(252px, calc(100vw - 48px));
 }
-.github-toc.theme-preset-rail.theme-preview-sspai[data-sspai-anchor="viewport-edge"] .toc-list {
+:where([data-smart-toc-owned]).github-toc.theme-preset-rail.theme-preview-sspai[data-sspai-anchor="viewport-edge"] .toc-list, :where([data-smart-toc-owned]) .github-toc.theme-preset-rail.theme-preview-sspai[data-sspai-anchor="viewport-edge"] .toc-list {
   padding-inline: 6px;
 }
-.github-toc.theme-preset-rail.theme-preview-sspai[data-sspai-anchor="viewport-edge"].position-right .toc-rail-link {
+:where([data-smart-toc-owned]).github-toc.theme-preset-rail.theme-preview-sspai[data-sspai-anchor="viewport-edge"].position-right .toc-rail-link, :where([data-smart-toc-owned]) .github-toc.theme-preset-rail.theme-preview-sspai[data-sspai-anchor="viewport-edge"].position-right .toc-rail-link {
   flex-direction: row-reverse;
 }
-.github-toc.theme-preset-rail.theme-preview-sspai[data-sspai-anchor="viewport-edge"].position-left .toc-rail-link {
+:where([data-smart-toc-owned]).github-toc.theme-preset-rail.theme-preview-sspai[data-sspai-anchor="viewport-edge"].position-left .toc-rail-link, :where([data-smart-toc-owned]) .github-toc.theme-preset-rail.theme-preview-sspai[data-sspai-anchor="viewport-edge"].position-left .toc-rail-link {
   flex-direction: row;
 }
-.github-toc.theme-preset-rail.theme-preview-sspai[data-sspai-anchor="viewport-edge"]:is(.expanded, .is-directory-pinned) .toc-rail-link {
+:where([data-smart-toc-owned]).github-toc.theme-preset-rail.theme-preview-sspai[data-sspai-anchor="viewport-edge"]:is(.expanded, .is-directory-pinned) .toc-rail-link, :where([data-smart-toc-owned]) .github-toc.theme-preset-rail.theme-preview-sspai[data-sspai-anchor="viewport-edge"]:is(.expanded, .is-directory-pinned) .toc-rail-link {
   width: 100%;
   margin-left: 0;
 }
-.github-toc.theme-preset-rail.theme-preview-sspai[data-sspai-anchor="viewport-edge"]:is(.expanded, .is-directory-pinned) .toc-rail-label {
+:where([data-smart-toc-owned]).github-toc.theme-preset-rail.theme-preview-sspai[data-sspai-anchor="viewport-edge"]:is(.expanded, .is-directory-pinned) .toc-rail-label, :where([data-smart-toc-owned]) .github-toc.theme-preset-rail.theme-preview-sspai[data-sspai-anchor="viewport-edge"]:is(.expanded, .is-directory-pinned) .toc-rail-label {
   flex: 1;
   width: auto;
   max-width: none;
   padding-inline: 12px;
 }
-.github-toc.theme-preset-rail.theme-preview-sspai[data-sspai-anchor="viewport-edge"]:is(.expanded, .is-directory-pinned) .toc-list {
+:where([data-smart-toc-owned]).github-toc.theme-preset-rail.theme-preview-sspai[data-sspai-anchor="viewport-edge"]:is(.expanded, .is-directory-pinned) .toc-list, :where([data-smart-toc-owned]) .github-toc.theme-preset-rail.theme-preview-sspai[data-sspai-anchor="viewport-edge"]:is(.expanded, .is-directory-pinned) .toc-list {
   background: var(--toc-rail-preview-bg);
   border-radius: 8px;
 }

@@ -1,6 +1,6 @@
 # Chrome Web Store Listing Copy
 
-> Updated: 2026-09-05 for v2.18
+> Updated: 2026-09-08 for v2.19
 > Use for Chrome Web Store title, short description, long description, screenshot captions, and release notes.
 
 ## Positioning
@@ -98,6 +98,14 @@ The article is original sample content rendered with the actual v2.18 content sc
 ## Privacy Note
 
 Smart TOC & Scroll does not upload page content or collect browsing history. Outline detection and interactions run locally, and preferences are stored in the browser.
+
+## Release Note — v2.19
+
+Improves compatibility and reduces interference with the page: isolated extension styles, unchanged article anchors, faster startup scans, lighter theme observation, and reliable SPA and back/forward restoration. Removes redundant permissions, limits automatic injection to HTTP/HTTPS, and clarifies local processing and Chrome Sync preferences. Requires Chrome 111 or later.
+
+## 中文更新说明 — v2.19
+
+进一步降低对网页的干扰：隔离扩展样式，不再修改文章标题锚点，减少启动重复扫描和主题监听，改善 SPA 与前进/后退缓存恢复。移除冗余权限，仅在 HTTP/HTTPS 网页自动运行，并明确本地处理及 Chrome Sync 设置同步说明。最低支持 Chrome 111。
 
 ## Release Note — v2.18
 

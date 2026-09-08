@@ -14,6 +14,8 @@
   let contentContainer = null;
   let headerCount = 0;
   let currentHeaders = [];
+  const headingTokens = new WeakMap();
+  let headingSequence = 0;
   let reinitializeTimer = null;
   let lastActiveHeaderId = null;
   let lastRenderedTocSignature = '';
@@ -70,6 +72,7 @@
   let shouldShowIconHint = true;
   let lastSkipDecision = null;
   let lastTocVisibility = null;
+  let lifecycleReady = false;
 
   const defaultSettings = {
     themePreset: 'default',
@@ -148,7 +151,7 @@
     if (!settings.disabledDomains || settings.disabledDomains.length === 0) {
       return false;
     }
-    return settings.disabledDomains.includes(window.location.hostname);
+    return matchesConfiguredHost(window.location.hostname, settings.disabledDomains);
   }
 
   function matchesConfiguredHost(hostname, configuredHosts) {
@@ -504,6 +507,7 @@
         return;
       }
       chrome.storage.sync.get(defaultSettings, (items) => {
+        if (chrome.runtime?.lastError) { resolve({ ...defaultSettings }); return; }
         resolve(items || { ...defaultSettings });
       });
     });
@@ -517,6 +521,7 @@
       }
 
       chrome.storage.local.get({ tocHintDismissed: false }, (items) => {
+        if (chrome.runtime?.lastError) { resolve({ tocHintDismissed: false }); return; }
         resolve(items || { tocHintDismissed: false });
       });
     });
@@ -529,7 +534,7 @@
       iconContainer.setAttribute('data-label', '');
     }
     if (typeof chrome !== 'undefined' && chrome.storage && chrome.storage.local) {
-      chrome.storage.local.set({ tocHintDismissed: true });
+      chrome.storage.local.set({ tocHintDismissed: true }, () => { void chrome.runtime?.lastError; });
     }
   }
 
@@ -744,6 +749,7 @@
     tocContainer.setAttribute('aria-expanded', 'false');
     tocContainer.setAttribute('data-pinned', 'false');
     document.body.appendChild(tocContainer);
+    tocContainer.setAttribute('data-smart-toc-owned', '');
 
     bindTocKeyboardNavigation();
     tocContainer.addEventListener('focusin', (event) => {
@@ -952,18 +958,6 @@
     }
 
     return true;
-  }
-
-  function debounce(func, wait) {
-    let timeout;
-    return function executedFunction(...args) {
-      const later = () => {
-        clearTimeout(timeout);
-        func(...args);
-      };
-      clearTimeout(timeout);
-      timeout = setTimeout(later, wait);
-    };
   }
 
   function clampNumber(value, min, max) {
@@ -1480,24 +1474,16 @@
     return 5;
   }
 
-  function ensureHeaderId(header, text) {
-    if (!header.id) {
-      // Preserve non-Latin titles and disambiguate repeated headings.
-      const baseId = text.normalize('NFKC').toLowerCase()
-        .replace(/[^\p{L}\p{N}_-]+/gu, '-').replace(/^-+|-+$/g, '') || 'section';
-      let candidate = baseId;
-      let suffix = 2;
-      while (document.getElementById(candidate)) candidate = `${baseId}-${suffix++}`;
-      header.id = candidate;
-    }
-    return header.id;
+  function getHeadingToken(header, text) {
+    if (!headingTokens.has(header)) headingTokens.set(header, `smart-toc-heading-${++headingSequence}`);
+    return headingTokens.get(header);
   }
 
   function getHeadersSignature(headers) {
     return headers
       .map((header) => {
         const text = header.textContent.trim();
-        const id = ensureHeaderId(header, text || 'section');
+        const id = getHeadingToken(header, text || 'section');
         const level = getHeaderLevel(header);
         return `${id}|${level}|${text}`;
       })
@@ -1519,9 +1505,9 @@
   }
 
   function buildTocItemLink(header, text) {
-    const headerId = ensureHeaderId(header, text);
+    const headerId = getHeadingToken(header, text);
     const a = document.createElement('a');
-    a.href = `#${headerId}`;
+    a.href = header.id ? `#${encodeURIComponent(header.id)}` : '#';
 
     if (isRailPreset()) {
       a.className = 'toc-rail-link';
@@ -1679,7 +1665,7 @@
         .sort((a, b) => Math.abs(a.boundingClientRect.top) - Math.abs(b.boundingClientRect.top));
 
       if (visibleCandidates.length > 0) {
-        observerActiveHeaderId = visibleCandidates[0].target.id || null;
+        observerActiveHeaderId = getHeadingToken(visibleCandidates[0].target);
         if (observerActiveHeaderId) {
           syncActiveTocItem(observerActiveHeaderId);
         }
@@ -1837,14 +1823,14 @@
     if (!headers || headers.length === 0) return;
 
     const heldHeader = activeHeaderHoldUntil > Date.now() && activeHeaderHoldId
-      ? document.getElementById(activeHeaderHoldId)
+      ? headers.find(header => headingTokens.get(header) === activeHeaderHoldId)
       : null;
-    const observerHeader = observerActiveHeaderId ? document.getElementById(observerActiveHeaderId) : null;
+    const observerHeader = observerActiveHeaderId ? headers.find(header => headingTokens.get(header) === observerActiveHeaderId) : null;
     const activeHeader = heldHeader || observerHeader || findActiveHeaderByScrollPosition(headers);
 
     // 更新目录项的高亮状态及 aria-current
     if (activeHeader) {
-      syncActiveTocItem(activeHeader.id);
+      syncActiveTocItem(getHeadingToken(activeHeader));
     }
   }
 
@@ -1872,6 +1858,7 @@
       if (!shouldShow) closePanel();
       if (tocContainer) {
         tocContainer.style.display = shouldShow ? 'flex' : 'none';
+        document.dispatchEvent(new Event('smart-toc-visibility'));
       }
       if (scrollTopButton) {
         scrollTopButton.classList.toggle('visible', shouldShow);
@@ -1915,7 +1902,7 @@
       observer.disconnect();
     }
 
-    observer = new MutationObserver(debounce((mutations) => {
+    observer = new MutationObserver((mutations) => {
       let shouldUpdate = false;
 
       if (checkUrlChange()) {
@@ -1923,6 +1910,9 @@
       }
 
       for (const mutation of mutations) {
+        const target = mutation.target instanceof Element ? mutation.target : mutation.target.parentElement;
+        if (target?.closest('[data-smart-toc-owned]')) continue;
+        if (target?.closest('h1, h2, h3, h4, h5, h6')) shouldUpdate = true;
         if (mutation.type !== 'childList') {
           continue;
         }
@@ -1954,11 +1944,12 @@
       if (shouldUpdate) {
         scheduleReinitialize(120);
       }
-    }, 250));
+    });
 
-    observer.observe(contentContainer || document.body, {
+    observer.observe(document.body, {
       childList: true,
-      subtree: true
+      subtree: true,
+      characterData: true
     });
 
     updateTOC();
@@ -1988,27 +1979,20 @@
 
   function setupHistoryListener() {
     window.addEventListener('popstate', () => scheduleReinitialize(120));
-
-    const originalPushState = history.pushState;
-    const originalReplaceState = history.replaceState;
-
-    history.pushState = function() {
-      originalPushState.apply(this, arguments);
-      scheduleReinitialize(120);
-    };
-
-    history.replaceState = function() {
-      originalReplaceState.apply(this, arguments);
-      scheduleReinitialize(120);
-    };
+    window.navigation?.addEventListener('currententrychange', () => scheduleReinitialize(120));
   }
 
   function reinitializeTOC() {
     return measurePerformance('tocGeneration', () => {
-      ensureUiMounted();
       const nextContainer = findContentContainer();
       const containerChanged = nextContainer !== contentContainer;
       contentContainer = nextContainer;
+      if (isDomainDisabled()) return;
+      if (!tocContainer) {
+        start();
+        return;
+      }
+      ensureUiMounted();
       updateSspaiRailAnchor();
 
       if (containerChanged || !observer) {
@@ -2023,9 +2007,6 @@
     contentContainer = findContentContainer();
     updateSspaiRailAnchor();
     setupObserver();
-    setupHistoryListener();
-    setupGitHubListener();
-    setupNavigationLifecycleListeners();
     setupPerformanceStats();
   }
 
@@ -2863,16 +2844,21 @@
   }
 
   function start() {
-    const legacyScrollTopButton = document.getElementById('github-sst');
-    if (legacyScrollTopButton) {
-      legacyScrollTopButton.remove();
-    }
     recordSkipDecision(null);
     if (isDomainDisabled()) {
       return;
     }
+    contentContainer = findContentContainer();
+    if (!lifecycleReady) {
+      lifecycleReady = true;
+      setupHistoryListener();
+      setupGitHubListener();
+      setupNavigationLifecycleListeners();
+      window.addEventListener('pagehide', cleanup);
+    }
     const skipDecision = getSkipInjectionDecision();
     if (skipDecision) {
+      setupObserver();
       recordSkipDecision(skipDecision);
       console.info('[Smart TOC & Scroll] Skip injection because existing widget was detected.', {
         type: skipDecision.type,
@@ -2885,9 +2871,10 @@
     createUI();
     setupInteractions();
     initialize();
+    [tocContainer, scrollTopButton, tocSpotlightLayer, tocGptPreview].forEach(element => element?.setAttribute('data-smart-toc-owned', ''));
+    document.dispatchEvent(new Event('smart-toc-mounted'));
     updateVisibility();
     scheduleAdaptiveRailThemeUpdate(true);
-    window.addEventListener('unload', cleanup);
   }
 
   loadSettings()

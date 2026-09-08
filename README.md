@@ -2,7 +2,27 @@
 
 一个面向长文与文档站点的 Chrome 扩展，为网页提供轻量阅读导航。提供`标准面板`与`边缘导航`两种入口；边缘导航分为`邻节预览`、`检索目录`和`页边大纲`，按阅读任务选择。扩展支持主题自适应、hover 标题预览、已有控件避让与 SPA 页面更新，并提供平滑回顶能力。
 
-当前源码版本：`2.18`（Manifest V3）。商店实际版本以商店页面为准。
+当前源码版本：`2.19`（Manifest V3）。商店实际版本以商店页面为准。
+
+## 架构与验证
+
+最低支持 Chrome 111。扩展运行时无第三方依赖、无需后台 Service Worker；`catalog.js` 负责目录与生命周期，`theme.js` 负责页面配色适配，`options.js` 管理设置。官网依赖独立放在 `website/`，根目录 Playwright 仅用于开发回归，不进入扩展 ZIP。
+
+仅申请 `storage` 权限；声明式内容脚本在 HTTP/HTTPS 网页运行，用户可通过 Chrome 网站访问设置限制范围。样式选择器限定在 `data-smart-toc-owned` 根节点内；标题关联使用 WeakMap，不修改文章 ID。路由恢复依靠 Navigation API、DOM 变化和页面生命周期事件，不改写宿主页 History API。主题监听仅观察 html/body 的 class/style，隐藏时停止。
+
+开发验证（Node.js 22）：
+
+```sh
+npm ci --ignore-scripts
+npx playwright install chromium
+npm run check
+cd website
+npm ci --ignore-scripts
+npm run check
+npm audit --audit-level=moderate
+```
+
+回归直接加载发布 ZIP，覆盖四种模式、宿主样式/锚点保护、搜索键盘操作、SPA、标题变更、窄屏截图、BFCache 恢复、禁用域名和设置保存。截图路径随测试输出。自动化样例不等同于所有第三方网站兼容性认证。
 
 官方网站：[https://oiahoon.github.io/scroll-to-github-top/](https://oiahoon.github.io/scroll-to-github-top/)
 
