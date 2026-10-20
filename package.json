@@ -7,5 +7,5 @@
     "test": "node scripts/test-extension.mjs",
     "check": "bash scripts/validate_package.sh && npm test"
   },
-  "devDependencies": { "playwright": "^1.58.2" }
+  "devDependencies": { "playwright": "^1.64.1" }
 }
